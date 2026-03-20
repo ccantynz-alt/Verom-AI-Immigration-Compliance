@@ -42,7 +42,7 @@ class TestFrontend(_ResetMixin):
     def test_serve_index(self):
         resp = client.get("/")
         assert resp.status_code == 200
-        assert "ImmigrationAI" in resp.text
+        assert "Verom" in resp.text
 
 
 class TestEmployeeEndpoints(_ResetMixin):

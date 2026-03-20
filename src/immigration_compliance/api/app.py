@@ -37,8 +37,8 @@ _root = Path(__file__).resolve().parent.parent.parent.parent
 _frontend_dir = _root / "frontend"
 
 app = FastAPI(
-    title="AI Immigration Compliance",
-    description="AI-powered immigration compliance monitoring and risk assessment",
+    title="Verom.ai",
+    description="AI-powered student visa applications and immigration attorney matching",
     version="0.1.0",
 )
 
@@ -88,14 +88,14 @@ def serve_landing() -> HTMLResponse:
     landing_path = _frontend_dir / "landing.html"
     if landing_path.exists():
         return HTMLResponse(content=landing_path.read_text())
-    return HTMLResponse(content="<h1>ImmigrationAI</h1><p>Landing page not found.</p>")
+    return HTMLResponse(content="<h1>Verom.ai</h1><p>Landing page not found.</p>")
 
 @app.get("/app", response_class=HTMLResponse)
 def serve_app() -> HTMLResponse:
     index_path = _frontend_dir / "index.html"
     if index_path.exists():
         return HTMLResponse(content=index_path.read_text())
-    return HTMLResponse(content="<h1>ImmigrationAI</h1><p>App not found.</p>")
+    return HTMLResponse(content="<h1>Verom.ai</h1><p>App not found.</p>")
 
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:

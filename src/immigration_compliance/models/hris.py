@@ -37,7 +37,7 @@ class SyncDirection(str, Enum):
 
 
 class FieldMapping(BaseModel):
-    """Mapping between HRIS field and ImmigrationAI field."""
+    """Mapping between HRIS field and Verom.ai field."""
 
     hris_field: str
     immigration_field: str

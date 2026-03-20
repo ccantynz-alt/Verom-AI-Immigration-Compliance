@@ -1,5 +1,5 @@
 /**
- * API client for ImmigrationAI backend
+ * API client for Verom.ai backend
  */
 
 const API = {
