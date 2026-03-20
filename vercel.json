@@ -1,31 +1,34 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "frontend/**",
-      "use": "@vercel/static"
+  "buildCommand": "",
+  "outputDirectory": "",
+  "framework": null,
+  "functions": {
+    "api/index.py": {
+      "runtime": "@vercel/python@4.5.0",
+      "maxDuration": 30
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/static/(.*)",
-      "dest": "/frontend/$1"
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
+      "source": "/health",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/health",
-      "dest": "/api/index.py"
+      "source": "/static/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/(.*)",
-      "dest": "/api/index.py"
+      "source": "/app",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.py"
     }
   ]
 }
