@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImmigrationAI - Compliance Monitoring & Risk Assessment</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">&#9878;</span>
+                <span class="brand-text">Immigration<span class="brand-highlight">AI</span></span>
+            </div>
+            <div class="nav-links" id="navLinks">
+                <a href="#" class="nav-link active" data-page="dashboard">Dashboard</a>
+                <a href="#" class="nav-link" data-page="employees">Employees</a>
+                <a href="#" class="nav-link" data-page="compliance">Compliance</a>
+                <a href="#" class="nav-link" data-page="cases">Cases</a>
+                <a href="#" class="nav-link" data-page="reports">Reports</a>
+                <a href="#" class="nav-link" data-page="alerts">Alerts</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn btn-icon" id="notificationBtn" title="Notifications">
+                    <span class="notification-icon">&#128276;</span>
+                    <span class="notification-badge" id="notifBadge">0</span>
+                </button>
+                <button class="btn btn-primary btn-sm" id="addEmployeeBtn">+ Add Employee</button>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+
+        <!-- Dashboard Page -->
+        <div class="page active" id="page-dashboard">
+            <div class="page-header">
+                <div>
+                    <h1>Compliance Dashboard</h1>
+                    <p class="page-subtitle">Real-time overview of your organization's immigration compliance status</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-outline" id="refreshDashboard">&#8635; Refresh</button>
+                    <button class="btn btn-primary" id="runFullScan">Run Full Scan</button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card stat-total">
+                    <div class="stat-icon">&#128101;</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statTotal">0</span>
+                        <span class="stat-label">Total Employees</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-compliant">
+                    <div class="stat-icon">&#9989;</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statCompliant">0</span>
+                        <span class="stat-label">Fully Compliant</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-warning">
+                    <div class="stat-icon">&#9888;&#65039;</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statExpiring">0</span>
+                        <span class="stat-label">Expiring Soon</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-critical">
+                    <div class="stat-icon">&#128680;</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statNonCompliant">0</span>
+                        <span class="stat-label">Non-Compliant</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compliance Rate Bar -->
+            <div class="compliance-meter">
+                <div class="meter-header">
+                    <h3>Organization Compliance Rate</h3>
+                    <span class="meter-value" id="complianceRate">100%</span>
+                </div>
+                <div class="meter-bar">
+                    <div class="meter-fill" id="complianceFill" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Recent Alerts -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Alerts</h3>
+                        <a href="#" class="card-link" data-page="alerts">View All</a>
+                    </div>
+                    <div class="card-body" id="recentAlerts">
+                        <div class="empty-state">
+                            <span class="empty-icon">&#9989;</span>
+                            <p>No alerts. All employees are compliant.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Expirations -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Upcoming Expirations</h3>
+                        <a href="#" class="card-link" data-page="employees">View All</a>
+                    </div>
+                    <div class="card-body" id="upcomingExpirations">
+                        <div class="empty-state">
+                            <span class="empty-icon">&#128197;</span>
+                            <p>No upcoming expirations in the next 90 days.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visa Distribution -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Visa Type Distribution</h3>
+                    </div>
+                    <div class="card-body" id="visaDistribution">
+                        <div class="empty-state">
+                            <span class="empty-icon">&#128202;</span>
+                            <p>Add employees to see visa distribution.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Summary -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Risk Summary</h3>
+                    </div>
+                    <div class="card-body" id="riskSummary">
+                        <div class="risk-bars">
+                            <div class="risk-row">
+                                <span class="risk-label">Critical</span>
+                                <div class="risk-bar"><div class="risk-fill critical" style="width: 0%" id="riskCritical"></div></div>
+                                <span class="risk-count" id="riskCriticalCount">0</span>
+                            </div>
+                            <div class="risk-row">
+                                <span class="risk-label">High</span>
+                                <div class="risk-bar"><div class="risk-fill high" style="width: 0%" id="riskHigh"></div></div>
+                                <span class="risk-count" id="riskHighCount">0</span>
+                            </div>
+                            <div class="risk-row">
+                                <span class="risk-label">Medium</span>
+                                <div class="risk-bar"><div class="risk-fill medium" style="width: 0%" id="riskMedium"></div></div>
+                                <span class="risk-count" id="riskMediumCount">0</span>
+                            </div>
+                            <div class="risk-row">
+                                <span class="risk-label">Low</span>
+                                <div class="risk-bar"><div class="risk-fill low" style="width: 0%" id="riskLow"></div></div>
+                                <span class="risk-count" id="riskLowCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employees Page -->
+        <div class="page" id="page-employees">
+            <div class="page-header">
+                <div>
+                    <h1>Employee Management</h1>
+                    <p class="page-subtitle">Track and manage immigration records for all employees</p>
+                </div>
+                <div class="page-actions">
+                    <div class="search-box">
+                        <input type="text" id="employeeSearch" placeholder="Search employees..." class="input">
+                    </div>
+                    <select id="visaFilter" class="input">
+                        <option value="">All Visa Types</option>
+                        <option value="H-1B">H-1B</option>
+                        <option value="H-1B1">H-1B1</option>
+                        <option value="L-1A">L-1A</option>
+                        <option value="L-1B">L-1B</option>
+                        <option value="O-1">O-1</option>
+                        <option value="TN">TN</option>
+                        <option value="E-1">E-1</option>
+                        <option value="E-2">E-2</option>
+                        <option value="E-3">E-3</option>
+                        <option value="J-1">J-1</option>
+                        <option value="F-1 OPT">F-1 OPT</option>
+                        <option value="F-1 STEM OPT">F-1 STEM OPT</option>
+                        <option value="EAD">EAD</option>
+                        <option value="Green Card">Green Card</option>
+                        <option value="US Citizen">US Citizen</option>
+                    </select>
+                    <button class="btn btn-primary" id="addEmployeeBtnPage">+ Add Employee</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="employeeTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Visa Type</th>
+                            <th>Status</th>
+                            <th>Expiration</th>
+                            <th>I-9</th>
+                            <th>Risk</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody">
+                    </tbody>
+                </table>
+                <div class="empty-state" id="employeeEmptyState">
+                    <span class="empty-icon">&#128101;</span>
+                    <h3>No employees yet</h3>
+                    <p>Add your first employee to start tracking immigration compliance.</p>
+                    <button class="btn btn-primary" id="addFirstEmployee">+ Add First Employee</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compliance Page -->
+        <div class="page" id="page-compliance">
+            <div class="page-header">
+                <div>
+                    <h1>Compliance Checker</h1>
+                    <p class="page-subtitle">Run compliance checks and view detailed violation reports</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" id="runComplianceCheck">&#9889; Run Full Compliance Check</button>
+                </div>
+            </div>
+
+            <!-- Compliance Rules Overview -->
+            <div class="rules-grid">
+                <div class="rule-card">
+                    <div class="rule-icon">&#128197;</div>
+                    <h4>Visa Expiration</h4>
+                    <p>Monitors visa expiration dates with tiered alerts at 90, 30, and 0 days</p>
+                    <span class="rule-id">VISA_EXP_001</span>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">&#128203;</div>
+                    <h4>I-9 Compliance</h4>
+                    <p>Tracks I-9 form completion and reverification deadlines</p>
+                    <span class="rule-id">I9_001</span>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">&#128176;</div>
+                    <h4>Wage Compliance</h4>
+                    <p>Validates LCA prevailing wage requirements for H-1B and related visas</p>
+                    <span class="rule-id">WAGE_001</span>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">&#128274;</div>
+                    <h4>Work Authorization</h4>
+                    <p>Detects gaps in work authorization and expired permits</p>
+                    <span class="rule-id">AUTH_GAP_001</span>
+                </div>
+            </div>
+
+            <!-- Violations List -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Compliance Violations</h3>
+                    <div class="filter-group">
+                        <select id="violationFilter" class="input input-sm">
+                            <option value="">All Levels</option>
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body" id="violationsList">
+                    <div class="empty-state">
+                        <span class="empty-icon">&#128270;</span>
+                        <p>Run a compliance check to see violations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cases Page -->
+        <div class="page" id="page-cases">
+            <div class="page-header">
+                <div>
+                    <h1>Case Tracker</h1>
+                    <p class="page-subtitle">Track immigration petitions and case statuses</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" id="addCaseBtn">+ New Case</button>
+                </div>
+            </div>
+
+            <!-- Case Pipeline -->
+            <div class="pipeline">
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <h4>Draft</h4>
+                        <span class="stage-count" id="caseDraftCount">0</span>
+                    </div>
+                    <div class="stage-cards" id="caseDraft"></div>
+                </div>
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <h4>Filed</h4>
+                        <span class="stage-count" id="caseFiledCount">0</span>
+                    </div>
+                    <div class="stage-cards" id="caseFiled"></div>
+                </div>
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <h4>Pending</h4>
+                        <span class="stage-count" id="casePendingCount">0</span>
+                    </div>
+                    <div class="stage-cards" id="casePending"></div>
+                </div>
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <h4>RFE</h4>
+                        <span class="stage-count" id="caseRFECount">0</span>
+                    </div>
+                    <div class="stage-cards" id="caseRFE"></div>
+                </div>
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <h4>Approved</h4>
+                        <span class="stage-count" id="caseApprovedCount">0</span>
+                    </div>
+                    <div class="stage-cards" id="caseApproved"></div>
+                </div>
+            </div>
+
+            <div class="empty-state" id="casesEmptyState">
+                <span class="empty-icon">&#128194;</span>
+                <h3>No cases yet</h3>
+                <p>Create a case to start tracking immigration petitions.</p>
+                <button class="btn btn-primary" id="addFirstCase">+ Create First Case</button>
+            </div>
+        </div>
+
+        <!-- Reports Page -->
+        <div class="page" id="page-reports">
+            <div class="page-header">
+                <div>
+                    <h1>Reports & Analytics</h1>
+                    <p class="page-subtitle">Generate compliance reports and analyze trends</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-outline" id="exportReport">&#128229; Export CSV</button>
+                    <button class="btn btn-primary" id="generateReport">Generate Report</button>
+                </div>
+            </div>
+
+            <div class="reports-grid">
+                <div class="card report-card">
+                    <div class="card-header">
+                        <h3>Compliance Overview</h3>
+                    </div>
+                    <div class="card-body" id="reportOverview">
+                        <div class="report-metrics">
+                            <div class="report-metric">
+                                <span class="metric-value" id="reportTotal">0</span>
+                                <span class="metric-label">Total Tracked</span>
+                            </div>
+                            <div class="report-metric">
+                                <span class="metric-value good" id="reportCompliant">0</span>
+                                <span class="metric-label">Compliant</span>
+                            </div>
+                            <div class="report-metric">
+                                <span class="metric-value warning" id="reportExpiring">0</span>
+                                <span class="metric-label">Expiring 90d</span>
+                            </div>
+                            <div class="report-metric">
+                                <span class="metric-value danger" id="reportViolations">0</span>
+                                <span class="metric-label">Violations</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card report-card">
+                    <div class="card-header">
+                        <h3>Violation Breakdown</h3>
+                    </div>
+                    <div class="card-body" id="reportBreakdown">
+                        <div class="breakdown-list" id="violationBreakdown"></div>
+                    </div>
+                </div>
+
+                <div class="card report-card full-width">
+                    <div class="card-header">
+                        <h3>Employee Compliance Detail</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="data-table" id="reportTable">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Visa Type</th>
+                                    <th>Expiration</th>
+                                    <th>Violations</th>
+                                    <th>Highest Risk</th>
+                                    <th>Recommendation</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Page -->
+        <div class="page" id="page-alerts">
+            <div class="page-header">
+                <div>
+                    <h1>Alerts Center</h1>
+                    <p class="page-subtitle">Action items requiring immediate attention</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-outline" id="markAllRead">Mark All Resolved</button>
+                </div>
+            </div>
+
+            <div class="alerts-list" id="alertsList">
+                <div class="empty-state">
+                    <span class="empty-icon">&#128276;</span>
+                    <h3>No active alerts</h3>
+                    <p>All employees are in compliance. Alerts will appear here when issues are detected.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Employee Modal -->
+    <div class="modal-overlay" id="employeeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="employeeModalTitle">Add Employee</h2>
+                <button class="modal-close" id="closeEmployeeModal">&times;</button>
+            </div>
+            <form id="employeeForm" class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="empFirstName">First Name *</label>
+                        <input type="text" id="empFirstName" class="input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="empLastName">Last Name *</label>
+                        <input type="text" id="empLastName" class="input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="empEmail">Email *</label>
+                        <input type="email" id="empEmail" class="input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="empDepartment">Department</label>
+                        <input type="text" id="empDepartment" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label for="empJobTitle">Job Title</label>
+                        <input type="text" id="empJobTitle" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label for="empCitizenship">Country of Citizenship *</label>
+                        <input type="text" id="empCitizenship" class="input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="empVisaType">Visa Type *</label>
+                        <select id="empVisaType" class="input" required>
+                            <option value="">Select...</option>
+                            <option value="H-1B">H-1B</option>
+                            <option value="H-1B1">H-1B1</option>
+                            <option value="L-1A">L-1A</option>
+                            <option value="L-1B">L-1B</option>
+                            <option value="O-1">O-1</option>
+                            <option value="TN">TN</option>
+                            <option value="E-1">E-1</option>
+                            <option value="E-2">E-2</option>
+                            <option value="E-3">E-3</option>
+                            <option value="J-1">J-1</option>
+                            <option value="F-1 OPT">F-1 OPT</option>
+                            <option value="F-1 STEM OPT">F-1 STEM OPT</option>
+                            <option value="EAD">EAD</option>
+                            <option value="Green Card">Green Card</option>
+                            <option value="US Citizen">US Citizen</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="empVisaStatus">Visa Status</label>
+                        <select id="empVisaStatus" class="input">
+                            <option value="active">Active</option>
+                            <option value="expiring_soon">Expiring Soon</option>
+                            <option value="pending_renewal">Pending Renewal</option>
+                            <option value="pending_initial">Pending Initial</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="empVisaExpiration">Visa Expiration Date</label>
+                        <input type="date" id="empVisaExpiration" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label for="empWorkAuthStart">Work Auth Start</label>
+                        <input type="date" id="empWorkAuthStart" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label for="empWorkAuthEnd">Work Auth End</label>
+                        <input type="date" id="empWorkAuthEnd" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label for="empHireDate">Hire Date</label>
+                        <input type="date" id="empHireDate" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="empI9Completed">
+                            <span>I-9 Completed</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="empI9Expiration">I-9 Expiration Date</label>
+                        <input type="date" id="empI9Expiration" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label for="empActualWage">Actual Annual Wage ($)</label>
+                        <input type="number" id="empActualWage" class="input" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="empPrevailingWage">Prevailing Wage ($)</label>
+                        <input type="number" id="empPrevailingWage" class="input" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="empWorksiteCity">Worksite City</label>
+                        <input type="text" id="empWorksiteCity" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label for="empWorksiteState">Worksite State</label>
+                        <input type="text" id="empWorksiteState" class="input" maxlength="2" placeholder="e.g. CA">
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="empNotes">Notes</label>
+                    <textarea id="empNotes" class="input" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelEmployee">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveEmployee">Save Employee</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Case Modal -->
+    <div class="modal-overlay" id="caseModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="caseModalTitle">New Case</h2>
+                <button class="modal-close" id="closeCaseModal">&times;</button>
+            </div>
+            <form id="caseForm" class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="caseEmployee">Employee *</label>
+                        <select id="caseEmployee" class="input" required>
+                            <option value="">Select employee...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="caseType">Case Type *</label>
+                        <select id="caseType" class="input" required>
+                            <option value="">Select...</option>
+                            <option value="H-1B Initial">H-1B Initial</option>
+                            <option value="H-1B Extension">H-1B Extension</option>
+                            <option value="H-1B Transfer">H-1B Transfer</option>
+                            <option value="H-1B Amendment">H-1B Amendment</option>
+                            <option value="L-1 Initial">L-1 Initial</option>
+                            <option value="L-1 Extension">L-1 Extension</option>
+                            <option value="O-1 Petition">O-1 Petition</option>
+                            <option value="TN Application">TN Application</option>
+                            <option value="PERM">PERM Labor Certification</option>
+                            <option value="I-140">I-140 Immigrant Petition</option>
+                            <option value="I-485">I-485 Adjustment of Status</option>
+                            <option value="EAD Renewal">EAD Renewal</option>
+                            <option value="Advance Parole">Advance Parole</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="caseReceipt">Receipt Number</label>
+                        <input type="text" id="caseReceipt" class="input" placeholder="e.g. WAC-XX-XXX-XXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label for="caseStatus">Status</label>
+                        <select id="caseStatus" class="input">
+                            <option value="draft">Draft</option>
+                            <option value="filed">Filed</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="casePriorityDate">Priority Date</label>
+                        <input type="date" id="casePriorityDate" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label for="caseFiledDate">Filed Date</label>
+                        <input type="date" id="caseFiledDate" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label for="caseAttorneyName">Attorney Name</label>
+                        <input type="text" id="caseAttorneyName" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label for="caseAttorneyEmail">Attorney Email</label>
+                        <input type="email" id="caseAttorneyEmail" class="input">
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="caseNotes">Notes</label>
+                    <textarea id="caseNotes" class="input" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelCase">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Case</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
