@@ -57,6 +57,12 @@
             case 'cases': renderCases(); break;
             case 'reports': break;
             case 'alerts': renderAlerts(); break;
+            case 'documents': renderDocuments(); break;
+            case 'ice-audit': break;
+            case 'paf': renderPAFs(); break;
+            case 'regulatory': renderRegulatory(); break;
+            case 'global': renderGlobal(); break;
+            case 'integrations': renderIntegrations(); break;
         }
     }
 
@@ -722,6 +728,456 @@
     }
 
     // ========================================
+    // Documents Page
+    // ========================================
+
+    let documents = [];
+
+    async function renderDocuments() {
+        try { documents = await API.listDocuments(); } catch (e) { /* use cached */ }
+        const tbody = document.getElementById('docTableBody');
+        const table = document.getElementById('docTable');
+        const empty = document.getElementById('docEmptyState');
+        const search = (document.getElementById('docSearch').value || '').toLowerCase();
+        const catFilter = document.getElementById('docCategoryFilter').value;
+
+        let filtered = documents;
+        if (search) filtered = filtered.filter(d => d.title.toLowerCase().includes(search));
+        if (catFilter) filtered = filtered.filter(d => d.category === catFilter);
+
+        if (!filtered.length) { table.style.display = 'none'; empty.style.display = ''; return; }
+        table.style.display = ''; empty.style.display = 'none';
+
+        tbody.innerHTML = filtered.map(d => {
+            const emp = employees.find(e => e.id === d.employee_id);
+            const statusClass = d.status === 'active' ? 'success' : d.status === 'expired' ? 'danger' : 'gray';
+            return `<tr>
+                <td><strong>${escapeHtml(d.title)}</strong><br><small style="color:var(--gray-400)">${escapeHtml(d.file_name)}</small></td>
+                <td><span class="badge badge-info">${d.category.replace(/_/g,' ')}</span></td>
+                <td>${emp ? escapeHtml(emp.first_name + ' ' + emp.last_name) : d.employee_id}</td>
+                <td>${d.expiration_date || 'N/A'}</td>
+                <td><span class="badge badge-${statusClass}">${d.status}</span></td>
+                <td><button class="action-btn danger" onclick="App.deleteDoc('${d.id}')">Delete</button></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function openDocumentModal() {
+        const sel = document.getElementById('docEmployee');
+        sel.innerHTML = '<option value="">Select...</option>' + employees.map(e => `<option value="${e.id}">${escapeHtml(e.first_name + ' ' + e.last_name)}</option>`).join('');
+        document.getElementById('documentForm').reset();
+        document.getElementById('documentModal').classList.add('active');
+    }
+
+    async function saveDocument(e) {
+        e.preventDefault();
+        const doc = {
+            id: generateId(),
+            employee_id: document.getElementById('docEmployee').value,
+            category: document.getElementById('docCategory').value,
+            title: document.getElementById('docTitle').value.trim(),
+            file_name: document.getElementById('docFileName').value.trim(),
+            description: document.getElementById('docDescription').value.trim(),
+            expiration_date: document.getElementById('docExpiration').value || null,
+            issue_date: document.getElementById('docIssueDate').value || null,
+            document_number: document.getElementById('docNumber').value.trim(),
+            issuing_authority: document.getElementById('docAuthority').value.trim(),
+        };
+        try {
+            await API.createDocument(doc);
+            document.getElementById('documentModal').classList.remove('active');
+            renderDocuments();
+            showToast('Document uploaded', 'success');
+        } catch (err) { showToast('Failed: ' + err.message, 'error'); }
+    }
+
+    async function deleteDoc(id) {
+        if (!confirm('Delete this document?')) return;
+        try { await API.deleteDocument(id); renderDocuments(); showToast('Document deleted', 'success'); }
+        catch (err) { showToast('Failed: ' + err.message, 'error'); }
+    }
+
+    // ========================================
+    // ICE Audit Page
+    // ========================================
+
+    async function runICEAuditSim() {
+        try {
+            const report = await API.runICEAudit();
+            document.getElementById('iceResults').style.display = '';
+            document.getElementById('iceEmptyState').style.display = 'none';
+
+            const gradeEl = document.getElementById('iceGrade');
+            gradeEl.textContent = report.overall_grade;
+            gradeEl.style.color = {'A':'var(--success)','A-':'var(--success)','B+':'#2563eb','B-':'#2563eb','C':'var(--warning)','D':'var(--danger)','F':'var(--danger)','N/A':'var(--gray-400)'}[report.overall_grade] || 'var(--gray-700)';
+
+            document.getElementById('iceFines').textContent = '$' + report.total_potential_fines.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            document.getElementById('iceFindingsCount').textContent = report.findings.length;
+            document.getElementById('iceAudited').textContent = report.total_employees_audited;
+            document.getElementById('iceSummary').textContent = report.summary;
+
+            const findingsEl = document.getElementById('iceFindingsList');
+            if (!report.findings.length) {
+                findingsEl.innerHTML = '<div class="empty-state"><span class="empty-icon">&#9989;</span><p>No findings! Your organization is audit-ready.</p></div>';
+            } else {
+                findingsEl.innerHTML = report.findings.map(f => {
+                    const emp = employees.find(e => e.id === f.employee_id);
+                    const sevClass = {critical:'danger',major:'warning',minor:'info',observation:'gray'}[f.severity];
+                    return `<div class="violation-item">
+                        <div class="violation-indicator ${f.severity === 'critical' ? 'critical' : f.severity === 'major' ? 'high' : 'medium'}"></div>
+                        <div class="violation-content">
+                            <div class="violation-header">
+                                <span class="violation-title">${escapeHtml(f.description)}</span>
+                                <span class="badge badge-${sevClass}">${f.severity}</span>
+                            </div>
+                            <div class="violation-desc">${emp ? escapeHtml(emp.first_name + ' ' + emp.last_name) + ' | ' : ''}${escapeHtml(f.regulation_reference)}${f.potential_fine > 0 ? ' | Potential fine: $' + f.potential_fine.toLocaleString() : ''}</div>
+                            <div class="violation-recommendation">${escapeHtml(f.remediation_steps)}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            const recsEl = document.getElementById('iceRecommendations');
+            recsEl.innerHTML = report.recommendations.map(r => `<div style="padding:8px 0;border-bottom:1px solid var(--gray-100)">&#9679; ${escapeHtml(r)}</div>`).join('');
+
+            showToast(`Audit complete: Grade ${report.overall_grade}`, report.findings.length ? 'warning' : 'success');
+        } catch (err) { showToast('Audit failed: ' + err.message, 'error'); }
+    }
+
+    // ========================================
+    // PAF Page
+    // ========================================
+
+    let pafs = [];
+
+    async function renderPAFs() {
+        try { pafs = await API.listPAFs(); } catch (e) { /* cached */ }
+        const grid = document.getElementById('pafGrid');
+        const empty = document.getElementById('pafEmptyState');
+
+        if (!pafs.length) { grid.style.display = 'none'; empty.style.display = ''; return; }
+        grid.style.display = ''; empty.style.display = 'none';
+
+        grid.innerHTML = pafs.map(p => {
+            const emp = employees.find(e => e.id === p.employee_id);
+            const score = p.completeness_score || 0;
+            const statusClass = p.status === 'complete' ? 'success' : p.status === 'needs_review' ? 'warning' : 'danger';
+            return `<div class="card">
+                <div class="card-header">
+                    <h3>${emp ? escapeHtml(emp.first_name + ' ' + emp.last_name) : p.employee_id}</h3>
+                    <span class="badge badge-${statusClass}">${p.status.replace(/_/g,' ')}</span>
+                </div>
+                <div class="card-body">
+                    ${p.lca_number ? `<div style="font-size:13px;color:var(--gray-500);margin-bottom:8px">LCA: ${escapeHtml(p.lca_number)}</div>` : ''}
+                    <div class="meter-bar" style="margin-bottom:12px"><div class="meter-fill${score < 60 ? ' danger' : score < 100 ? ' warning' : ''}" style="width:${score}%"></div></div>
+                    <div style="font-size:13px;font-weight:600;margin-bottom:8px">${score.toFixed(0)}% Complete</div>
+                    <div style="font-size:13px">${(p.documents || []).map(d =>
+                        `<div style="padding:3px 0">${d.is_present ? '&#9989;' : '&#10060;'} ${d.title || d.document_type.replace(/_/g,' ')}</div>`
+                    ).join('')}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function openPafModal() {
+        const sel = document.getElementById('pafEmployee');
+        sel.innerHTML = '<option value="">Select...</option>' + employees.map(e => `<option value="${e.id}">${escapeHtml(e.first_name + ' ' + e.last_name)}</option>`).join('');
+        document.getElementById('pafForm').reset();
+        document.getElementById('pafModal').classList.add('active');
+    }
+
+    async function savePAF(e) {
+        e.preventDefault();
+        const paf = {
+            id: generateId(),
+            employee_id: document.getElementById('pafEmployee').value,
+            lca_number: document.getElementById('pafLCA').value.trim(),
+            job_title: document.getElementById('pafJobTitle').value.trim(),
+            soc_code: document.getElementById('pafSOC').value.trim(),
+            wage_rate: parseFloat(document.getElementById('pafWage').value) || null,
+            prevailing_wage: parseFloat(document.getElementById('pafPrevWage').value) || null,
+            validity_start: document.getElementById('pafStart').value || null,
+            validity_end: document.getElementById('pafEnd').value || null,
+            worksite_address: document.getElementById('pafAddress').value.trim(),
+        };
+        try {
+            await API.createPAF(paf);
+            document.getElementById('pafModal').classList.remove('active');
+            renderPAFs();
+            showToast('PAF created', 'success');
+        } catch (err) { showToast('Failed: ' + err.message, 'error'); }
+    }
+
+    // ========================================
+    // Regulatory Intelligence Page
+    // ========================================
+
+    async function renderRegulatory() {
+        try {
+            const feed = await API.getFeed();
+            renderRegUpdates(feed.updates || []);
+            renderProcessingTimes(feed.processing_times || []);
+            renderVisaBulletin(feed.visa_bulletin || []);
+        } catch (err) { showToast('Failed to load regulatory data', 'error'); }
+    }
+
+    function renderRegUpdates(updates) {
+        const el = document.getElementById('regUpdates');
+        el.innerHTML = updates.map(u => {
+            const impactClass = {high:'danger',medium:'warning',low:'info',informational:'gray'}[u.impact_level];
+            return `<div class="alert-item">
+                <div class="alert-indicator ${u.impact_level === 'high' ? 'critical' : u.impact_level === 'medium' ? 'medium' : 'low'}"></div>
+                <div class="alert-content">
+                    <div class="alert-title">${escapeHtml(u.title)}</div>
+                    <div class="alert-desc">${escapeHtml(u.summary)}</div>
+                    <div class="alert-meta">
+                        <span class="badge badge-${impactClass}">${u.impact_level}</span>
+                        <span class="badge badge-gray">${u.category.replace(/_/g,' ')}</span>
+                        ${u.action_required ? '<span class="badge badge-danger">Action Required</span>' : ''}
+                        <span>${u.published_date}</span>
+                    </div>
+                    ${u.action_description ? `<div style="margin-top:8px;font-size:13px;color:var(--gray-600);font-style:italic">${escapeHtml(u.action_description)}</div>` : ''}
+                </div>
+            </div>`;
+        }).join('') || '<div class="empty-state"><p>No regulatory updates.</p></div>';
+    }
+
+    function renderProcessingTimes(times) {
+        const el = document.getElementById('regProcessing');
+        const trendIcon = t => t === 'increasing' ? '&#9650;' : t === 'decreasing' ? '&#9660;' : '&#9644;';
+        const trendColor = t => t === 'increasing' ? 'var(--danger)' : t === 'decreasing' ? 'var(--success)' : 'var(--gray-400)';
+        el.innerHTML = `<div class="table-container"><table class="data-table"><thead><tr><th>Form</th><th>Category</th><th>Service Center</th><th>Min Days</th><th>Max Days</th><th>Trend</th></tr></thead><tbody>` +
+            times.map(t => `<tr><td><strong>${t.form_type}</strong></td><td>${t.category}</td><td>${t.service_center}</td><td>${t.processing_range_min_days}</td><td>${t.processing_range_max_days}</td><td style="color:${trendColor(t.trend)}">${trendIcon(t.trend)} ${t.trend}</td></tr>`).join('') +
+            '</tbody></table></div>';
+    }
+
+    function renderVisaBulletin(entries) {
+        const el = document.getElementById('regBulletin');
+        el.innerHTML = `<div class="table-container"><table class="data-table"><thead><tr><th>Category</th><th>Country</th><th>Final Action Date</th><th>Dates for Filing</th></tr></thead><tbody>` +
+            entries.map(e => `<tr><td><strong>${e.category}</strong></td><td>${e.country}</td><td>${e.final_action_date}</td><td>${e.dates_for_filing}</td></tr>`).join('') +
+            '</tbody></table></div>';
+    }
+
+    // ========================================
+    // Global Immigration Page
+    // ========================================
+
+    let countries = [];
+    let assignments = [];
+    let travelEntries = [];
+
+    async function renderGlobal() {
+        try { countries = await API.getCountries(); } catch (e) { /* cached */ }
+        try { assignments = await API.listAssignments(); } catch (e) { /* cached */ }
+        try { travelEntries = await API.listTravel(); } catch (e) { /* cached */ }
+
+        // Country cards (show first 8)
+        const grid = document.getElementById('countryGrid');
+        grid.innerHTML = countries.slice(0, 8).map(c => {
+            const riskClass = {low:'success',medium:'warning',high:'danger',restricted:'danger'}[c.risk_level];
+            return `<div class="rule-card">
+                <div class="rule-icon">&#127758;</div>
+                <h4>${escapeHtml(c.name)}</h4>
+                <p><span class="badge badge-${riskClass}">${c.risk_level} risk</span></p>
+                <p style="font-size:12px">${c.common_permit_types.slice(0,3).join(', ')}</p>
+                <p style="font-size:11px;color:var(--gray-400)">Max travel: ${c.max_business_travel_days}d | Tax: ${c.tax_threshold_days}d</p>
+            </div>`;
+        }).join('');
+
+        // Assignments
+        const aTable = document.getElementById('assignmentTable');
+        const aEmpty = document.getElementById('assignmentEmpty');
+        if (assignments.length) {
+            aTable.style.display = ''; aEmpty.style.display = 'none';
+            document.getElementById('assignmentTableBody').innerHTML = assignments.map(a => {
+                const emp = employees.find(e => e.id === a.employee_id);
+                const statusClass = {active:'success',pending:'info',expired:'danger',renewal_required:'warning',not_required:'gray'}[a.permit_status];
+                return `<tr>
+                    <td>${emp ? escapeHtml(emp.first_name + ' ' + emp.last_name) : a.employee_id}</td>
+                    <td>${escapeHtml(a.country_name)}</td>
+                    <td>${escapeHtml(a.permit_type || '-')}</td>
+                    <td><span class="badge badge-${statusClass}">${(a.permit_status||'').replace(/_/g,' ')}</span></td>
+                    <td>${a.end_date || 'N/A'}</td>
+                    <td>${a.days_remaining != null ? a.days_remaining + 'd' : 'N/A'}</td>
+                    <td><button class="action-btn danger" onclick="App.deleteAssignment('${a.id}')">Delete</button></td>
+                </tr>`;
+            }).join('');
+        } else { aTable.style.display = 'none'; aEmpty.style.display = ''; }
+
+        // Travel
+        const tTable = document.getElementById('travelTable');
+        const tEmpty = document.getElementById('travelEmpty');
+        if (travelEntries.length) {
+            tTable.style.display = ''; tEmpty.style.display = 'none';
+            document.getElementById('travelTableBody').innerHTML = travelEntries.map(t => {
+                const emp = employees.find(e => e.id === t.employee_id);
+                return `<tr>
+                    <td>${emp ? escapeHtml(emp.first_name + ' ' + emp.last_name) : t.employee_id}</td>
+                    <td>${escapeHtml(t.country_name)}</td>
+                    <td>${t.entry_date}</td>
+                    <td>${t.exit_date || 'Present'}</td>
+                    <td><strong>${t.days_counted}</strong></td>
+                    <td>${escapeHtml(t.purpose || '-')}</td>
+                </tr>`;
+            }).join('');
+        } else { tTable.style.display = 'none'; tEmpty.style.display = ''; }
+    }
+
+    function openAssignmentModal() {
+        populateEmployeeSelect('assignEmployee');
+        const sel = document.getElementById('assignCountry');
+        sel.innerHTML = '<option value="">Select...</option>' + countries.map(c => `<option value="${c.code}">${escapeHtml(c.name)}</option>`).join('');
+        document.getElementById('assignmentForm').reset();
+        document.getElementById('assignmentModal').classList.add('active');
+    }
+
+    async function saveAssignment(e) {
+        e.preventDefault();
+        const code = document.getElementById('assignCountry').value;
+        const country = countries.find(c => c.code === code);
+        const data = {
+            id: generateId(),
+            employee_id: document.getElementById('assignEmployee').value,
+            country_code: code,
+            country_name: country ? country.name : code,
+            permit_type: document.getElementById('assignPermitType').value.trim(),
+            permit_number: document.getElementById('assignPermitNumber').value.trim(),
+            start_date: document.getElementById('assignStart').value || null,
+            end_date: document.getElementById('assignEnd').value || null,
+            sponsoring_entity: document.getElementById('assignSponsor').value.trim(),
+            assignment_type: document.getElementById('assignType').value.trim(),
+            permit_status: 'active',
+        };
+        try {
+            await API.createAssignment(data);
+            document.getElementById('assignmentModal').classList.remove('active');
+            renderGlobal();
+            showToast('Assignment created', 'success');
+        } catch (err) { showToast('Failed: ' + err.message, 'error'); }
+    }
+
+    async function deleteAssignment(id) {
+        try { await API.deleteAssignment(id); renderGlobal(); showToast('Deleted', 'success'); }
+        catch (err) { showToast('Failed: ' + err.message, 'error'); }
+    }
+
+    function openTravelModal() {
+        populateEmployeeSelect('travelEmployee');
+        const sel = document.getElementById('travelCountry');
+        sel.innerHTML = '<option value="">Select...</option>' + countries.map(c => `<option value="${c.code}">${escapeHtml(c.name)}</option>`).join('');
+        document.getElementById('travelForm').reset();
+        document.getElementById('travelModal').classList.add('active');
+    }
+
+    async function saveTravel(e) {
+        e.preventDefault();
+        const code = document.getElementById('travelCountry').value;
+        const country = countries.find(c => c.code === code);
+        const data = {
+            id: generateId(),
+            employee_id: document.getElementById('travelEmployee').value,
+            country_code: code,
+            country_name: country ? country.name : code,
+            entry_date: document.getElementById('travelEntry').value,
+            exit_date: document.getElementById('travelExit').value || null,
+            purpose: document.getElementById('travelPurpose').value.trim(),
+        };
+        try {
+            await API.addTravel(data);
+            document.getElementById('travelModal').classList.remove('active');
+            renderGlobal();
+            showToast('Travel logged', 'success');
+        } catch (err) { showToast('Failed: ' + err.message, 'error'); }
+    }
+
+    function populateEmployeeSelect(selectId) {
+        const sel = document.getElementById(selectId);
+        sel.innerHTML = '<option value="">Select...</option>' + employees.map(e => `<option value="${e.id}">${escapeHtml(e.first_name + ' ' + e.last_name)}</option>`).join('');
+    }
+
+    // ========================================
+    // Integrations Page
+    // ========================================
+
+    let integrations = [];
+
+    async function renderIntegrations() {
+        let providers = [];
+        try { providers = await API.getProviders(); } catch (e) { /* */ }
+        try { integrations = await API.listIntegrations(); } catch (e) { /* */ }
+
+        const grid = document.getElementById('providerGrid');
+        const connectedIds = new Set(integrations.map(i => i.provider));
+        grid.innerHTML = providers.map(p => {
+            const connected = connectedIds.has(p.id);
+            return `<div class="rule-card">
+                <div class="rule-icon">&#128279;</div>
+                <h4>${escapeHtml(p.name)}</h4>
+                <p><span class="badge badge-${connected ? 'success' : 'gray'}">${connected ? 'Connected' : 'Not Connected'}</span></p>
+                ${p.has_default_mappings ? '<p style="font-size:11px;color:var(--success)">Pre-configured mappings available</p>' : ''}
+            </div>`;
+        }).join('');
+
+        const table = document.getElementById('integrationTable');
+        const empty = document.getElementById('integrationEmpty');
+        if (integrations.length) {
+            table.style.display = ''; empty.style.display = 'none';
+            document.getElementById('integrationTableBody').innerHTML = integrations.map(i => {
+                const statusClass = {connected:'success',disconnected:'gray',error:'danger',syncing:'info',pending_setup:'warning'}[i.status];
+                return `<tr>
+                    <td><strong>${i.provider.replace(/_/g,' ').toUpperCase()}</strong></td>
+                    <td>${escapeHtml(i.name)}</td>
+                    <td><span class="badge badge-${statusClass}">${i.status.replace(/_/g,' ')}</span></td>
+                    <td>${i.last_sync ? new Date(i.last_sync).toLocaleString() : 'Never'}</td>
+                    <td>${i.employee_count}</td>
+                    <td>
+                        <div class="action-btn-group">
+                            <button class="action-btn" onclick="App.syncIntegration('${i.id}')">Sync</button>
+                            <button class="action-btn danger" onclick="App.deleteIntegration('${i.id}')">Remove</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        } else { table.style.display = 'none'; empty.style.display = ''; }
+    }
+
+    function openIntegrationModal() {
+        document.getElementById('integrationForm').reset();
+        document.getElementById('integrationModal').classList.add('active');
+    }
+
+    async function saveIntegration(e) {
+        e.preventDefault();
+        const data = {
+            id: generateId(),
+            provider: document.getElementById('intProvider').value,
+            name: document.getElementById('intName').value.trim(),
+            api_endpoint: document.getElementById('intEndpoint').value.trim(),
+            employee_count: parseInt(document.getElementById('intEmployees').value) || 0,
+        };
+        try {
+            await API.createIntegration(data);
+            document.getElementById('integrationModal').classList.remove('active');
+            renderIntegrations();
+            showToast('Integration connected', 'success');
+        } catch (err) { showToast('Failed: ' + err.message, 'error'); }
+    }
+
+    async function syncIntegration(id) {
+        try {
+            const result = await API.runSync(id);
+            renderIntegrations();
+            showToast(`Sync complete: ${result.records_processed} records processed`, 'success');
+        } catch (err) { showToast('Sync failed: ' + err.message, 'error'); }
+    }
+
+    async function deleteIntegration(id) {
+        if (!confirm('Remove this integration?')) return;
+        try { await API.deleteIntegration(id); renderIntegrations(); showToast('Integration removed', 'success'); }
+        catch (err) { showToast('Failed: ' + err.message, 'error'); }
+    }
+
+    // ========================================
     // Event Binding
     // ========================================
 
@@ -772,6 +1228,58 @@
         // Notification bell
         document.getElementById('notificationBtn').addEventListener('click', () => navigateTo('alerts'));
 
+        // Documents
+        ['addDocumentBtn', 'addFirstDoc'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('click', openDocumentModal);
+        });
+        document.getElementById('closeDocModal').addEventListener('click', () => document.getElementById('documentModal').classList.remove('active'));
+        document.getElementById('cancelDoc').addEventListener('click', () => document.getElementById('documentModal').classList.remove('active'));
+        document.getElementById('documentForm').addEventListener('submit', saveDocument);
+        document.getElementById('docSearch').addEventListener('input', renderDocuments);
+        document.getElementById('docCategoryFilter').addEventListener('change', renderDocuments);
+
+        // ICE Audit
+        ['runICEAudit', 'runICEAudit2'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('click', runICEAuditSim);
+        });
+
+        // PAF
+        ['addPafBtn', 'addFirstPaf'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('click', openPafModal);
+        });
+        document.getElementById('closePafModal').addEventListener('click', () => document.getElementById('pafModal').classList.remove('active'));
+        document.getElementById('cancelPaf').addEventListener('click', () => document.getElementById('pafModal').classList.remove('active'));
+        document.getElementById('pafForm').addEventListener('submit', savePAF);
+
+        // Regulatory tabs
+        document.querySelectorAll('.reg-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.reg-tab').forEach(t => { t.classList.remove('active'); t.classList.remove('btn-primary'); t.classList.add('btn-outline'); });
+                tab.classList.add('active'); tab.classList.add('btn-primary'); tab.classList.remove('btn-outline');
+                document.querySelectorAll('.reg-section').forEach(s => s.style.display = 'none');
+                document.getElementById('reg' + tab.dataset.regTab.charAt(0).toUpperCase() + tab.dataset.regTab.slice(1)).style.display = '';
+            });
+        });
+
+        // Global
+        document.getElementById('addAssignmentBtn').addEventListener('click', openAssignmentModal);
+        document.getElementById('closeAssignmentModal').addEventListener('click', () => document.getElementById('assignmentModal').classList.remove('active'));
+        document.getElementById('cancelAssignment').addEventListener('click', () => document.getElementById('assignmentModal').classList.remove('active'));
+        document.getElementById('assignmentForm').addEventListener('submit', saveAssignment);
+        document.getElementById('addTravelBtn').addEventListener('click', openTravelModal);
+        document.getElementById('closeTravelModal').addEventListener('click', () => document.getElementById('travelModal').classList.remove('active'));
+        document.getElementById('cancelTravel').addEventListener('click', () => document.getElementById('travelModal').classList.remove('active'));
+        document.getElementById('travelForm').addEventListener('submit', saveTravel);
+
+        // Integrations
+        document.getElementById('addIntegrationBtn').addEventListener('click', openIntegrationModal);
+        document.getElementById('closeIntegrationModal').addEventListener('click', () => document.getElementById('integrationModal').classList.remove('active'));
+        document.getElementById('cancelIntegration').addEventListener('click', () => document.getElementById('integrationModal').classList.remove('active'));
+        document.getElementById('integrationForm').addEventListener('submit', saveIntegration);
+
         // Close modals on overlay click
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
@@ -802,6 +1310,10 @@
     window.App = {
         checkSingleEmployee,
         deleteEmployee,
+        deleteDoc,
+        deleteAssignment,
+        syncIntegration,
+        deleteIntegration,
     };
 
     // Start

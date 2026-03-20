@@ -94,6 +94,13 @@ body {
     display: flex;
     gap: 4px;
     flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.nav-links::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-link {
@@ -1157,6 +1164,304 @@ textarea.input {
 }
 
 /* ============================================
+   Regulatory Tabs
+   ============================================ */
+
+.reg-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--gray-100);
+    border-radius: var(--radius);
+    padding: 4px;
+    width: fit-content;
+}
+
+.reg-tab {
+    padding: 8px 20px;
+    border-radius: var(--radius);
+    border: none;
+    background: none;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.reg-tab:hover {
+    color: var(--gray-800);
+}
+
+.reg-tab.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.reg-section {
+    display: none;
+}
+
+.reg-section.active {
+    display: block;
+    animation: fadeIn 200ms ease;
+}
+
+/* ============================================
+   ICE Audit Results
+   ============================================ */
+
+.audit-grade {
+    text-align: center;
+    padding: 32px;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 24px;
+}
+
+.grade-letter {
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.grade-A { color: var(--success); }
+.grade-B { color: #22c55e; }
+.grade-C { color: var(--warning); }
+.grade-D { color: #f97316; }
+.grade-F { color: var(--danger); }
+
+.grade-label {
+    font-size: 14px;
+    color: var(--gray-500);
+}
+
+.audit-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.findings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.finding-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px 20px;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+}
+
+.finding-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.finding-content {
+    flex: 1;
+}
+
+.finding-type {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+}
+
+.finding-detail {
+    font-size: 13px;
+    color: var(--gray-500);
+}
+
+.finding-fine {
+    font-weight: 600;
+    color: var(--danger);
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* ============================================
+   PAF Cards
+   ============================================ */
+
+.paf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+}
+
+.paf-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.paf-card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.paf-card-body {
+    padding: 20px 24px;
+}
+
+.paf-progress {
+    margin-bottom: 16px;
+}
+
+.paf-progress-bar {
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.paf-progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 600ms ease;
+    background: var(--primary);
+}
+
+.paf-progress-fill.complete { background: var(--success); }
+.paf-progress-fill.partial { background: var(--warning); }
+
+.paf-doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.paf-doc-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--gray-600);
+}
+
+.paf-doc-item .check { color: var(--success); }
+.paf-doc-item .missing { color: var(--gray-400); }
+
+/* ============================================
+   Country Cards (Global)
+   ============================================ */
+
+.country-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.country-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.country-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.country-flag {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.country-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+}
+
+.country-detail {
+    font-size: 13px;
+    color: var(--gray-500);
+    line-height: 1.5;
+}
+
+/* ============================================
+   Provider Grid (HRIS)
+   ============================================ */
+
+.provider-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.provider-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    text-align: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+    cursor: pointer;
+}
+
+.provider-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+}
+
+.provider-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+}
+
+.provider-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.provider-type {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-top: 2px;
+}
+
+/* ============================================
+   Filter Bar
+   ============================================ */
+
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* ============================================
    Responsive
    ============================================ */
 
@@ -1167,6 +1472,9 @@ textarea.input {
     .pipeline { grid-template-columns: repeat(3, 1fr); }
     .reports-grid { grid-template-columns: 1fr; }
     .report-metrics { grid-template-columns: repeat(2, 1fr); }
+    .audit-stats { grid-template-columns: repeat(2, 1fr); }
+    .country-grid { grid-template-columns: repeat(2, 1fr); }
+    .paf-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {

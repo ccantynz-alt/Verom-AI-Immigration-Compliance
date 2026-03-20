@@ -21,6 +21,12 @@
                 <a href="#" class="nav-link" data-page="employees">Employees</a>
                 <a href="#" class="nav-link" data-page="compliance">Compliance</a>
                 <a href="#" class="nav-link" data-page="cases">Cases</a>
+                <a href="#" class="nav-link" data-page="documents">Documents</a>
+                <a href="#" class="nav-link" data-page="ice-audit">ICE Audit</a>
+                <a href="#" class="nav-link" data-page="paf">PAF</a>
+                <a href="#" class="nav-link" data-page="regulatory">Regulatory</a>
+                <a href="#" class="nav-link" data-page="global">Global</a>
+                <a href="#" class="nav-link" data-page="integrations">Integrations</a>
                 <a href="#" class="nav-link" data-page="reports">Reports</a>
                 <a href="#" class="nav-link" data-page="alerts">Alerts</a>
             </div>
@@ -446,7 +452,353 @@
                 </div>
             </div>
         </div>
+
+        <!-- Documents Page -->
+        <div class="page" id="page-documents">
+            <div class="page-header">
+                <div>
+                    <h1>Document Management</h1>
+                    <p class="page-subtitle">Secure document storage with expiration tracking and OCR extraction</p>
+                </div>
+                <div class="page-actions">
+                    <input type="text" id="docSearch" placeholder="Search documents..." class="input" style="min-width:200px">
+                    <select id="docCategoryFilter" class="input">
+                        <option value="">All Categories</option>
+                        <option value="passport">Passport</option>
+                        <option value="visa">Visa</option>
+                        <option value="i94">I-94</option>
+                        <option value="ead_card">EAD Card</option>
+                        <option value="i9_form">I-9 Form</option>
+                        <option value="lca">LCA</option>
+                        <option value="approval_notice">Approval Notice</option>
+                        <option value="receipt_notice">Receipt Notice</option>
+                        <option value="offer_letter">Offer Letter</option>
+                        <option value="degree_diploma">Degree/Diploma</option>
+                        <option value="pay_stub">Pay Stub</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <button class="btn btn-primary" id="addDocumentBtn">+ Upload Document</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="data-table" id="docTable" style="display:none">
+                    <thead><tr><th>Title</th><th>Category</th><th>Employee</th><th>Expiration</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="docTableBody"></tbody>
+                </table>
+                <div class="empty-state" id="docEmptyState">
+                    <span class="empty-icon">&#128196;</span>
+                    <h3>No documents uploaded</h3>
+                    <p>Upload your first document to start managing immigration records.</p>
+                    <button class="btn btn-primary" id="addFirstDoc">+ Upload First Document</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ICE Audit Simulation Page -->
+        <div class="page" id="page-ice-audit">
+            <div class="page-header">
+                <div>
+                    <h1>ICE Audit Simulator</h1>
+                    <p class="page-subtitle">Run a simulated Notice of Inspection to identify compliance gaps before they find you</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" id="runICEAudit" style="font-size:15px;padding:12px 28px">&#128737; Run ICE Audit Simulation</button>
+                </div>
+            </div>
+            <div id="iceResults" style="display:none">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info" style="text-align:center;width:100%">
+                            <span class="stat-number" id="iceGrade" style="font-size:64px">A</span>
+                            <span class="stat-label">Overall Grade</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-critical">
+                        <div class="stat-icon">&#128176;</div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="iceFines">$0</span>
+                            <span class="stat-label">Potential Fines</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-warning">
+                        <div class="stat-icon">&#128269;</div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="iceFindingsCount">0</span>
+                            <span class="stat-label">Findings</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-total">
+                        <div class="stat-icon">&#128101;</div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="iceAudited">0</span>
+                            <span class="stat-label">Employees Audited</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="margin-bottom:20px">
+                    <div class="card-header"><h3>Summary</h3></div>
+                    <div class="card-body"><p id="iceSummary"></p></div>
+                </div>
+                <div class="card" style="margin-bottom:20px">
+                    <div class="card-header"><h3>Findings</h3></div>
+                    <div class="card-body" id="iceFindingsList"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>Recommendations</h3></div>
+                    <div class="card-body" id="iceRecommendations"></div>
+                </div>
+            </div>
+            <div class="empty-state" id="iceEmptyState">
+                <span class="empty-icon">&#128737;</span>
+                <h3>Ready to test your audit readiness?</h3>
+                <p>Run a simulated ICE Notice of Inspection to identify compliance gaps, potential fines, and get actionable recommendations.</p>
+                <button class="btn btn-primary" id="runICEAudit2">Run Simulation</button>
+            </div>
+        </div>
+
+        <!-- PAF Page -->
+        <div class="page" id="page-paf">
+            <div class="page-header">
+                <div>
+                    <h1>Public Access Files</h1>
+                    <p class="page-subtitle">Manage PAF documentation for H-1B, H-1B1, and E-3 workers</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" id="addPafBtn">+ Create PAF</button>
+                </div>
+            </div>
+            <div id="pafGrid" class="dashboard-grid"></div>
+            <div class="empty-state" id="pafEmptyState">
+                <span class="empty-icon">&#128451;</span>
+                <h3>No Public Access Files</h3>
+                <p>Create a PAF for each H-1B, H-1B1, or E-3 worker to track required documentation.</p>
+                <button class="btn btn-primary" id="addFirstPaf">+ Create First PAF</button>
+            </div>
+        </div>
+
+        <!-- Regulatory Intelligence Page -->
+        <div class="page" id="page-regulatory">
+            <div class="page-header">
+                <div>
+                    <h1>Regulatory Intelligence</h1>
+                    <p class="page-subtitle">Stay ahead of policy changes, processing times, and visa bulletin updates</p>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:24px">
+                <button class="btn btn-primary btn-sm reg-tab active" data-reg-tab="updates">Policy Updates</button>
+                <button class="btn btn-outline btn-sm reg-tab" data-reg-tab="processing">Processing Times</button>
+                <button class="btn btn-outline btn-sm reg-tab" data-reg-tab="bulletin">Visa Bulletin</button>
+            </div>
+            <div id="regUpdates" class="reg-section"></div>
+            <div id="regProcessing" class="reg-section" style="display:none"></div>
+            <div id="regBulletin" class="reg-section" style="display:none"></div>
+        </div>
+
+        <!-- Global Immigration Page -->
+        <div class="page" id="page-global">
+            <div class="page-header">
+                <div>
+                    <h1>Global Immigration</h1>
+                    <p class="page-subtitle">Multi-country work permits, travel tracking, and tax threshold monitoring</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-outline" id="addTravelBtn">+ Log Travel</button>
+                    <button class="btn btn-primary" id="addAssignmentBtn">+ New Assignment</button>
+                </div>
+            </div>
+            <h3 style="margin-bottom:16px">Supported Countries</h3>
+            <div id="countryGrid" class="rules-grid" style="margin-bottom:28px"></div>
+            <div class="card" style="margin-bottom:20px">
+                <div class="card-header"><h3>Active Assignments</h3></div>
+                <div class="card-body">
+                    <table class="data-table" id="assignmentTable" style="display:none">
+                        <thead><tr><th>Employee</th><th>Country</th><th>Permit Type</th><th>Status</th><th>End Date</th><th>Days Left</th><th>Actions</th></tr></thead>
+                        <tbody id="assignmentTableBody"></tbody>
+                    </table>
+                    <div class="empty-state" id="assignmentEmpty"><span class="empty-icon">&#127758;</span><p>No active assignments.</p></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>Travel Log</h3></div>
+                <div class="card-body">
+                    <table class="data-table" id="travelTable" style="display:none">
+                        <thead><tr><th>Employee</th><th>Country</th><th>Entry</th><th>Exit</th><th>Days</th><th>Purpose</th></tr></thead>
+                        <tbody id="travelTableBody"></tbody>
+                    </table>
+                    <div class="empty-state" id="travelEmpty"><span class="empty-icon">&#9992;</span><p>No travel logged.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integrations Page -->
+        <div class="page" id="page-integrations">
+            <div class="page-header">
+                <div>
+                    <h1>HRIS Integrations</h1>
+                    <p class="page-subtitle">Connect your HR systems for automated employee data sync</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" id="addIntegrationBtn">+ Add Integration</button>
+                </div>
+            </div>
+            <h3 style="margin-bottom:16px">Available Providers</h3>
+            <div id="providerGrid" class="rules-grid" style="margin-bottom:28px"></div>
+            <div class="card">
+                <div class="card-header"><h3>Connected Integrations</h3></div>
+                <div class="card-body">
+                    <table class="data-table" id="integrationTable" style="display:none">
+                        <thead><tr><th>Provider</th><th>Name</th><th>Status</th><th>Last Sync</th><th>Employees</th><th>Actions</th></tr></thead>
+                        <tbody id="integrationTableBody"></tbody>
+                    </table>
+                    <div class="empty-state" id="integrationEmpty"><span class="empty-icon">&#128279;</span><h3>No integrations connected</h3><p>Connect your HRIS to automatically sync employee data.</p></div>
+                </div>
+            </div>
+        </div>
+
     </main>
+
+    <!-- Document Upload Modal -->
+    <div class="modal-overlay" id="documentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Upload Document</h2>
+                <button class="modal-close" id="closeDocModal">&times;</button>
+            </div>
+            <form id="documentForm" class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group"><label for="docEmployee">Employee *</label><select id="docEmployee" class="input" required><option value="">Select...</option></select></div>
+                    <div class="form-group"><label for="docCategory">Category *</label>
+                        <select id="docCategory" class="input" required>
+                            <option value="">Select...</option>
+                            <option value="passport">Passport</option><option value="visa">Visa</option><option value="i94">I-94</option>
+                            <option value="ead_card">EAD Card</option><option value="i9_form">I-9 Form</option><option value="lca">LCA</option>
+                            <option value="approval_notice">Approval Notice</option><option value="receipt_notice">Receipt Notice</option>
+                            <option value="offer_letter">Offer Letter</option><option value="degree_diploma">Degree/Diploma</option>
+                            <option value="pay_stub">Pay Stub</option><option value="paf_document">PAF Document</option><option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label for="docTitle">Title *</label><input type="text" id="docTitle" class="input" required></div>
+                    <div class="form-group"><label for="docFileName">File Name *</label><input type="text" id="docFileName" class="input" required placeholder="document.pdf"></div>
+                    <div class="form-group"><label for="docExpiration">Expiration Date</label><input type="date" id="docExpiration" class="input"></div>
+                    <div class="form-group"><label for="docIssueDate">Issue Date</label><input type="date" id="docIssueDate" class="input"></div>
+                    <div class="form-group"><label for="docNumber">Document Number</label><input type="text" id="docNumber" class="input"></div>
+                    <div class="form-group"><label for="docAuthority">Issuing Authority</label><input type="text" id="docAuthority" class="input"></div>
+                </div>
+                <div class="form-group full-width"><label for="docDescription">Description</label><textarea id="docDescription" class="input" rows="2"></textarea></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelDoc">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Upload Document</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PAF Create Modal -->
+    <div class="modal-overlay" id="pafModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Create Public Access File</h2>
+                <button class="modal-close" id="closePafModal">&times;</button>
+            </div>
+            <form id="pafForm" class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group"><label for="pafEmployee">Employee *</label><select id="pafEmployee" class="input" required><option value="">Select...</option></select></div>
+                    <div class="form-group"><label for="pafLCA">LCA Number</label><input type="text" id="pafLCA" class="input"></div>
+                    <div class="form-group"><label for="pafJobTitle">Job Title</label><input type="text" id="pafJobTitle" class="input"></div>
+                    <div class="form-group"><label for="pafSOC">SOC Code</label><input type="text" id="pafSOC" class="input" placeholder="e.g. 15-1252"></div>
+                    <div class="form-group"><label for="pafWage">Wage Rate ($)</label><input type="number" id="pafWage" class="input" step="0.01"></div>
+                    <div class="form-group"><label for="pafPrevWage">Prevailing Wage ($)</label><input type="number" id="pafPrevWage" class="input" step="0.01"></div>
+                    <div class="form-group"><label for="pafStart">Validity Start</label><input type="date" id="pafStart" class="input"></div>
+                    <div class="form-group"><label for="pafEnd">Validity End</label><input type="date" id="pafEnd" class="input"></div>
+                </div>
+                <div class="form-group full-width"><label for="pafAddress">Worksite Address</label><input type="text" id="pafAddress" class="input"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelPaf">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create PAF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Global Assignment Modal -->
+    <div class="modal-overlay" id="assignmentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>New Global Assignment</h2>
+                <button class="modal-close" id="closeAssignmentModal">&times;</button>
+            </div>
+            <form id="assignmentForm" class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group"><label for="assignEmployee">Employee *</label><select id="assignEmployee" class="input" required><option value="">Select...</option></select></div>
+                    <div class="form-group"><label for="assignCountry">Country *</label><select id="assignCountry" class="input" required><option value="">Select...</option></select></div>
+                    <div class="form-group"><label for="assignPermitType">Permit Type</label><input type="text" id="assignPermitType" class="input"></div>
+                    <div class="form-group"><label for="assignPermitNumber">Permit Number</label><input type="text" id="assignPermitNumber" class="input"></div>
+                    <div class="form-group"><label for="assignStart">Start Date</label><input type="date" id="assignStart" class="input"></div>
+                    <div class="form-group"><label for="assignEnd">End Date</label><input type="date" id="assignEnd" class="input"></div>
+                    <div class="form-group"><label for="assignSponsor">Sponsoring Entity</label><input type="text" id="assignSponsor" class="input"></div>
+                    <div class="form-group"><label for="assignType">Assignment Type</label><input type="text" id="assignType" class="input" placeholder="e.g. Long-term, Short-term"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelAssignment">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Assignment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Travel Entry Modal -->
+    <div class="modal-overlay" id="travelModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Log Travel</h2>
+                <button class="modal-close" id="closeTravelModal">&times;</button>
+            </div>
+            <form id="travelForm" class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group"><label for="travelEmployee">Employee *</label><select id="travelEmployee" class="input" required><option value="">Select...</option></select></div>
+                    <div class="form-group"><label for="travelCountry">Country *</label><select id="travelCountry" class="input" required><option value="">Select...</option></select></div>
+                    <div class="form-group"><label for="travelEntry">Entry Date *</label><input type="date" id="travelEntry" class="input" required></div>
+                    <div class="form-group"><label for="travelExit">Exit Date</label><input type="date" id="travelExit" class="input"></div>
+                </div>
+                <div class="form-group full-width"><label for="travelPurpose">Purpose</label><input type="text" id="travelPurpose" class="input" placeholder="e.g. Client meeting, Conference"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelTravel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Log Travel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- HRIS Integration Modal -->
+    <div class="modal-overlay" id="integrationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Add HRIS Integration</h2>
+                <button class="modal-close" id="closeIntegrationModal">&times;</button>
+            </div>
+            <form id="integrationForm" class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group"><label for="intProvider">Provider *</label>
+                        <select id="intProvider" class="input" required>
+                            <option value="">Select...</option>
+                            <option value="workday">Workday</option><option value="adp">ADP</option>
+                            <option value="sap_successfactors">SAP SuccessFactors</option><option value="bamboohr">BambooHR</option>
+                            <option value="paylocity">Paylocity</option><option value="ukg">UKG</option>
+                            <option value="gusto">Gusto</option><option value="rippling">Rippling</option>
+                            <option value="csv_upload">CSV Upload</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label for="intName">Integration Name *</label><input type="text" id="intName" class="input" required></div>
+                    <div class="form-group"><label for="intEndpoint">API Endpoint</label><input type="text" id="intEndpoint" class="input" placeholder="https://"></div>
+                    <div class="form-group"><label for="intEmployees">Employee Count</label><input type="number" id="intEmployees" class="input" min="0"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelIntegration">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Connect Integration</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Add Employee Modal -->
     <div class="modal-overlay" id="employeeModal">
