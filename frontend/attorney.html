@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verom.ai - Attorney Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-500: #3b82f6;
+            --blue-600: #2563eb; --blue-700: #1d4ed8;
+            --violet-500: #8b5cf6;
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+            --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --green-50: #f0fdf4; --green-500: #22c55e; --green-600: #16a34a;
+            --red-50: #fef2f2; --red-500: #ef4444;
+            --amber-50: #fffbeb; --amber-500: #f59e0b;
+            --radius: 12px; --radius-lg: 16px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--slate-800); background: var(--slate-50);
+            line-height: 1.6; -webkit-font-smoothing: antialiased;
+        }
+
+        /* Nav */
+        .app-nav {
+            background: #fff; border-bottom: 1px solid var(--slate-200);
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto; padding: 0 24px;
+            display: flex; align-items: center; height: 64px; gap: 24px;
+        }
+        .nav-brand {
+            display: flex; align-items: center; gap: 8px;
+            text-decoration: none; color: var(--slate-900); font-size: 20px; font-weight: 700;
+        }
+        .brand-icon { font-size: 24px; color: var(--blue-500); }
+        .highlight { color: var(--blue-600); }
+        .nav-tabs { display: flex; gap: 4px; flex: 1; }
+        .nav-tab {
+            padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;
+            color: var(--slate-500); text-decoration: none; transition: all 0.15s; cursor: pointer;
+            background: none; border: none; font-family: inherit;
+        }
+        .nav-tab:hover { color: var(--slate-800); background: var(--slate-100); }
+        .nav-tab.active { color: var(--blue-600); background: var(--blue-50); }
+        .nav-right { display: flex; gap: 12px; align-items: center; }
+        .avatar {
+            width: 36px; height: 36px; border-radius: 50%; background: var(--violet-500);
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700;
+        }
+
+        /* Main */
+        .main { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 200ms ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+
+        .page-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
+        }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p { font-size: 15px; color: var(--slate-500); margin-top: 4px; }
+
+        /* Stats */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px;
+        }
+        .stat-card {
+            background: #fff; border-radius: var(--radius); padding: 24px;
+            box-shadow: var(--shadow); border: 1px solid var(--slate-200);
+        }
+        .stat-label { font-size: 13px; color: var(--slate-500); font-weight: 500; }
+        .stat-value { font-size: 28px; font-weight: 800; margin-top: 4px; }
+        .stat-value.blue { color: var(--blue-600); }
+        .stat-value.green { color: var(--green-500); }
+        .stat-value.amber { color: var(--amber-500); }
+
+        .card {
+            background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+            border: 1px solid var(--slate-200); overflow: hidden; margin-bottom: 20px;
+        }
+        .card-header {
+            padding: 20px 24px; border-bottom: 1px solid var(--slate-100);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-header h3 { font-size: 16px; font-weight: 600; }
+        .card-body { padding: 20px 24px; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 20px; border-radius: 8px; font-weight: 600;
+            font-size: 14px; text-decoration: none; border: none; cursor: pointer;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .btn-primary { background: var(--blue-600); color: #fff; }
+        .btn-primary:hover { background: var(--blue-700); }
+        .btn-outline { background: #fff; color: var(--slate-600); border: 1px solid var(--slate-300); }
+        .btn-outline:hover { background: var(--slate-50); }
+        .btn-sm { padding: 6px 14px; font-size: 13px; }
+        .btn-success { background: var(--green-500); color: #fff; }
+        .btn-success:hover { background: var(--green-600); }
+
+        .badge {
+            display: inline-flex; padding: 2px 10px; border-radius: 12px;
+            font-size: 12px; font-weight: 600;
+        }
+        .badge-green { background: var(--green-50); color: var(--green-600); }
+        .badge-amber { background: var(--amber-50); color: var(--amber-500); }
+        .badge-blue { background: var(--blue-50); color: var(--blue-600); }
+        .badge-red { background: var(--red-50); color: var(--red-500); }
+
+        /* Case Pipeline */
+        .pipeline {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px;
+        }
+        .pipeline-col {
+            background: var(--slate-100); border-radius: var(--radius); padding: 16px;
+            min-height: 200px;
+        }
+        .pipeline-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px;
+        }
+        .pipeline-header h4 {
+            font-size: 13px; font-weight: 600; color: var(--slate-600);
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .pipeline-count {
+            background: #fff; width: 24px; height: 24px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; color: var(--slate-600);
+        }
+        .case-card {
+            background: #fff; border-radius: 8px; padding: 14px;
+            border: 1px solid var(--slate-200); margin-bottom: 8px;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .case-card:hover { box-shadow: var(--shadow-md); }
+        .case-name { font-size: 14px; font-weight: 600; }
+        .case-meta { font-size: 12px; color: var(--slate-500); margin-top: 4px; }
+        .case-type { font-size: 12px; color: var(--blue-600); font-weight: 500; margin-top: 4px; }
+
+        /* Earnings */
+        .earnings-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        }
+        .earning-row {
+            display: flex; justify-content: space-between; padding: 12px 0;
+            border-bottom: 1px solid var(--slate-100); font-size: 14px;
+        }
+        .earning-row:last-child { border-bottom: none; }
+
+        /* Profile */
+        .profile-section {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 13px; font-weight: 600;
+            color: var(--slate-700); margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%; padding: 10px 14px; border: 1px solid var(--slate-300);
+            border-radius: 8px; font-family: inherit; font-size: 14px;
+            color: var(--slate-800); background: #fff; transition: all 0.2s;
+        }
+        .form-input:focus {
+            outline: none; border-color: var(--blue-500);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+        .verified-badge {
+            display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px;
+            border-radius: 20px; background: var(--green-50); color: var(--green-600);
+            font-size: 13px; font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center; padding: 48px 24px; color: var(--slate-500);
+        }
+        .empty-icon { font-size: 48px; display: block; margin-bottom: 12px; opacity: 0.6; }
+
+        /* Calendar */
+        .calendar-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+        }
+        .cal-header {
+            text-align: center; font-size: 12px; font-weight: 600;
+            color: var(--slate-400); padding: 8px 0; text-transform: uppercase;
+        }
+        .cal-day {
+            text-align: center; padding: 10px 4px; border-radius: 8px;
+            font-size: 13px; color: var(--slate-600); cursor: pointer;
+            transition: all 0.15s;
+        }
+        .cal-day:hover { background: var(--slate-100); }
+        .cal-day.today { background: var(--blue-600); color: #fff; font-weight: 700; }
+        .cal-day.has-event { position: relative; }
+        .cal-day.has-event::after {
+            content: ''; width: 5px; height: 5px; border-radius: 50%;
+            background: var(--red-500); position: absolute; bottom: 4px;
+            left: 50%; transform: translateX(-50%);
+        }
+        .cal-day.empty { color: var(--slate-300); }
+
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .pipeline { grid-template-columns: repeat(2, 1fr); }
+            .profile-section, .earnings-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .pipeline { grid-template-columns: 1fr; }
+            .nav-tabs { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="app-nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-brand">
+            <span class="brand-icon">&#9670;</span>
+            <span>Verom<span class="highlight">.ai</span></span>
+        </a>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+            <button class="nav-tab" data-tab="cases">Client Cases</button>
+            <button class="nav-tab" data-tab="browse">Browse Cases</button>
+            <button class="nav-tab" data-tab="calendar">Calendar</button>
+            <button class="nav-tab" data-tab="earnings">Earnings</button>
+            <button class="nav-tab" data-tab="profile">Profile</button>
+        </div>
+        <div class="nav-right">
+            <div class="avatar">SK</div>
+        </div>
+    </div>
+</nav>
+
+<div class="main">
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+        <div class="page-header">
+            <div>
+                <h1>Welcome back, Attorney</h1>
+                <p>Here's your practice overview for today.</p>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Active Cases</div>
+                <div class="stat-value blue">12</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Approval Rate</div>
+                <div class="stat-value green">96%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending Review</div>
+                <div class="stat-value amber">3</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">This Month</div>
+                <div class="stat-value" style="font-size:20px">$14,250</div>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+            <div class="card">
+                <div class="card-header"><h3>Recent Activity</h3></div>
+                <div class="card-body">
+                    <div class="earning-row"><span><strong>Raj Mehta</strong> &mdash; H-1B Initial filed</span><span class="badge badge-green">Filed</span></div>
+                    <div class="earning-row"><span><strong>Li Wei</strong> &mdash; F-1 documents received</span><span class="badge badge-blue">Documents</span></div>
+                    <div class="earning-row"><span><strong>Ana Santos</strong> &mdash; RFE response needed by Apr 5</span><span class="badge badge-red">Urgent</span></div>
+                    <div class="earning-row"><span><strong>Yuki Tanaka</strong> &mdash; O-1 petition approved</span><span class="badge badge-green">Approved</span></div>
+                    <div class="earning-row"><span><strong>Maria Garcia</strong> &mdash; New case matched</span><span class="badge badge-amber">New</span></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>Upcoming Deadlines</h3></div>
+                <div class="card-body">
+                    <div class="earning-row" style="flex-direction:column;gap:4px"><strong style="color:var(--red-500)">Apr 5</strong><span style="font-size:13px">Ana Santos &mdash; RFE Response Due</span></div>
+                    <div class="earning-row" style="flex-direction:column;gap:4px"><strong style="color:var(--amber-500)">Apr 12</strong><span style="font-size:13px">John Lee &mdash; H-1B Filing Deadline</span></div>
+                    <div class="earning-row" style="flex-direction:column;gap:4px"><strong>Apr 18</strong><span style="font-size:13px">Wei Chen &mdash; I-140 Priority Date</span></div>
+                    <div class="earning-row" style="flex-direction:column;gap:4px"><strong>Apr 25</strong><span style="font-size:13px">Priya Patel &mdash; EAD Renewal</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Cases -->
+    <div class="page" id="page-cases">
+        <div class="page-header">
+            <div><h1>My Client Cases</h1><p>Manage your active immigration cases.</p></div>
+        </div>
+
+        <div class="pipeline">
+            <div class="pipeline-col">
+                <div class="pipeline-header"><h4>New</h4><div class="pipeline-count">2</div></div>
+                <div class="case-card">
+                    <div class="case-name">Maria Garcia</div>
+                    <div class="case-meta">Student Visa &middot; F-1</div>
+                    <div class="case-type">United States</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-name">Ahmed Hassan</div>
+                    <div class="case-meta">Skilled Worker Visa</div>
+                    <div class="case-type">United Kingdom</div>
+                </div>
+            </div>
+            <div class="pipeline-col">
+                <div class="pipeline-header"><h4>In Progress</h4><div class="pipeline-count">4</div></div>
+                <div class="case-card">
+                    <div class="case-name">Raj Mehta</div>
+                    <div class="case-meta">H-1B Initial</div>
+                    <div class="case-type">Filed Mar 15</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-name">Li Wei</div>
+                    <div class="case-meta">F-1 Student Visa</div>
+                    <div class="case-type">Documents In Review</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-name">John Lee</div>
+                    <div class="case-meta">H-1B Transfer</div>
+                    <div class="case-type">Preparing Filing</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-name">Priya Patel</div>
+                    <div class="case-meta">EAD Renewal</div>
+                    <div class="case-type">Awaiting Documents</div>
+                </div>
+            </div>
+            <div class="pipeline-col">
+                <div class="pipeline-header"><h4>RFE / Action</h4><div class="pipeline-count">1</div></div>
+                <div class="case-card" style="border-left:3px solid var(--red-500)">
+                    <div class="case-name">Ana Santos</div>
+                    <div class="case-meta">O-1 Extraordinary Ability</div>
+                    <div class="case-type" style="color:var(--red-500)">RFE Due Apr 5</div>
+                </div>
+            </div>
+            <div class="pipeline-col">
+                <div class="pipeline-header"><h4>Approved</h4><div class="pipeline-count">5</div></div>
+                <div class="case-card" style="border-left:3px solid var(--green-500)">
+                    <div class="case-name">Yuki Tanaka</div>
+                    <div class="case-meta">O-1 Petition</div>
+                    <div class="case-type" style="color:var(--green-500)">Approved Mar 18</div>
+                </div>
+                <div class="case-card" style="border-left:3px solid var(--green-500)">
+                    <div class="case-name">Wei Chen</div>
+                    <div class="case-meta">EB-2 NIW</div>
+                    <div class="case-type" style="color:var(--green-500)">Approved Mar 10</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Browse Cases -->
+    <div class="page" id="page-browse">
+        <div class="page-header">
+            <div><h1>Browse Available Cases</h1><p>Pre-qualified applicants heading to your jurisdiction. Accept cases that match your expertise.</p></div>
+        </div>
+
+        <div class="card">
+            <div class="card-body" style="padding:0">
+                <div style="display:flex;gap:16px;padding:16px 24px;border-bottom:1px solid var(--slate-100);align-items:center;flex-wrap:wrap">
+                    <select class="form-input" style="width:auto;min-width:180px">
+                        <option>All Visa Types</option>
+                        <option>Student Visas</option>
+                        <option>Work Visas</option>
+                        <option>Family / Spouse</option>
+                        <option>Permanent Residency</option>
+                    </select>
+                    <select class="form-input" style="width:auto;min-width:180px">
+                        <option>United States</option>
+                        <option>United Kingdom</option>
+                        <option>Canada</option>
+                        <option>Australia</option>
+                    </select>
+                </div>
+
+                <div style="padding:16px 24px;border-bottom:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div style="font-size:15px;font-weight:600">Applicant #VRM-2847</div>
+                        <div style="font-size:13px;color:var(--slate-500)">F-1 Student Visa &middot; United States &middot; India</div>
+                        <div style="font-size:13px;color:var(--slate-500);margin-top:4px">AI Score: <strong style="color:var(--green-500)">82%</strong> &middot; Documents: 6/8 uploaded</div>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-outline btn-sm">View Details</button>
+                        <button class="btn btn-success btn-sm">Accept Case</button>
+                    </div>
+                </div>
+                <div style="padding:16px 24px;border-bottom:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div style="font-size:15px;font-weight:600">Applicant #VRM-2851</div>
+                        <div style="font-size:13px;color:var(--slate-500)">H-1B Transfer &middot; United States &middot; China</div>
+                        <div style="font-size:13px;color:var(--slate-500);margin-top:4px">AI Score: <strong style="color:var(--green-500)">91%</strong> &middot; Documents: 8/8 uploaded</div>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-outline btn-sm">View Details</button>
+                        <button class="btn btn-success btn-sm">Accept Case</button>
+                    </div>
+                </div>
+                <div style="padding:16px 24px;border-bottom:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div style="font-size:15px;font-weight:600">Applicant #VRM-2855</div>
+                        <div style="font-size:13px;color:var(--slate-500)">O-1 Extraordinary Ability &middot; United States &middot; Brazil</div>
+                        <div style="font-size:13px;color:var(--slate-500);margin-top:4px">AI Score: <strong style="color:var(--amber-500)">74%</strong> &middot; Documents: 5/10 uploaded</div>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-outline btn-sm">View Details</button>
+                        <button class="btn btn-success btn-sm">Accept Case</button>
+                    </div>
+                </div>
+                <div style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div style="font-size:15px;font-weight:600">Applicant #VRM-2860</div>
+                        <div style="font-size:13px;color:var(--slate-500)">K-1 Fiance Visa &middot; United States &middot; Philippines</div>
+                        <div style="font-size:13px;color:var(--slate-500);margin-top:4px">AI Score: <strong style="color:var(--green-500)">88%</strong> &middot; Documents: 7/8 uploaded</div>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-outline btn-sm">View Details</button>
+                        <button class="btn btn-success btn-sm">Accept Case</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="page" id="page-calendar">
+        <div class="page-header">
+            <div><h1>Calendar</h1><p>Track deadlines, appointments, and filing dates.</p></div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+            <div class="card">
+                <div class="card-header"><h3>March 2026</h3></div>
+                <div class="card-body">
+                    <div class="calendar-grid">
+                        <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>
+                        <div class="cal-day empty">1</div><div class="cal-day">2</div><div class="cal-day">3</div><div class="cal-day">4</div><div class="cal-day has-event">5</div><div class="cal-day">6</div><div class="cal-day">7</div>
+                        <div class="cal-day">8</div><div class="cal-day">9</div><div class="cal-day has-event">10</div><div class="cal-day">11</div><div class="cal-day">12</div><div class="cal-day">13</div><div class="cal-day">14</div>
+                        <div class="cal-day has-event">15</div><div class="cal-day">16</div><div class="cal-day">17</div><div class="cal-day has-event">18</div><div class="cal-day">19</div><div class="cal-day today">20</div><div class="cal-day">21</div>
+                        <div class="cal-day">22</div><div class="cal-day">23</div><div class="cal-day">24</div><div class="cal-day has-event">25</div><div class="cal-day">26</div><div class="cal-day">27</div><div class="cal-day">28</div>
+                        <div class="cal-day">29</div><div class="cal-day">30</div><div class="cal-day">31</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>Upcoming Events</h3></div>
+                <div class="card-body">
+                    <div class="earning-row" style="flex-direction:column;gap:4px"><strong style="color:var(--red-500)">Apr 5</strong><span style="font-size:13px">RFE Response &mdash; Ana Santos</span></div>
+                    <div class="earning-row" style="flex-direction:column;gap:4px"><strong style="color:var(--amber-500)">Apr 12</strong><span style="font-size:13px">H-1B Filing &mdash; John Lee</span></div>
+                    <div class="earning-row" style="flex-direction:column;gap:4px"><strong>Apr 15</strong><span style="font-size:13px">Client Consultation &mdash; Maria Garcia</span></div>
+                    <div class="earning-row" style="flex-direction:column;gap:4px"><strong>Apr 18</strong><span style="font-size:13px">I-140 Priority &mdash; Wei Chen</span></div>
+                    <div class="earning-row" style="flex-direction:column;gap:4px"><strong>Apr 25</strong><span style="font-size:13px">EAD Renewal &mdash; Priya Patel</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings -->
+    <div class="page" id="page-earnings">
+        <div class="page-header">
+            <div><h1>Earnings</h1><p>Track your revenue and payment history.</p></div>
+        </div>
+
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+            <div class="stat-card">
+                <div class="stat-label">This Month</div>
+                <div class="stat-value green">$14,250</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Last Month</div>
+                <div class="stat-value">$18,500</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Year to Date</div>
+                <div class="stat-value blue">$47,800</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h3>Recent Payments</h3></div>
+            <div class="card-body">
+                <div class="earning-row"><span><strong>Yuki Tanaka</strong> &mdash; O-1 Petition (Complete)</span><span style="font-weight:700;color:var(--green-500)">$5,500</span></div>
+                <div class="earning-row"><span><strong>Raj Mehta</strong> &mdash; H-1B Initial (Filing Fee)</span><span style="font-weight:700;color:var(--green-500)">$3,000</span></div>
+                <div class="earning-row"><span><strong>Wei Chen</strong> &mdash; EB-2 NIW (Complete)</span><span style="font-weight:700;color:var(--green-500)">$7,500</span></div>
+                <div class="earning-row"><span><strong>Li Wei</strong> &mdash; F-1 Consultation</span><span style="font-weight:700;color:var(--green-500)">$750</span></div>
+                <div class="earning-row"><span><strong>Ana Santos</strong> &mdash; O-1 Retainer</span><span style="font-weight:700;color:var(--green-500)">$2,500</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile -->
+    <div class="page" id="page-profile">
+        <div class="page-header">
+            <div><h1>Attorney Profile</h1><p>Your public profile visible to applicants.</p></div>
+            <div class="verified-badge">&#10003; Verified Attorney</div>
+        </div>
+
+        <div class="profile-section">
+            <div class="card">
+                <div class="card-header"><h3>Profile Information</h3></div>
+                <div class="card-body">
+                    <div class="form-group"><label>Full Name</label><input type="text" class="form-input" value="Sarah Kim"></div>
+                    <div class="form-group"><label>Email</label><input type="email" class="form-input" value="sarah.kim@lawfirm.com"></div>
+                    <div class="form-group"><label>Bar Number</label><input type="text" class="form-input" value="NY-2015-28394"></div>
+                    <div class="form-group"><label>Jurisdiction</label><input type="text" class="form-input" value="United States - New York"></div>
+                    <div class="form-group"><label>Years of Experience</label><input type="number" class="form-input" value="12"></div>
+                    <div class="form-group"><label>Specializations</label><input type="text" class="form-input" value="H-1B, O-1, EB-2, F-1, Family-based"></div>
+                    <div class="form-group"><label>Bio</label><textarea class="form-input" rows="3">Immigration attorney with 12 years of experience specializing in employment-based and student visas. Member of AILA.</textarea></div>
+                    <button class="btn btn-primary">Save Profile</button>
+                </div>
+            </div>
+            <div>
+                <div class="card">
+                    <div class="card-header"><h3>Performance</h3></div>
+                    <div class="card-body">
+                        <div class="earning-row"><span>Approval Rate</span><strong style="color:var(--green-500)">96%</strong></div>
+                        <div class="earning-row"><span>Total Cases</span><strong>147</strong></div>
+                        <div class="earning-row"><span>Client Rating</span><strong>4.9 / 5.0</strong></div>
+                        <div class="earning-row"><span>Avg. Processing Time</span><strong>45 days</strong></div>
+                        <div class="earning-row"><span>Response Rate</span><strong>98%</strong></div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top:20px">
+                    <div class="card-header"><h3>Availability</h3></div>
+                    <div class="card-body">
+                        <div class="form-group"><label>Max Active Cases</label><input type="number" class="form-input" value="15"></div>
+                        <div class="form-group"><label>Accepting New Cases</label>
+                            <select class="form-input"><option>Yes</option><option>No - At capacity</option></select>
+                        </div>
+                        <button class="btn btn-outline" style="width:100%">Update Availability</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + tab.dataset.tab).classList.add('active');
+        });
+    });
+})();
+</script>
+
+</body>
+</html>

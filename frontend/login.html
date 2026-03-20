@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verom.ai - Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-500: #3b82f6;
+            --blue-600: #2563eb; --blue-700: #1d4ed8; --blue-900: #1e3a5f;
+            --violet-500: #8b5cf6; --violet-600: #7c3aed;
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+            --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --green-500: #22c55e; --red-500: #ef4444; --amber-500: #f59e0b;
+            --radius: 12px;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--slate-800); background: var(--slate-900);
+            line-height: 1.6; -webkit-font-smoothing: antialiased;
+            min-height: 100vh; display: flex; flex-direction: column;
+        }
+        .login-nav {
+            padding: 16px 24px; display: flex; align-items: center;
+        }
+        .nav-brand {
+            display: flex; align-items: center; gap: 8px;
+            text-decoration: none;
+        }
+        .brand-icon { font-size: 24px; color: var(--blue-500); }
+        .brand-text { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+        .highlight { color: var(--blue-500); }
+
+        .login-wrapper {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            padding: 40px 24px;
+        }
+        .login-container {
+            width: 100%; max-width: 480px;
+        }
+        .login-header {
+            text-align: center; margin-bottom: 40px;
+        }
+        .login-header h1 {
+            font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 8px;
+        }
+        .login-header p {
+            font-size: 16px; color: rgba(255,255,255,0.6);
+        }
+
+        /* Role Selection */
+        .role-select {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            margin-bottom: 32px;
+        }
+        .role-card {
+            padding: 20px 16px; border-radius: var(--radius);
+            background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
+            text-align: center; cursor: pointer; transition: all 0.2s;
+        }
+        .role-card:hover {
+            border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.08);
+        }
+        .role-card.selected {
+            border-color: var(--blue-500); background: rgba(59,130,246,0.1);
+        }
+        .role-icon { font-size: 32px; margin-bottom: 8px; display: block; }
+        .role-label { font-size: 14px; font-weight: 600; color: #fff; }
+        .role-desc { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+        /* Form */
+        .login-card {
+            background: #fff; border-radius: 16px; padding: 36px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .tab-bar {
+            display: flex; margin-bottom: 28px; border-bottom: 2px solid var(--slate-200);
+        }
+        .tab-btn {
+            flex: 1; padding: 12px; text-align: center; font-size: 15px;
+            font-weight: 600; color: var(--slate-400); background: none; border: none;
+            cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .tab-btn.active {
+            color: var(--blue-600);
+        }
+        .tab-btn.active::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+            height: 2px; background: var(--blue-600);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block; font-size: 13px; font-weight: 600;
+            color: var(--slate-700); margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%; padding: 12px 16px; border: 1px solid var(--slate-300);
+            border-radius: 8px; font-family: inherit; font-size: 15px;
+            color: var(--slate-800); background: #fff; transition: all 0.2s;
+        }
+        .form-input:focus {
+            outline: none; border-color: var(--blue-500);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+        .form-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        }
+        .btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 100%; padding: 14px 24px; border-radius: 10px; font-weight: 600;
+            font-size: 16px; text-decoration: none; border: none; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--blue-600); color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--blue-700); transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none;
+        }
+        .form-footer {
+            text-align: center; margin-top: 20px; font-size: 14px; color: var(--slate-500);
+        }
+        .form-footer a {
+            color: var(--blue-600); text-decoration: none; font-weight: 600;
+        }
+        .form-footer a:hover { text-decoration: underline; }
+        .divider {
+            display: flex; align-items: center; gap: 12px; margin: 24px 0;
+            font-size: 13px; color: var(--slate-400);
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--slate-200);
+        }
+        .social-btns {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+        }
+        .btn-social {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px; border-radius: 8px; border: 1px solid var(--slate-300);
+            background: #fff; font-family: inherit; font-size: 14px; font-weight: 500;
+            color: var(--slate-700); cursor: pointer; transition: all 0.2s;
+        }
+        .btn-social:hover {
+            background: var(--slate-50); border-color: var(--slate-400);
+        }
+        .legal-note {
+            text-align: center; margin-top: 24px; font-size: 12px;
+            color: rgba(255,255,255,0.4);
+        }
+        .legal-note a {
+            color: rgba(255,255,255,0.6); text-decoration: underline;
+        }
+
+        /* Attorney extra fields */
+        .attorney-fields, .signup-fields { display: none; }
+        .attorney-fields.visible, .signup-fields.visible { display: block; }
+
+        @media (max-width: 540px) {
+            .role-select { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .social-btns { grid-template-columns: 1fr; }
+            .login-card { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-nav">
+    <a href="/" class="nav-brand">
+        <span class="brand-icon">&#9670;</span>
+        <span class="brand-text">Verom<span class="highlight">.ai</span></span>
+    </a>
+</div>
+
+<div class="login-wrapper">
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Welcome to Verom</h1>
+            <p>Select your role to get started</p>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="role-select" id="roleSelect">
+            <div class="role-card selected" data-role="applicant">
+                <span class="role-icon">&#127891;</span>
+                <div class="role-label">Applicant</div>
+                <div class="role-desc">Apply for a visa</div>
+            </div>
+            <div class="role-card" data-role="attorney">
+                <span class="role-icon">&#9878;</span>
+                <div class="role-label">Attorney</div>
+                <div class="role-desc">Join our network</div>
+            </div>
+            <div class="role-card" data-role="employer">
+                <span class="role-icon">&#127970;</span>
+                <div class="role-label">Employer</div>
+                <div class="role-desc">Manage compliance</div>
+            </div>
+        </div>
+
+        <!-- Login/Signup Card -->
+        <div class="login-card">
+            <div class="tab-bar">
+                <button class="tab-btn active" id="tabLogin">Sign In</button>
+                <button class="tab-btn" id="tabSignup">Create Account</button>
+            </div>
+
+            <!-- Sign In Form -->
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email address</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="loginBtn">Sign In</button>
+                <div class="form-footer">
+                    <a href="#">Forgot your password?</a>
+                </div>
+            </form>
+
+            <!-- Sign Up Form -->
+            <form id="signupForm" style="display:none">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signupFirst">First name</label>
+                        <input type="text" id="signupFirst" class="form-input" placeholder="First name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupLast">Last name</label>
+                        <input type="text" id="signupLast" class="form-input" placeholder="Last name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email address</label>
+                    <input type="email" id="signupEmail" class="form-input" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" class="form-input" placeholder="Create a password (8+ characters)" required minlength="8">
+                </div>
+
+                <!-- Attorney-specific fields -->
+                <div class="attorney-fields" id="attorneyFields">
+                    <div class="form-group">
+                        <label for="barNumber">Bar Number</label>
+                        <input type="text" id="barNumber" class="form-input" placeholder="Your bar admission number">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="jurisdiction">Jurisdiction</label>
+                            <select id="jurisdiction" class="form-input">
+                                <option value="">Select country...</option>
+                                <option value="US">United States</option>
+                                <option value="UK">United Kingdom</option>
+                                <option value="CA">Canada</option>
+                                <option value="AU">Australia</option>
+                                <option value="DE">Germany</option>
+                                <option value="NZ">New Zealand</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="yearsExp">Years of Experience</label>
+                            <input type="number" id="yearsExp" class="form-input" placeholder="e.g. 10" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="specializations">Specializations</label>
+                        <input type="text" id="specializations" class="form-input" placeholder="e.g. H-1B, Family-based, Asylum">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="signupBtn">Create Account</button>
+
+                <div class="divider">or continue with</div>
+                <div class="social-btns">
+                    <button type="button" class="btn-social">
+                        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                        Google
+                    </button>
+                    <button type="button" class="btn-social">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--slate-800)"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg>
+                        Facebook
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="legal-note">
+            By continuing, you agree to our <a href="/terms">Terms of Service</a>
+            and <a href="/privacy">Privacy Policy</a>.
+            <br>Verom is a technology platform and does not provide legal advice.
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    let selectedRole = 'applicant';
+
+    // Role selection
+    document.querySelectorAll('.role-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedRole = card.dataset.role;
+            // Show/hide attorney fields
+            document.getElementById('attorneyFields').classList.toggle('visible', selectedRole === 'attorney');
+        });
+    });
+
+    // Tab switching
+    document.getElementById('tabLogin').addEventListener('click', () => {
+        document.getElementById('tabLogin').classList.add('active');
+        document.getElementById('tabSignup').classList.remove('active');
+        document.getElementById('loginForm').style.display = '';
+        document.getElementById('signupForm').style.display = 'none';
+    });
+    document.getElementById('tabSignup').addEventListener('click', () => {
+        document.getElementById('tabSignup').classList.add('active');
+        document.getElementById('tabLogin').classList.remove('active');
+        document.getElementById('signupForm').style.display = '';
+        document.getElementById('loginForm').style.display = 'none';
+    });
+
+    // Form submission
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        // Route based on role
+        if (selectedRole === 'applicant') window.location.href = '/applicant';
+        else if (selectedRole === 'attorney') window.location.href = '/attorney';
+        else window.location.href = '/app';
+    });
+
+    document.getElementById('signupForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (selectedRole === 'applicant') window.location.href = '/applicant';
+        else if (selectedRole === 'attorney') window.location.href = '/attorney';
+        else window.location.href = '/app';
+    });
+})();
+</script>
+
+</body>
+</html>

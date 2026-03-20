@@ -97,6 +97,41 @@ def serve_app() -> HTMLResponse:
         return HTMLResponse(content=index_path.read_text())
     return HTMLResponse(content="<h1>Verom.ai</h1><p>App not found.</p>")
 
+@app.get("/login", response_class=HTMLResponse)
+def serve_login() -> HTMLResponse:
+    path = _frontend_dir / "login.html"
+    if path.exists():
+        return HTMLResponse(content=path.read_text())
+    return HTMLResponse(content="<h1>Verom.ai</h1><p>Login page not found.</p>")
+
+@app.get("/applicant", response_class=HTMLResponse)
+def serve_applicant() -> HTMLResponse:
+    path = _frontend_dir / "applicant.html"
+    if path.exists():
+        return HTMLResponse(content=path.read_text())
+    return HTMLResponse(content="<h1>Verom.ai</h1><p>Applicant portal not found.</p>")
+
+@app.get("/attorney", response_class=HTMLResponse)
+def serve_attorney() -> HTMLResponse:
+    path = _frontend_dir / "attorney.html"
+    if path.exists():
+        return HTMLResponse(content=path.read_text())
+    return HTMLResponse(content="<h1>Verom.ai</h1><p>Attorney portal not found.</p>")
+
+@app.get("/privacy", response_class=HTMLResponse)
+def serve_privacy() -> HTMLResponse:
+    path = _frontend_dir / "privacy.html"
+    if path.exists():
+        return HTMLResponse(content=path.read_text())
+    return HTMLResponse(content="<h1>Verom.ai</h1><p>Privacy policy not found.</p>")
+
+@app.get("/terms", response_class=HTMLResponse)
+def serve_terms() -> HTMLResponse:
+    path = _frontend_dir / "terms.html"
+    if path.exists():
+        return HTMLResponse(content=path.read_text())
+    return HTMLResponse(content="<h1>Verom.ai</h1><p>Terms of service not found.</p>")
+
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
     return HealthResponse()

@@ -27,6 +27,26 @@
       "destination": "/api/index.py"
     },
     {
+      "source": "/login",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/applicant",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/attorney",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/terms",
+      "destination": "/api/index.py"
+    },
+    {
       "source": "/(.*)",
       "destination": "/api/index.py"
     }
