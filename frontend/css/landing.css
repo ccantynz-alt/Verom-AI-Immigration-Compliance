@@ -246,8 +246,25 @@ body {
 .compliance-card h4 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
 .compliance-card p { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.6; }
 
+/* ---- Visa Type Cards ---- */
+.visa-types {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-bottom: 48px;
+}
+.visa-type-card {
+    padding: 20px 24px; border-radius: var(--radius); background: var(--slate-50);
+    border: 1px solid var(--slate-200); text-align: center; transition: all 0.2s;
+}
+.visa-type-card:hover { border-color: var(--blue-500); background: var(--blue-50); transform: translateY(-2px); }
+.visa-type-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+.visa-type-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.visa-type-card p { font-size: 13px; color: var(--slate-500); }
+
+/* ---- Employer Section ---- */
+.employer-section { padding: 100px 0; }
+
 /* ---- Pricing ---- */
-.pricing-section { padding: 100px 0; }
+.pricing-section { padding: 100px 0; background: var(--slate-50); }
 .pricing-grid { grid-template-columns: repeat(2, 1fr); max-width: 800px; margin: 0 auto; }
 
 /* ---- Final CTA ---- */
@@ -271,6 +288,7 @@ body {
 @media (max-width: 1024px) {
     .feature-grid, .attorney-value { grid-template-columns: repeat(2, 1fr); }
     .country-grid { grid-template-columns: repeat(2, 1fr); }
+    .visa-types { grid-template-columns: repeat(2, 1fr); }
     .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
 }
 
@@ -295,6 +313,7 @@ body {
     .problem-grid { grid-template-columns: 1fr; gap: 40px; }
     .persona-grid, .student-flow, .pricing-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
     .feature-grid, .attorney-value { grid-template-columns: 1fr; }
+    .visa-types { grid-template-columns: 1fr 1fr; }
     .compliance-grid, .country-grid { grid-template-columns: 1fr; }
 
     .steps { flex-direction: column; align-items: center; }

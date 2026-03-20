@@ -86,7 +86,8 @@ body {
     font-size: 24px;
 }
 
-.brand-highlight {
+.brand-highlight,
+.brand-text .highlight {
     color: var(--primary);
 }
 
