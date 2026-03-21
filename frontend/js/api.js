@@ -139,19 +139,19 @@ const API = {
 
     async listPAFs(employee_id = null) {
         const qs = employee_id ? `?employee_id=${encodeURIComponent(employee_id)}` : '';
-        return this.request('GET', `/paf${qs}`);
+        return this.request('GET', `/pafs${qs}`);
     },
 
     async getPAF(id) {
-        return this.request('GET', `/paf/${encodeURIComponent(id)}`);
+        return this.request('GET', `/pafs/${encodeURIComponent(id)}`);
     },
 
     async updatePAFDocument(paf_id, body) {
-        return this.request('PATCH', `/paf/${encodeURIComponent(paf_id)}/document`, body);
+        return this.request('PATCH', `/pafs/${encodeURIComponent(paf_id)}/document`, body);
     },
 
     async deletePAF(id) {
-        return this.request('DELETE', `/paf/${encodeURIComponent(id)}`);
+        return this.request('DELETE', `/pafs/${encodeURIComponent(id)}`);
     },
 
     // ----------------------------------------

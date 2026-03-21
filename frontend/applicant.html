@@ -231,13 +231,37 @@
         }
         .empty-icon { font-size: 48px; display: block; margin-bottom: 12px; opacity: 0.6; }
 
+        /* Mobile menu toggle */
+        .mobile-toggle {
+            display: none; background: none; border: none; cursor: pointer;
+            width: 32px; height: 32px; position: relative; padding: 0;
+        }
+        .mobile-toggle span {
+            display: block; width: 22px; height: 2px; background: var(--slate-600);
+            position: absolute; left: 5px; transition: all 0.2s;
+        }
+        .mobile-toggle span:nth-child(1) { top: 8px; }
+        .mobile-toggle span:nth-child(2) { top: 15px; }
+        .mobile-toggle span:nth-child(3) { top: 22px; }
+        .mobile-toggle.active span:nth-child(1) { top: 15px; transform: rotate(45deg); }
+        .mobile-toggle.active span:nth-child(2) { opacity: 0; }
+        .mobile-toggle.active span:nth-child(3) { top: 15px; transform: rotate(-45deg); }
+
         @media (max-width: 768px) {
             .dashboard-grid { grid-template-columns: 1fr; }
             .attorney-grid { grid-template-columns: 1fr; }
             .option-grid, .country-grid { grid-template-columns: 1fr 1fr; }
             .form-row { grid-template-columns: 1fr; }
             .wizard-steps { flex-wrap: wrap; }
-            .nav-tabs { display: none; }
+            .nav-tabs {
+                display: none; position: absolute; top: 64px; left: 0; right: 0;
+                background: #fff; flex-direction: column; padding: 8px 16px;
+                border-bottom: 1px solid var(--slate-200); box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                z-index: 99;
+            }
+            .nav-tabs.open { display: flex; }
+            .mobile-toggle { display: block; }
+            .nav-inner { position: relative; }
         }
     </style>
 </head>
@@ -260,6 +284,9 @@
         <div class="nav-right">
             <div class="avatar">JD</div>
         </div>
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
     </div>
 </nav>
 
@@ -585,6 +612,12 @@
 
 <script>
 (function() {
+    // Mobile nav toggle
+    document.getElementById('mobileToggle').addEventListener('click', function() {
+        this.classList.toggle('active');
+        document.querySelector('.nav-tabs').classList.toggle('open');
+    });
+
     // Tab navigation
     document.querySelectorAll('.nav-tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -592,6 +625,9 @@
             tab.classList.add('active');
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + tab.dataset.tab).classList.add('active');
+            // Close mobile menu on tab click
+            document.getElementById('mobileToggle').classList.remove('active');
+            document.querySelector('.nav-tabs').classList.remove('open');
         });
     });
 
@@ -663,6 +699,41 @@
         document.querySelector('[data-tab=dashboard]').classList.add('active');
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('page-dashboard').classList.add('active');
+    });
+
+    // Toast notification helper
+    function showToast(message, type) {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:14px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;animation:fadeIn 200ms ease;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:360px;';
+        if (type === 'success') {
+            toast.style.background = '#16a34a'; toast.style.color = '#fff';
+        } else {
+            toast.style.background = '#2563eb'; toast.style.color = '#fff';
+        }
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Request Consultation buttons
+    document.querySelectorAll('.attorney-card .btn-primary').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const name = this.closest('.attorney-card').querySelector('.attorney-name').textContent;
+            this.textContent = 'Request Sent';
+            this.disabled = true;
+            this.style.opacity = '0.6';
+            showToast('Consultation request sent to ' + name + '. They will respond within 24 hours.', 'success');
+        });
+    });
+
+    // Upload Document button
+    document.querySelectorAll('#page-documents .btn-primary').forEach(btn => {
+        btn.addEventListener('click', function() {
+            showToast('Document upload will be available once your application is submitted.', 'info');
+        });
     });
 })();
 </script>

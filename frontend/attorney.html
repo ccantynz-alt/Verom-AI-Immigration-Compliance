@@ -219,10 +219,34 @@
             .pipeline { grid-template-columns: repeat(2, 1fr); }
             .profile-section, .earnings-grid { grid-template-columns: 1fr; }
         }
+        /* Mobile menu toggle */
+        .mobile-toggle {
+            display: none; background: none; border: none; cursor: pointer;
+            width: 32px; height: 32px; position: relative; padding: 0;
+        }
+        .mobile-toggle span {
+            display: block; width: 22px; height: 2px; background: var(--slate-600);
+            position: absolute; left: 5px; transition: all 0.2s;
+        }
+        .mobile-toggle span:nth-child(1) { top: 8px; }
+        .mobile-toggle span:nth-child(2) { top: 15px; }
+        .mobile-toggle span:nth-child(3) { top: 22px; }
+        .mobile-toggle.active span:nth-child(1) { top: 15px; transform: rotate(45deg); }
+        .mobile-toggle.active span:nth-child(2) { opacity: 0; }
+        .mobile-toggle.active span:nth-child(3) { top: 15px; transform: rotate(-45deg); }
+
         @media (max-width: 768px) {
             .stats-grid { grid-template-columns: 1fr; }
             .pipeline { grid-template-columns: 1fr; }
-            .nav-tabs { display: none; }
+            .nav-tabs {
+                display: none; position: absolute; top: 64px; left: 0; right: 0;
+                background: #fff; flex-direction: column; padding: 8px 16px;
+                border-bottom: 1px solid var(--slate-200); box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                z-index: 99;
+            }
+            .nav-tabs.open { display: flex; }
+            .mobile-toggle { display: block; }
+            .nav-inner { position: relative; }
         }
     </style>
 </head>
@@ -246,6 +270,9 @@
         <div class="nav-right">
             <div class="avatar">SK</div>
         </div>
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
     </div>
 </nav>
 
@@ -448,16 +475,9 @@
         </div>
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
             <div class="card">
-                <div class="card-header"><h3>March 2026</h3></div>
+                <div class="card-header"><h3 id="calMonthTitle">-</h3></div>
                 <div class="card-body">
-                    <div class="calendar-grid">
-                        <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>
-                        <div class="cal-day empty">1</div><div class="cal-day">2</div><div class="cal-day">3</div><div class="cal-day">4</div><div class="cal-day has-event">5</div><div class="cal-day">6</div><div class="cal-day">7</div>
-                        <div class="cal-day">8</div><div class="cal-day">9</div><div class="cal-day has-event">10</div><div class="cal-day">11</div><div class="cal-day">12</div><div class="cal-day">13</div><div class="cal-day">14</div>
-                        <div class="cal-day has-event">15</div><div class="cal-day">16</div><div class="cal-day">17</div><div class="cal-day has-event">18</div><div class="cal-day">19</div><div class="cal-day today">20</div><div class="cal-day">21</div>
-                        <div class="cal-day">22</div><div class="cal-day">23</div><div class="cal-day">24</div><div class="cal-day has-event">25</div><div class="cal-day">26</div><div class="cal-day">27</div><div class="cal-day">28</div>
-                        <div class="cal-day">29</div><div class="cal-day">30</div><div class="cal-day">31</div>
-                    </div>
+                    <div class="calendar-grid" id="calGrid"></div>
                 </div>
             </div>
             <div class="card">
@@ -556,14 +576,128 @@
 
 <script>
 (function() {
+    // Mobile nav toggle
+    document.getElementById('mobileToggle').addEventListener('click', function() {
+        this.classList.toggle('active');
+        document.querySelector('.nav-tabs').classList.toggle('open');
+    });
+
     document.querySelectorAll('.nav-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + tab.dataset.tab).classList.add('active');
+            // Close mobile menu
+            document.getElementById('mobileToggle').classList.remove('active');
+            document.querySelector('.nav-tabs').classList.remove('open');
         });
     });
+
+    // Toast helper
+    function showToast(message, type) {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:14px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:360px;';
+        toast.style.background = type === 'success' ? '#16a34a' : '#2563eb';
+        toast.style.color = '#fff';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Accept Case buttons
+    document.querySelectorAll('.btn-success').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('[style*="padding"]');
+            const name = row ? row.querySelector('[style*="font-weight:600"]').textContent : 'Case';
+            this.textContent = 'Accepted';
+            this.disabled = true;
+            this.style.opacity = '0.6';
+            showToast(name + ' accepted. Case moved to your active pipeline.', 'success');
+        });
+    });
+
+    // View Details buttons
+    document.querySelectorAll('.btn-outline.btn-sm').forEach(btn => {
+        if (btn.textContent.trim() === 'View Details') {
+            btn.addEventListener('click', function() {
+                const row = this.closest('[style*="padding"]');
+                const name = row ? row.querySelector('[style*="font-weight:600"]').textContent : 'Case';
+                showToast('Opening details for ' + name + '...', 'info');
+            });
+        }
+    });
+
+    // Case card click - show case info
+    document.querySelectorAll('.case-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const name = this.querySelector('.case-name').textContent;
+            const meta = this.querySelector('.case-meta').textContent;
+            showToast(name + ' — ' + meta, 'info');
+        });
+    });
+
+    // Dynamic calendar
+    (function buildCalendar() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const today = now.getDate();
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        document.getElementById('calMonthTitle').textContent = months[month] + ' ' + year;
+
+        const grid = document.getElementById('calGrid');
+        const headers = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        headers.forEach(h => {
+            const d = document.createElement('div');
+            d.className = 'cal-header';
+            d.textContent = h;
+            grid.appendChild(d);
+        });
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        // Event days relative to today (upcoming deadlines)
+        const eventDays = new Set();
+        [today + 5, today + 12, today + 18, today + 25].forEach(d => {
+            if (d > 0 && d <= daysInMonth) eventDays.add(d);
+        });
+
+        for (let i = 0; i < firstDay; i++) {
+            const d = document.createElement('div');
+            d.className = 'cal-day empty';
+            grid.appendChild(d);
+        }
+        for (let day = 1; day <= daysInMonth; day++) {
+            const d = document.createElement('div');
+            d.className = 'cal-day';
+            if (day === today) d.classList.add('today');
+            if (eventDays.has(day)) d.classList.add('has-event');
+            d.textContent = day;
+            grid.appendChild(d);
+        }
+    })();
+
+    // Save Profile button
+    const saveBtn = document.querySelector('#page-profile .btn-primary');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            showToast('Profile saved successfully.', 'success');
+        });
+    }
+
+    // Update Availability button
+    const availBtn = document.querySelector('#page-profile .btn-outline[style*="width:100%"]');
+    if (availBtn) {
+        availBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            showToast('Availability updated.', 'success');
+        });
+    }
 })();
 </script>
 
