@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from datetime import date
 from pathlib import Path
 
@@ -83,54 +84,52 @@ class IntegrationStatusUpdate(BaseModel):
 
 # --- Root / Frontend ---
 
+def _serve_html(path: Path, fallback: str) -> HTMLResponse:
+    """Serve an HTML file with cache-busting and no-cache headers."""
+    if not path.exists():
+        return HTMLResponse(content=f"<h1>Verom.ai</h1><p>{fallback}</p>")
+    content = path.read_text()
+    # Add content-hash query param to CSS/JS refs so browsers fetch fresh assets
+    for ext in (".css", ".js"):
+        for asset in _frontend_dir.rglob(f"*{ext}"):
+            rel = f"/static/{asset.relative_to(_frontend_dir)}"
+            if rel in content:
+                h = hashlib.md5(asset.read_bytes()).hexdigest()[:8]  # noqa: S324
+                content = content.replace(f'"{rel}"', f'"{rel}?v={h}"')
+                content = content.replace(f"'{rel}'", f"'{rel}?v={h}'")
+    return HTMLResponse(
+        content=content,
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+    )
+
+
 @app.get("/", response_class=HTMLResponse)
 def serve_landing() -> HTMLResponse:
-    landing_path = _frontend_dir / "landing.html"
-    if landing_path.exists():
-        return HTMLResponse(content=landing_path.read_text())
-    return HTMLResponse(content="<h1>Verom.ai</h1><p>Landing page not found.</p>")
+    return _serve_html(_frontend_dir / "landing.html", "Landing page not found.")
 
 @app.get("/app", response_class=HTMLResponse)
 def serve_app() -> HTMLResponse:
-    index_path = _frontend_dir / "index.html"
-    if index_path.exists():
-        return HTMLResponse(content=index_path.read_text())
-    return HTMLResponse(content="<h1>Verom.ai</h1><p>App not found.</p>")
+    return _serve_html(_frontend_dir / "index.html", "App not found.")
 
 @app.get("/login", response_class=HTMLResponse)
 def serve_login() -> HTMLResponse:
-    path = _frontend_dir / "login.html"
-    if path.exists():
-        return HTMLResponse(content=path.read_text())
-    return HTMLResponse(content="<h1>Verom.ai</h1><p>Login page not found.</p>")
+    return _serve_html(_frontend_dir / "login.html", "Login page not found.")
 
 @app.get("/applicant", response_class=HTMLResponse)
 def serve_applicant() -> HTMLResponse:
-    path = _frontend_dir / "applicant.html"
-    if path.exists():
-        return HTMLResponse(content=path.read_text())
-    return HTMLResponse(content="<h1>Verom.ai</h1><p>Applicant portal not found.</p>")
+    return _serve_html(_frontend_dir / "applicant.html", "Applicant portal not found.")
 
 @app.get("/attorney", response_class=HTMLResponse)
 def serve_attorney() -> HTMLResponse:
-    path = _frontend_dir / "attorney.html"
-    if path.exists():
-        return HTMLResponse(content=path.read_text())
-    return HTMLResponse(content="<h1>Verom.ai</h1><p>Attorney portal not found.</p>")
+    return _serve_html(_frontend_dir / "attorney.html", "Attorney portal not found.")
 
 @app.get("/privacy", response_class=HTMLResponse)
 def serve_privacy() -> HTMLResponse:
-    path = _frontend_dir / "privacy.html"
-    if path.exists():
-        return HTMLResponse(content=path.read_text())
-    return HTMLResponse(content="<h1>Verom.ai</h1><p>Privacy policy not found.</p>")
+    return _serve_html(_frontend_dir / "privacy.html", "Privacy policy not found.")
 
 @app.get("/terms", response_class=HTMLResponse)
 def serve_terms() -> HTMLResponse:
-    path = _frontend_dir / "terms.html"
-    if path.exists():
-        return HTMLResponse(content=path.read_text())
-    return HTMLResponse(content="<h1>Verom.ai</h1><p>Terms of service not found.</p>")
+    return _serve_html(_frontend_dir / "terms.html", "Terms of service not found.")
 
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
