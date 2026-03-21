@@ -13,16 +13,25 @@ client = TestClient(app)
 def setup_function():
     auth_service._users.clear()
     auth_service._email_index.clear()
+    auth_service._verification_docs.clear()
 
 
 def _signup(role="applicant", email="test@example.com"):
-    return client.post("/api/auth/signup", json={
+    body = {
         "email": email,
         "password": "testpass123",
         "first_name": "Test",
         "last_name": "User",
         "role": role,
-    })
+    }
+    # Attorney requires extra fields
+    if role == "attorney":
+        body.update({
+            "bar_number": "NY12345",
+            "jurisdiction": "US",
+            "specializations": "H-1B, Family-based",
+        })
+    return client.post("/api/auth/signup", json=body)
 
 
 def _login(email="test@example.com", password="testpass123"):
@@ -30,6 +39,10 @@ def _login(email="test@example.com", password="testpass123"):
         "email": email,
         "password": password,
     })
+
+
+def _auth(token):
+    return {"Authorization": f"Bearer {token}"}
 
 
 # --- Signup tests ---
@@ -43,6 +56,7 @@ def test_signup_applicant():
     assert data["user"]["role"] == "applicant"
     assert data["user"]["email"] == "test@example.com"
     assert data["user"]["first_name"] == "Test"
+    assert data["user"]["verification_status"] == "not_applicable"
 
 
 def test_signup_attorney():
@@ -62,12 +76,15 @@ def test_signup_attorney():
     assert data["user"]["role"] == "attorney"
     assert data["user"]["bar_number"] == "NY12345"
     assert data["user"]["jurisdiction"] == "US"
+    # Attorney starts as pending verification
+    assert data["user"]["verification_status"] == "pending"
 
 
 def test_signup_employer():
     resp = _signup("employer", "hr@company.com")
     assert resp.status_code == 201
     assert resp.json()["user"]["role"] == "employer"
+    assert resp.json()["user"]["verification_status"] == "not_applicable"
 
 
 def test_signup_duplicate_email():
@@ -97,6 +114,75 @@ def test_signup_invalid_email():
         "role": "applicant",
     })
     assert resp.status_code == 422
+
+
+# --- Attorney signup validation ---
+
+def test_attorney_signup_requires_bar_number():
+    resp = client.post("/api/auth/signup", json={
+        "email": "att@example.com",
+        "password": "testpass123",
+        "first_name": "No",
+        "last_name": "Bar",
+        "role": "attorney",
+        "jurisdiction": "US",
+        "specializations": "H-1B",
+    })
+    assert resp.status_code == 409 or resp.status_code == 422 or "bar number" in resp.json().get("detail", "").lower()
+
+
+def test_attorney_signup_requires_jurisdiction():
+    resp = client.post("/api/auth/signup", json={
+        "email": "att@example.com",
+        "password": "testpass123",
+        "first_name": "No",
+        "last_name": "Jurisdiction",
+        "role": "attorney",
+        "bar_number": "NY12345",
+        "specializations": "H-1B",
+    })
+    assert resp.status_code in (409, 422) or "jurisdiction" in resp.json().get("detail", "").lower()
+
+
+def test_attorney_signup_requires_specializations():
+    resp = client.post("/api/auth/signup", json={
+        "email": "att@example.com",
+        "password": "testpass123",
+        "first_name": "No",
+        "last_name": "Spec",
+        "role": "attorney",
+        "bar_number": "NY12345",
+        "jurisdiction": "US",
+    })
+    assert resp.status_code in (409, 422) or "specialization" in resp.json().get("detail", "").lower()
+
+
+def test_attorney_signup_invalid_bar_number():
+    resp = client.post("/api/auth/signup", json={
+        "email": "att@example.com",
+        "password": "testpass123",
+        "first_name": "Bad",
+        "last_name": "Bar",
+        "role": "attorney",
+        "bar_number": "x",  # Too short
+        "jurisdiction": "US",
+        "specializations": "H-1B",
+    })
+    assert resp.status_code in (409, 422) or "bar number" in resp.json().get("detail", "").lower()
+
+
+def test_attorney_signup_invalid_jurisdiction():
+    resp = client.post("/api/auth/signup", json={
+        "email": "att@example.com",
+        "password": "testpass123",
+        "first_name": "Bad",
+        "last_name": "Jur",
+        "role": "attorney",
+        "bar_number": "NY12345",
+        "jurisdiction": "MARS",  # Not supported
+        "specializations": "H-1B",
+    })
+    assert resp.status_code in (409, 422) or "jurisdiction" in resp.json().get("detail", "").lower()
 
 
 # --- Login tests ---
@@ -133,7 +219,7 @@ def test_login_case_insensitive_email():
 def test_me_with_valid_token():
     signup_resp = _signup()
     token = signup_resp.json()["access_token"]
-    resp = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    resp = client.get("/api/auth/me", headers=_auth(token))
     assert resp.status_code == 200
     assert resp.json()["email"] == "test@example.com"
 

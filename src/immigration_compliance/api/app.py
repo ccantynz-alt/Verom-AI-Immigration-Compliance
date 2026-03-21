@@ -13,7 +13,16 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from immigration_compliance.models.audit import AuditAction, AuditEntry, ICEAuditReport
-from immigration_compliance.models.auth import Token, UserCreate, UserLogin, UserOut, UserRole
+from immigration_compliance.models.auth import (
+    Token,
+    UserCreate,
+    UserLogin,
+    UserOut,
+    UserRole,
+    VerificationDecision,
+    VerificationDocUpload,
+    VerificationStatus,
+)
 from immigration_compliance.models.billing import (
     CheckoutResponse,
     ConnectOnboardRequest,
@@ -99,6 +108,19 @@ def require_role(*roles: UserRole):
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return user
     return _check
+
+
+def require_verified_attorney(user: UserOut = Depends(get_current_user)) -> UserOut:
+    """Restrict access to verified attorneys only. Unverified attorneys cannot
+    access client data, case documents, or the marketplace."""
+    if user.role != UserRole.ATTORNEY:
+        raise HTTPException(status_code=403, detail="Attorney access required")
+    if user.verification_status != VerificationStatus.VERIFIED:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Attorney verification required. Current status: {user.verification_status.value}",
+        )
+    return user
 
 
 # --- Request/Response models ---
@@ -204,6 +226,75 @@ def login(data: UserLogin) -> Token:
 @app.get("/api/auth/me", response_model=UserOut)
 def get_me(user: UserOut = Depends(get_current_user)) -> UserOut:
     return user
+
+
+# =============================================
+# Attorney Verification endpoints
+# =============================================
+
+@app.post("/api/verification/submit", response_model=UserOut)
+def submit_verification(
+    docs: VerificationDocUpload,
+    user: UserOut = Depends(require_role(UserRole.ATTORNEY)),
+) -> UserOut:
+    """Attorney submits verification documents (bar certificate, govt ID, insurance)."""
+    if not docs.bar_certificate_filename:
+        raise HTTPException(status_code=422, detail="Bar certificate document is required")
+    if not docs.government_id_filename:
+        raise HTTPException(status_code=422, detail="Government-issued ID is required")
+    success = auth_service.submit_verification_docs(user.id, docs.model_dump())
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Verification documents cannot be submitted in current status",
+        )
+    updated = auth_service.get_user(user.id)
+    audit_trail.log(
+        AuditAction.COMPLIANCE_CHECK_RUN,
+        details=f"Attorney verification docs submitted: {user.email}",
+    )
+    return updated  # type: ignore[return-value]
+
+
+@app.get("/api/verification/status")
+def get_verification_status(user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    """Attorney checks their own verification status."""
+    docs = auth_service.get_verification_docs(user.id)
+    return {
+        "verification_status": user.verification_status.value,
+        "documents_submitted": docs is not None,
+        "documents": docs,
+    }
+
+
+@app.get("/api/admin/attorneys/pending", response_model=list[UserOut])
+def list_pending_attorneys(user: UserOut = Depends(get_current_user)) -> list[UserOut]:
+    """Admin endpoint: list attorneys awaiting verification."""
+    # In production, this would check for admin role
+    return auth_service.list_attorneys(status=VerificationStatus.SUBMITTED)
+
+
+@app.post("/api/admin/attorneys/{attorney_id}/verify", response_model=UserOut)
+def verify_attorney(
+    attorney_id: str,
+    decision: VerificationDecision,
+    user: UserOut = Depends(get_current_user),
+) -> UserOut:
+    """Admin endpoint: approve or reject an attorney's verification."""
+    if decision.status not in (
+        VerificationStatus.VERIFIED,
+        VerificationStatus.REJECTED,
+        VerificationStatus.SUSPENDED,
+    ):
+        raise HTTPException(status_code=422, detail="Invalid verification decision")
+    result = auth_service.set_verification_status(attorney_id, decision.status, decision.reason)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Attorney not found")
+    audit_trail.log(
+        AuditAction.COMPLIANCE_CHECK_RUN,
+        details=f"Attorney {attorney_id} verification: {decision.status.value} — {decision.reason}",
+    )
+    return result
 
 
 # =============================================

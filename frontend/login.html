@@ -234,12 +234,12 @@
                 <!-- Attorney-specific fields -->
                 <div class="attorney-fields" id="attorneyFields">
                     <div class="form-group">
-                        <label for="barNumber">Bar Number</label>
-                        <input type="text" id="barNumber" class="form-input" placeholder="Your bar admission number">
+                        <label for="barNumber">Bar Number <span style="color:#dc2626">*</span></label>
+                        <input type="text" id="barNumber" class="form-input" placeholder="Your bar admission number (required)" minlength="3" maxlength="20" pattern="[A-Za-z0-9\-]{3,20}">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="jurisdiction">Jurisdiction</label>
+                            <label for="jurisdiction">Jurisdiction <span style="color:#dc2626">*</span></label>
                             <select id="jurisdiction" class="form-input">
                                 <option value="">Select country...</option>
                                 <option value="US">United States</option>
@@ -248,6 +248,12 @@
                                 <option value="AU">Australia</option>
                                 <option value="DE">Germany</option>
                                 <option value="NZ">New Zealand</option>
+                                <option value="IE">Ireland</option>
+                                <option value="FR">France</option>
+                                <option value="NL">Netherlands</option>
+                                <option value="JP">Japan</option>
+                                <option value="SG">Singapore</option>
+                                <option value="AE">UAE</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -256,8 +262,15 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="specializations">Specializations</label>
-                        <input type="text" id="specializations" class="form-input" placeholder="e.g. H-1B, Family-based, Asylum">
+                        <label for="specializations">Specializations <span style="color:#dc2626">*</span></label>
+                        <input type="text" id="specializations" class="form-input" placeholder="e.g. H-1B, Family-based, Asylum (required)">
+                    </div>
+                    <div class="form-group">
+                        <label for="firmName">Firm Name</label>
+                        <input type="text" id="firmName" class="form-input" placeholder="Your law firm (optional)">
+                    </div>
+                    <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-top:8px;font-size:13px;color:#92400e;">
+                        After registration, you will need to upload your bar certificate and government-issued ID for verification before accessing client features.
                     </div>
                 </div>
 
@@ -389,6 +402,7 @@
                 body.jurisdiction = document.getElementById('jurisdiction').value;
                 body.years_experience = parseInt(document.getElementById('yearsExp').value) || 0;
                 body.specializations = document.getElementById('specializations').value;
+                body.firm_name = document.getElementById('firmName').value;
             }
             const resp = await fetch('/api/auth/signup', {
                 method: 'POST',

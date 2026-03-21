@@ -13,18 +13,26 @@ client = TestClient(app)
 def setup_function():
     auth_service._users.clear()
     auth_service._email_index.clear()
+    auth_service._verification_docs.clear()
     billing_service._subscriptions.clear()
     billing_service._connect_accounts.clear()
 
 
 def _create_user(role="applicant", email="test@example.com"):
-    resp = client.post("/api/auth/signup", json={
+    body = {
         "email": email,
         "password": "testpass123",
         "first_name": "Test",
         "last_name": "User",
         "role": role,
-    })
+    }
+    if role == "attorney":
+        body.update({
+            "bar_number": "NY12345",
+            "jurisdiction": "US",
+            "specializations": "H-1B, Family-based",
+        })
+    resp = client.post("/api/auth/signup", json=body)
     return resp.json()
 
 
