@@ -110,11 +110,15 @@ body {
 /* ---- Hero ---- */
 .hero {
     position: relative; padding: 160px 24px 100px; text-align: center;
-    overflow: hidden; min-height: 90vh; display: flex; align-items: center; justify-content: center;
+    overflow: hidden; min-height: 100vh; display: flex; align-items: center; justify-content: center;
 }
 .hero-bg {
     position: absolute; inset: 0;
-    background: linear-gradient(135deg, var(--slate-900) 0%, #1a1a3e 40%, var(--blue-900) 100%);
+    background: url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+}
+.hero-bg::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(26,26,62,0.85) 40%, rgba(30,58,95,0.88) 100%);
 }
 .hero-bg::after {
     content: ''; position: absolute; inset: 0;
@@ -304,7 +308,7 @@ body {
     .nav-cta.open .btn-outline-light { border-color: var(--blue-600); color: var(--blue-600); }
     .mobile-toggle { display: block; }
 
-    .hero { padding: 120px 24px 80px; min-height: auto; }
+    .hero { padding: 120px 24px 80px; min-height: 100vh; }
     .hero h1 { font-size: 36px; }
     .hero-sub { font-size: 17px; }
     .hero-stats { gap: 24px; }
