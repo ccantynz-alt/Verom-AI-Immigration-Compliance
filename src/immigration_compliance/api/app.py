@@ -6,12 +6,23 @@ import hashlib
 from datetime import date
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from immigration_compliance.models.audit import AuditAction, AuditEntry, ICEAuditReport
+from immigration_compliance.models.auth import Token, UserCreate, UserLogin, UserOut, UserRole
+from immigration_compliance.models.billing import (
+    CheckoutResponse,
+    ConnectOnboardRequest,
+    ConnectOnboardResponse,
+    CreateCheckoutRequest,
+    PaymentIntentRequest,
+    PaymentIntentResponse,
+    PlanInfo,
+)
 from immigration_compliance.models.case import Case, CaseStatus
 from immigration_compliance.models.compliance import ComplianceReport, RuleViolation
 from immigration_compliance.models.document import Document, DocumentCategory
@@ -26,6 +37,8 @@ from immigration_compliance.models.regulatory import (
     RegulatoryUpdate,
 )
 from immigration_compliance.services.audit_service import AuditTrailService, ICEAuditSimulator
+from immigration_compliance.services.auth_service import AuthService
+from immigration_compliance.services.billing_service import BillingService
 from immigration_compliance.services.compliance_service import ComplianceService
 from immigration_compliance.services.document_service import DocumentService
 from immigration_compliance.services.global_service import GlobalImmigrationService
@@ -48,6 +61,8 @@ if _frontend_dir.exists():
     app.mount("/static", StaticFiles(directory=str(_frontend_dir)), name="static")
 
 # Service instances
+auth_service = AuthService()
+billing_service = BillingService()
 service = ComplianceService()
 _cases: dict[str, Case] = {}
 doc_service = DocumentService()
@@ -57,6 +72,33 @@ paf_service = PAFService()
 regulatory_service = RegulatoryService()
 global_service = GlobalImmigrationService()
 hris_service = HRISService()
+
+# Auth dependency
+_bearer = HTTPBearer(auto_error=False)
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+) -> UserOut:
+    """Validate JWT and return the current user. Raises 401 if invalid."""
+    if credentials is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    token_data = AuthService.decode_token(credentials.credentials)
+    if token_data is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    user = auth_service.get_user(token_data.user_id)
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+
+def require_role(*roles: UserRole):
+    """Dependency factory — restrict access to specific roles."""
+    def _check(user: UserOut = Depends(get_current_user)) -> UserOut:
+        if user.role not in roles:
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        return user
+    return _check
 
 
 # --- Request/Response models ---
@@ -134,6 +176,92 @@ def serve_terms() -> HTMLResponse:
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
     return HealthResponse()
+
+
+# =============================================
+# Auth endpoints
+# =============================================
+
+@app.post("/api/auth/signup", response_model=Token, status_code=201)
+def signup(data: UserCreate) -> Token:
+    try:
+        user = auth_service.create_user(data)
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
+    access_token = auth_service.create_access_token(user)
+    return Token(access_token=access_token, user=user)
+
+
+@app.post("/api/auth/login", response_model=Token)
+def login(data: UserLogin) -> Token:
+    user = auth_service.authenticate(data.email, data.password)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    access_token = auth_service.create_access_token(user)
+    return Token(access_token=access_token, user=user)
+
+
+@app.get("/api/auth/me", response_model=UserOut)
+def get_me(user: UserOut = Depends(get_current_user)) -> UserOut:
+    return user
+
+
+# =============================================
+# Billing endpoints
+# =============================================
+
+@app.get("/api/billing/plans", response_model=list[PlanInfo])
+def get_plans(role: str = "") -> list[PlanInfo]:
+    return billing_service.get_plans(role)
+
+
+@app.post("/api/billing/checkout", response_model=CheckoutResponse)
+def create_checkout(req: CreateCheckoutRequest, user: UserOut = Depends(get_current_user)) -> CheckoutResponse:
+    return billing_service.create_checkout_session(
+        user_id=user.id,
+        plan=req.plan,
+        success_url=req.success_url,
+        cancel_url=req.cancel_url,
+    )
+
+
+@app.get("/api/billing/subscription")
+def get_subscription(user: UserOut = Depends(get_current_user)):
+    sub = billing_service.get_subscription(user.id)
+    if sub is None:
+        return {"subscription": None}
+    return {"subscription": sub}
+
+
+@app.post("/api/billing/connect/onboard", response_model=ConnectOnboardResponse)
+def connect_onboard(
+    req: ConnectOnboardRequest,
+    user: UserOut = Depends(require_role(UserRole.ATTORNEY)),
+) -> ConnectOnboardResponse:
+    return billing_service.create_connect_account(
+        user_id=user.id,
+        return_url=req.return_url,
+        refresh_url=req.refresh_url,
+    )
+
+
+@app.get("/api/billing/connect/status")
+def connect_status(user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    account_id = billing_service.get_connect_account(user.id)
+    return {"connected": account_id is not None, "account_id": account_id}
+
+
+@app.post("/api/billing/payment-intent", response_model=PaymentIntentResponse)
+def create_payment_intent(
+    req: PaymentIntentRequest,
+    user: UserOut = Depends(get_current_user),
+) -> PaymentIntentResponse:
+    return billing_service.create_payment_intent(
+        applicant_user_id=user.id,
+        attorney_user_id=req.attorney_user_id,
+        case_id=req.case_id,
+        description=req.description,
+    )
 
 
 # =============================================
