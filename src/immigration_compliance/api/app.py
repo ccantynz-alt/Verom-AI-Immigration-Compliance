@@ -68,6 +68,28 @@ from immigration_compliance.services.global_service import GlobalImmigrationServ
 from immigration_compliance.services.hris_service import HRISService
 from immigration_compliance.services.paf_service import PAFService
 from immigration_compliance.services.regulatory_service import RegulatoryService
+from immigration_compliance.services.domination_service import (
+    AgenticPipelineService,
+    H1BLotterySimulatorService,
+    EADGapRiskService,
+    PreFilingScannerService,
+    USCISApiService,
+)
+from immigration_compliance.services.differentiation_service import (
+    StrategyOptimizerService,
+    SocialMediaAuditService,
+    RegulatoryImpactEngine,
+    CompensationPlannerService,
+    TransparencyDashboardService,
+)
+from immigration_compliance.services.stickiness_service import (
+    GamifiedScoringService,
+    AttorneyAnalyticsService,
+    CommunityForumService,
+    BenchmarkReportService,
+    PWAService,
+)
+from immigration_compliance.services.competitor_intel_service import CompetitorIntelService
 
 # Resolve frontend directory
 _root = Path(__file__).resolve().parent.parent.parent.parent
@@ -98,6 +120,30 @@ paf_service = PAFService()
 regulatory_service = RegulatoryService()
 global_service = GlobalImmigrationService()
 hris_service = HRISService()
+
+# Tier 1 — Market Domination
+agentic_pipeline = AgenticPipelineService()
+h1b_simulator = H1BLotterySimulatorService()
+ead_risk_service = EADGapRiskService()
+prefiling_scanner = PreFilingScannerService()
+uscis_api = USCISApiService()
+
+# Tier 2 — Differentiation
+strategy_optimizer = StrategyOptimizerService()
+social_media_audit = SocialMediaAuditService()
+regulatory_impact = RegulatoryImpactEngine()
+compensation_planner = CompensationPlannerService()
+transparency_dashboard = TransparencyDashboardService()
+
+# Tier 3 — Stickiness
+gamified_scoring = GamifiedScoringService()
+attorney_analytics = AttorneyAnalyticsService()
+community_forum = CommunityForumService()
+benchmark_reports = BenchmarkReportService()
+pwa_service = PWAService()
+
+# Competitor Intel
+competitor_intel = CompetitorIntelService()
 
 # Auth dependency
 _bearer = HTTPBearer(auto_error=False)
@@ -890,3 +936,414 @@ def delete_integration(integration_id: str) -> None:
 @app.get("/api/hris/mappings/{provider}")
 def get_default_mappings(provider: HRISProvider) -> list:
     return hris_service.get_default_mappings(provider)
+
+
+# =============================================
+# Tier 1: Agentic Pipeline endpoints
+# =============================================
+
+class PipelineRequest(BaseModel):
+    case_id: str
+    visa_type: str
+    applicant_data: dict = {}
+
+@app.post("/api/pipeline", status_code=201)
+def create_pipeline(req: PipelineRequest):
+    return agentic_pipeline.create_pipeline(req.case_id, req.visa_type, req.applicant_data)
+
+@app.post("/api/pipeline/{pipeline_id}/advance")
+def advance_pipeline(pipeline_id: str):
+    try:
+        return agentic_pipeline.advance_pipeline(pipeline_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.get("/api/pipeline/{pipeline_id}")
+def get_pipeline(pipeline_id: str):
+    p = agentic_pipeline.get_pipeline(pipeline_id)
+    if not p:
+        raise HTTPException(status_code=404, detail="Pipeline not found")
+    return p
+
+@app.get("/api/pipeline")
+def list_pipelines(attorney_id: str = ""):
+    return agentic_pipeline.list_pipelines(attorney_id)
+
+
+# =============================================
+# Tier 1: H-1B Lottery Simulator endpoints
+# =============================================
+
+class LotterySimRequest(BaseModel):
+    wage_level: int = 1
+    has_us_masters: bool = False
+    salary: float = 80000
+    job_category: str = ""
+    employer_size: str = ""
+
+@app.post("/api/h1b-lottery/simulate")
+def simulate_lottery(req: LotterySimRequest):
+    return h1b_simulator.simulate(req.model_dump())
+
+@app.post("/api/h1b-lottery/batch")
+def batch_simulate_lottery(employees: list[dict]):
+    return h1b_simulator.batch_simulate(employees)
+
+@app.get("/api/h1b-lottery/historical")
+def get_lottery_history():
+    return h1b_simulator.get_historical_rates()
+
+
+# =============================================
+# Tier 1: EAD Gap Risk Manager endpoints
+# =============================================
+
+@app.post("/api/ead-risk/analyze")
+def analyze_ead_risk(employee_data: dict):
+    return ead_risk_service.analyze_employee(employee_data)
+
+@app.post("/api/ead-risk/workforce")
+def analyze_ead_workforce(employees: list[dict]):
+    return ead_risk_service.analyze_workforce(employees)
+
+@app.post("/api/ead-risk/generate-renewals")
+def generate_ead_renewals(employee_ids: list[str]):
+    return ead_risk_service.generate_renewals(employee_ids)
+
+@app.get("/api/ead-risk/rules")
+def get_ead_rules():
+    return ead_risk_service.get_auto_extension_rules()
+
+
+# =============================================
+# Tier 1: Pre-Filing Scanner endpoints
+# =============================================
+
+@app.post("/api/prefiling/scan")
+def scan_case_prefiling(case_data: dict):
+    return prefiling_scanner.scan_case(case_data)
+
+@app.post("/api/prefiling/scan-form")
+def scan_form_prefiling(form_data: dict, form_type: str = "I-129"):
+    return prefiling_scanner.scan_form(form_data, form_type)
+
+@app.get("/api/prefiling/rfe-triggers/{visa_type}")
+def get_rfe_triggers(visa_type: str):
+    return prefiling_scanner.get_common_rfe_triggers(visa_type)
+
+
+# =============================================
+# Tier 1: USCIS API endpoints
+# =============================================
+
+@app.get("/api/uscis/status/{receipt_number}")
+def get_uscis_status(receipt_number: str):
+    return uscis_api.get_case_status(receipt_number)
+
+@app.post("/api/uscis/bulk-status")
+def bulk_uscis_status(receipt_numbers: list[str]):
+    return uscis_api.bulk_status_check(receipt_numbers)
+
+@app.post("/api/uscis/subscribe")
+def subscribe_uscis_updates(receipt_number: str, callback_url: str):
+    return uscis_api.subscribe_to_updates(receipt_number, callback_url)
+
+@app.get("/api/uscis/processing-times/{form_type}")
+def get_uscis_processing(form_type: str, service_center: str | None = None):
+    return uscis_api.get_processing_times(form_type, service_center)
+
+@app.get("/api/uscis/compare/{receipt_number}")
+def compare_uscis_case(receipt_number: str):
+    return uscis_api.compare_to_average(receipt_number)
+
+
+# =============================================
+# Tier 2: Strategy Optimizer endpoints
+# =============================================
+
+@app.post("/api/strategy/optimize")
+def optimize_strategy(applicant_profile: dict):
+    return strategy_optimizer.optimize(applicant_profile)
+
+@app.post("/api/strategy/compare")
+def compare_countries(applicant_profile: dict, countries: list[str]):
+    return strategy_optimizer.compare_countries(applicant_profile, countries)
+
+@app.get("/api/strategy/requirements/{country}/{visa_type}")
+def get_strategy_requirements(country: str, visa_type: str):
+    result = strategy_optimizer.get_country_requirements(country, visa_type)
+    if not result:
+        raise HTTPException(status_code=404, detail="Pathway not found")
+    return result
+
+
+# =============================================
+# Tier 2: Social Media Audit endpoints
+# =============================================
+
+@app.post("/api/social-audit/audit")
+def audit_social_media(applicant_id: str, platforms_data: list[dict]):
+    return social_media_audit.audit_profile(applicant_id, platforms_data)
+
+@app.post("/api/social-audit/disclosure")
+def generate_disclosure(applicant_id: str, platforms_data: list[dict] | None = None):
+    return social_media_audit.generate_disclosure_list(applicant_id, platforms_data)
+
+@app.get("/api/social-audit/platforms")
+def get_required_platforms():
+    return social_media_audit.get_required_platforms()
+
+@app.post("/api/social-audit/consistency")
+def check_social_consistency(ds160_data: dict, actual_profiles: list[dict]):
+    return social_media_audit.check_consistency(ds160_data, actual_profiles)
+
+
+# =============================================
+# Tier 2: Regulatory Impact Engine endpoints
+# =============================================
+
+@app.post("/api/regulatory-impact/analyze")
+def analyze_regulation(regulation_data: dict):
+    return regulatory_impact.analyze_regulation(regulation_data)
+
+@app.post("/api/regulatory-impact/affected-cases")
+def find_affected_cases(regulation_id: str, cases: list[dict]):
+    return regulatory_impact.find_affected_cases(regulation_id, cases)
+
+@app.post("/api/regulatory-impact/action-plan")
+def generate_action_plan(regulation_id: str, case_id: str):
+    return regulatory_impact.generate_action_plan(regulation_id, case_id)
+
+@app.get("/api/regulatory-impact/pending")
+def get_pending_regulations():
+    return regulatory_impact.get_pending_regulations()
+
+
+# =============================================
+# Tier 2: Compensation Planner endpoints
+# =============================================
+
+@app.post("/api/compensation/analyze")
+def analyze_compensation(employee_data: dict):
+    return compensation_planner.analyze_impact(employee_data)
+
+@app.post("/api/compensation/optimize")
+def optimize_workforce_comp(employees: list[dict]):
+    return compensation_planner.optimize_workforce(employees)
+
+@app.get("/api/compensation/prevailing-wages")
+def get_prevailing_wages(soc_code: str, area: str):
+    result = compensation_planner.get_prevailing_wages(soc_code, area)
+    if not result:
+        raise HTTPException(status_code=404, detail="No data for this SOC/area")
+    return result
+
+@app.post("/api/compensation/roi")
+def calculate_comp_roi(salary_increase: float, probability_increase: float):
+    return compensation_planner.calculate_roi(salary_increase, probability_increase)
+
+
+# =============================================
+# Tier 2: Transparency Dashboard endpoints
+# =============================================
+
+@app.post("/api/transparency/submit")
+def submit_processing_data(user_id: str, data: dict):
+    return transparency_dashboard.submit_data_point(user_id, data)
+
+@app.get("/api/transparency/times/{form_type}")
+def get_community_times(form_type: str, service_center: str | None = None):
+    return transparency_dashboard.get_community_times(form_type, service_center)
+
+@app.get("/api/transparency/trends/{form_type}")
+def get_processing_trends(form_type: str):
+    return transparency_dashboard.get_trends(form_type)
+
+@app.get("/api/transparency/anomalies")
+def get_processing_anomalies():
+    return transparency_dashboard.get_anomalies()
+
+@app.get("/api/transparency/compare/{form_type}")
+def compare_times(form_type: str):
+    return transparency_dashboard.compare_official_vs_community(form_type)
+
+
+# =============================================
+# Tier 3: Gamified Scoring endpoints
+# =============================================
+
+@app.get("/api/gamification/score/{firm_id}")
+def get_firm_score(firm_id: str):
+    return gamified_scoring.get_firm_score(firm_id)
+
+@app.get("/api/gamification/leaderboard")
+def get_leaderboard(category: str = "overall"):
+    return gamified_scoring.get_leaderboard(category)
+
+@app.post("/api/gamification/badge")
+def award_badge(firm_id: str, badge_type: str):
+    try:
+        return gamified_scoring.award_badge(firm_id, badge_type)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/gamification/streak/{firm_id}")
+def get_streak(firm_id: str):
+    return gamified_scoring.get_streak(firm_id)
+
+@app.get("/api/gamification/certification/{firm_id}")
+def get_certification(firm_id: str):
+    return gamified_scoring.get_certification_status(firm_id)
+
+
+# =============================================
+# Tier 3: Attorney Analytics endpoints
+# =============================================
+
+@app.get("/api/attorney-analytics/{attorney_id}/outcomes")
+def get_attorney_outcomes(attorney_id: str):
+    return attorney_analytics.get_attorney_outcomes(attorney_id)
+
+@app.get("/api/attorney-analytics/rankings/{visa_type}")
+def get_attorney_rankings(visa_type: str, country: str = "US"):
+    return attorney_analytics.rank_attorneys(visa_type, country)
+
+@app.get("/api/attorney-analytics/{attorney_id}/trend")
+def get_attorney_trend(attorney_id: str):
+    return attorney_analytics.get_trend(attorney_id)
+
+@app.post("/api/attorney-analytics/{attorney_id}/predict")
+def predict_attorney_outcome(attorney_id: str, case_data: dict):
+    return attorney_analytics.predict_outcome(attorney_id, case_data)
+
+@app.get("/api/attorney-analytics/{attorney_id}/specializations")
+def get_specializations(attorney_id: str):
+    return attorney_analytics.get_specialization_depth(attorney_id)
+
+
+# =============================================
+# Tier 3: Community Forum endpoints
+# =============================================
+
+class ForumPostRequest(BaseModel):
+    author_id: str
+    title: str
+    content: str
+    category: str = "strategy"
+    tags: list[str] = []
+
+class ForumCommentRequest(BaseModel):
+    author_id: str
+    content: str
+
+@app.post("/api/forum/posts", status_code=201)
+def create_forum_post(req: ForumPostRequest):
+    return community_forum.create_post(req.author_id, req.title, req.content, req.category, req.tags)
+
+@app.get("/api/forum/posts")
+def list_forum_posts(category: str | None = None, page: int = 1):
+    return community_forum.list_posts(category=category, page=page)
+
+@app.post("/api/forum/posts/{post_id}/comments")
+def add_forum_comment(post_id: str, req: ForumCommentRequest):
+    try:
+        return community_forum.add_comment(post_id, req.author_id, req.content)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/forum/posts/{post_id}/vote")
+def vote_forum_post(post_id: str, user_id: str, direction: int = 1):
+    try:
+        return community_forum.vote(post_id, user_id, direction)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.get("/api/forum/trending")
+def get_trending_posts():
+    return community_forum.get_trending()
+
+@app.get("/api/forum/search")
+def search_forum(query: str):
+    return community_forum.search_posts(query)
+
+@app.get("/api/forum/reputation/{user_id}")
+def get_forum_reputation(user_id: str):
+    return community_forum.get_user_reputation(user_id)
+
+
+# =============================================
+# Tier 3: Benchmark Report endpoints
+# =============================================
+
+@app.get("/api/benchmark/{firm_id}/{year}")
+def get_benchmark_report(firm_id: str, year: int):
+    return benchmark_reports.generate_report(firm_id, year)
+
+@app.get("/api/benchmark/industry/{year}")
+def get_industry_averages(year: int):
+    return benchmark_reports.get_industry_averages(year)
+
+@app.get("/api/benchmark/{firm_id}/peers")
+def compare_to_peers(firm_id: str, peer_group: str = "mid-size"):
+    return benchmark_reports.compare_to_peers(firm_id, peer_group)
+
+@app.get("/api/benchmark/{firm_id}/{year}/export")
+def export_benchmark(firm_id: str, year: int, fmt: str = "json"):
+    return benchmark_reports.export_report(firm_id, year, fmt)
+
+
+# =============================================
+# Tier 3: PWA endpoints
+# =============================================
+
+@app.get("/api/pwa/manifest")
+def get_pwa_manifest():
+    return pwa_service.get_manifest()
+
+@app.get("/api/pwa/sw-config")
+def get_sw_config():
+    return pwa_service.get_service_worker_config()
+
+@app.get("/api/pwa/offline-data/{user_id}")
+def get_offline_data(user_id: str):
+    return pwa_service.get_offline_data(user_id)
+
+@app.post("/api/pwa/sync")
+def sync_offline(user_id: str, changes: list[dict]):
+    return pwa_service.sync_offline_changes(user_id, changes)
+
+@app.post("/api/pwa/sms")
+def send_sms(phone: str, message: str):
+    return pwa_service.send_sms_update(phone, message)
+
+@app.get("/api/pwa/push/{user_id}")
+def get_push_config(user_id: str):
+    return pwa_service.get_push_subscription(user_id)
+
+
+# =============================================
+# Competitor Intel endpoints (internal)
+# =============================================
+
+@app.get("/api/intel/competitors")
+def get_all_competitors():
+    return competitor_intel.get_all_competitors()
+
+@app.get("/api/intel/competitors/{name}")
+def get_competitor(name: str):
+    result = competitor_intel.get_competitor(name)
+    if not result:
+        raise HTTPException(status_code=404, detail="Competitor not found")
+    return result
+
+@app.get("/api/intel/threat-matrix")
+def get_threat_matrix():
+    return competitor_intel.get_threat_matrix()
+
+@app.get("/api/intel/feature-gaps")
+def get_feature_gaps():
+    return competitor_intel.get_feature_gaps()
+
+@app.get("/api/intel/advantages")
+def get_advantages():
+    return competitor_intel.get_advantages()
