@@ -143,6 +143,8 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Photo/document quality checker** — rejects blurry scans, wrong formats before submission
 - [ ] **Smart form auto-population** — intake answers pre-fill USCIS/government forms automatically
 - [ ] **Intake-to-case pipeline** — completed intake flows directly into case file, zero re-entry
+- [ ] **Automatic family member profile creation** — intake data auto-creates linked profiles for spouse, children, parents with relationship mapping
+- [ ] **Conditional logic questionnaires** — questions adapt based on previous answers, visa type, and immigration status
 
 **Case Management**
 - [ ] Case dashboard — all cases, statuses, next actions in one view
@@ -150,9 +152,19 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] Case notes and internal memos
 - [ ] Case timeline/history view
 - [ ] **RFE tracking and response tools** — track RFE deadlines, draft responses with AI assistance
+- [ ] **AI RFE response builder** — ML-powered: summarize RFE notice, match evidence, draft response with citations
 - [ ] **Form auto-fill engine** — enter client data once, populate across all required forms (I-130, I-485, I-765, I-131, etc.)
-- [ ] **350+ government forms library** — always-updated, pre-formatted immigration forms
+- [ ] **Bi-directional form sync** — change data in a form, it updates the client profile; change the profile, all forms update automatically
+- [ ] **Auto-fill empty fields with N/A** — per USCIS guidelines, auto-populate blank fields to prevent rejection
+- [ ] **350+ government forms library** — always-updated, pre-formatted immigration forms (SLA: updated within 1 hour of official USCIS release)
 - [ ] **Batch form generation** — family-based cases generate all related forms at once
+- [ ] **Real-time collaborative form editing** — attorney and client simultaneously edit the same form with live chat (LollyForms-killer)
+- [ ] **H-1B electronic registration module** — dedicated workflow for H-1B lottery registration and selection tracking
+- [ ] **SOC code selection engine** — AI analyzes job descriptions to recommend correct SOC codes for labor certifications
+- [ ] **Petition completeness scoring** — 9+ factor algorithm evaluates petition readiness with visual report (fee, specialty occupation, LCA, qualifications, employer-employee relationship, etc.)
+- [ ] **Exhibit list auto-structuring** — AI categorizes, renames, and orders all supporting documents for submission
+- [ ] **Petition packet assembly** — combine all forms, support letters, exhibits, and cover letter into submission-ready packet (PDF or physical mail format)
+- [ ] **Document Q&A** — upload an RFE, decision, or government notice and chat with it in natural language to extract facts and identify issues
 
 **Deadline & Calendar Management**
 - [ ] **Automated deadline tracking** — every filing window, renewal, RFE deadline tracked automatically
@@ -166,6 +178,8 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Secure client portal** — clients check their own case status, upload docs, see next steps
 - [ ] **Automated email/SMS sequences** — document reminders, appointment confirmations, status changes
 - [ ] **AI-translated client messages** — attorney writes in English, client reads in their language (with disclaimer)
+- [ ] **AI client chatbot** — instant answers to common client questions (case status, next steps, document requirements) without attorney effort
+- [ ] **WhatsApp integration** — communicate with international clients during consular processing via WhatsApp
 
 **Government Portal Unification** (attorneys currently log into 5+ separate portals daily)
 - [ ] **Single-dashboard government status** — USCIS, DOL, EOIR, SEVIS status in one place
@@ -178,6 +192,7 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] UK Home Office status tracking
 - [ ] IRCC (Canada) application status feed
 - [ ] DHA (Australia) VEVO integration
+- [ ] **NVC (National Visa Center) status tracking** — document submission status, fee payment tracking for consular processing
 - [ ] Policy change alerts — automated monitoring of Federal Register, USCIS announcements
 - [ ] Court decision feed — relevant immigration law updates
 - [ ] Filing fee calculator — auto-updated from agency fee schedules
@@ -216,6 +231,10 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **AI case strategy engine** — "based on similar approved cases, here's the recommended approach and evidence list"
 - [ ] **Precedent citation finder** — AI finds relevant approved petitions, AAO decisions, and circuit court rulings
 - [ ] **AI brief writer** — generate first drafts of legal briefs for EOIR/BIA proceedings
+- [ ] **AI petition drafting (full document)** — generate 20+ page petition letters with exhibits, appendix, and citations in minutes (Visalaw.ai Drafts-killer)
+- [ ] **AI support letter generation** — auto-draft employer support letters, expert opinion letters from case data
+- [ ] **Bulk letter generation** — produce multiple reference letters and expert opinion letters at once from templates
+- [ ] **AI redrafting** — refine individual sections or regenerate entire drafts with targeted feedback
 - [ ] **Policy change impact analyzer** — when a new policy memo drops, AI flags which active cases are affected
 
 **CRM & Lead Management** (no competitor combines CRM + case management this well)
@@ -236,6 +255,8 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Time tracking** — start/stop timers on case activities, auto-capture time in forms/portals
 - [ ] **Billable vs non-billable categorization** — distinguish between billable work and admin overhead
 - [ ] **Invoice generation** — create professional invoices from time entries and flat fees
+- [ ] **Milestone billing** — bill by case phase (filing, RFE response, approval), not just hourly or flat
+- [ ] **QR code invoice payments** — clients scan and pay instantly from their phone
 - [ ] **Retainer management** — track retainer balances, auto-notify when running low
 - [ ] **Financial dashboards** — revenue, outstanding AR, trust balances, monthly trends
 
@@ -255,6 +276,7 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Firm-wide case visibility** — partners see everything, associates see their cases, paralegals see assigned tasks
 - [ ] **Activity audit log** — track who did what, when, for compliance and accountability
 - [ ] **Multi-office support** — firms with multiple locations can manage across offices
+- [ ] **Immigration budgeting & planning tools** — help firms forecast immigration spend, case volume, and staffing needs
 
 **Conflict Check & Ethics Compliance** (legally required — no serious platform skips this)
 - [ ] **Automated conflict of interest checking** — cross-reference new clients against all existing and past cases
@@ -340,6 +362,9 @@ These features activate once attorneys trust the platform and opt in.
 - [ ] **Policy change impact engine** — when new guidance drops, auto-flag affected active cases
 - [ ] **Smart form auto-population engine** — single intake → populate all required government forms
 - [ ] **Document classification AI** — auto-categorize uploaded documents by type (passport, I-94, pay stub, etc.)
+- [ ] **170-language OCR extraction** — extract data from documents in any language (match Filevine's bar)
+- [ ] **Conflict detection AI** — flag discrepancies between extracted document data and existing database records
+- [ ] **Document Q&A engine** — upload RFEs, decisions, notices — chat with them in natural language
 - [ ] **Translation engine** — client-facing content translation with legal disclaimers
 - [ ] **Conflict of interest detection** — cross-reference new clients against existing case database
 
@@ -455,3 +480,15 @@ Check these competitors quarterly and ensure we match or exceed:
 - [ ] Dispute resolution process documented
 - [ ] Platform liability disclaimers on all attorney matching
 - [ ] Data handling compliant with destination country regulations
+
+### Security & Compliance Certifications (Enterprise requirement)
+- [ ] **SOC 2 Type II certification** — required for enterprise clients
+- [ ] **ISO 27001 certification** — international security standard
+- [ ] **GDPR compliance** — mandatory for EU user data
+- [ ] **CCPA compliance** — mandatory for California user data
+- [ ] **HIPAA compliance** — some immigration cases involve medical records
+- [ ] **AES-256 encryption** — data at rest and in transit
+- [ ] **Multi-factor authentication** — for all user roles
+- [ ] **Zero-retention AI policy** — client data processed by AI is never stored or used for training
+- [ ] **99.9% uptime SLA** — for enterprise clients
+- [ ] **Penetration testing** — annual third-party security audits
