@@ -212,12 +212,57 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 
 #### Attorney Portal — Phase B: Marketplace Layer (AFTER ADOPTION)
 These features activate once attorneys trust the platform and opt in.
+
+**Why we verify: a message to attorneys.**
+Every verification step and safety check exists to protect everyone — attorneys included. Fraudulent actors posing as attorneys damage public trust in the entire immigration bar. Our verification process means that when an applicant finds you on Verom, they already trust the platform — which means they trust you. Verified attorneys get a trust badge, priority placement, and access to higher-quality pre-screened cases. The safer the marketplace, the better it works for legitimate practitioners.
+
+**Marketplace Features**
 - [ ] Client pipeline dashboard — browse and accept pre-screened cases
 - [ ] Capacity controls — attorneys set how many new cases they can take
 - [ ] Attorneys set their own fees (platform does NOT dictate pricing)
 - [ ] Secure messaging with applicants
 - [ ] Earnings dashboard
 - [ ] Client reviews and ratings (verified outcomes only)
+
+**Attorney Verification & Trust** (protects attorneys AND applicants)
+- [ ] **Bar number verification** — automated lookup against state bar association databases (all US jurisdictions)
+- [ ] **International credential verification** — SRA (UK), Law Society (Canada), MARA (Australia), etc.
+- [ ] **Disciplinary record check** — cross-reference against bar disciplinary databases, flag suspensions/disbarments
+- [ ] **Malpractice insurance verification** — require proof of active coverage
+- [ ] **Identity verification** — government-issued ID + video verification for initial onboarding
+- [ ] **Manual review for first cohort** — human review of all attorney applications during platform launch
+- [ ] **Ongoing monitoring** — periodic re-verification of bar status and disciplinary records
+- [ ] **Verified attorney trust badge** — visible to applicants, signals platform-vetted credentials
+- [ ] **Fraud reporting mechanism** — attorneys and applicants can flag suspicious accounts for rapid review
+
+**Escrow Payment System** (no one gets burned)
+- [ ] **Platform-managed escrow** — applicant payments held by platform, never sent directly to attorney
+- [ ] **Milestone-based release** — funds released at defined stages (e.g., intake complete → forms filed → receipt notice received → case resolved)
+- [ ] **Milestone definitions per visa type** — each visa category has appropriate payment release triggers
+- [ ] **Auto-refund on inactivity** — if attorney takes no action within agreed timeframe, funds automatically returned to applicant
+- [ ] **Partial release option** — attorneys can receive partial payment at early milestones to cover filing fees and initial work
+- [ ] **Filing proof requirements** — receipt numbers, USCIS confirmations, or equivalent proof required before milestone payment release
+- [ ] **Payment processor integration** — Stripe Connect (or equivalent) for escrow, payouts, and compliance
+- [ ] **Attorney payout dashboard** — clear view of held funds, released funds, pending milestones, and payout history
+- [ ] **Applicant payment transparency** — applicants see exactly where their money is and what triggers release
+- [ ] **Platform fee structure** — transparent transaction fee disclosed to both parties before engagement
+
+**Fraud Detection & Monitoring**
+- [ ] **Activity monitoring** — flag attorneys who collect cases but never update status or file
+- [ ] **Filing verification** — automated USCIS receipt number validation against case status API
+- [ ] **Complaint rate tracking** — attorneys with abnormal complaint patterns flagged for review
+- [ ] **Behavioral anomaly detection** — AI flags unusual patterns (rapid case collection, no filings, template responses)
+- [ ] **Attorney performance scoring** — internal score based on filing rates, response times, outcomes, and client feedback
+- [ ] **Graduated consequences** — warning → payment hold → suspension → removal for policy violations
+- [ ] **Cross-platform fraud check** — check for attorneys flagged on other legal platforms or consumer protection databases
+
+**Applicant Protection**
+- [ ] **Dispute resolution process** — structured mediation with platform support before escalation
+- [ ] **Money-back protection window** — full refund available within defined period if no substantive work performed
+- [ ] **Off-platform payment warnings** — clear messaging: "Never pay outside Verom. Payments outside the platform are not protected."
+- [ ] **Attorney response time SLAs** — if attorney doesn't respond within X hours, applicant can reassign case
+- [ ] **Case transfer mechanism** — if attorney is removed or unresponsive, applicant's case and documents transfer to a new attorney seamlessly
+- [ ] **Outcome-verified reviews only** — reviews tied to actual case outcomes, preventing fake testimonials
 
 #### Employer Compliance Dashboard (existing)
 - [x] Employee management with visa tracking
@@ -290,10 +335,16 @@ Check these competitors quarterly and ensure we match or exceed:
 ### Legal Safeguards
 - [ ] Terms of Service — clearly state we are a technology platform
 - [ ] Attorney Terms — separate agreement for attorney network participation
+- [ ] Attorney Code of Conduct — platform-specific rules (response times, filing commitments, no off-platform payments)
 - [ ] Privacy Policy — GDPR compliant (handling international user data)
 - [ ] No guaranteed outcomes — never promise approval rates or success
 - [ ] No fixed pricing claims — attorneys set their own fees, we do not dictate
 - [ ] No fee comparison claims — do not state "cheaper than" or "no $X fees"
+- [ ] Escrow Terms — clear terms governing payment holds, milestone releases, refund triggers, and dispute timelines
 - [ ] Dispute resolution process documented
 - [ ] Platform liability disclaimers on all attorney matching
 - [ ] Data handling compliant with destination country regulations
+- [ ] Anti-fraud policy — published policy on attorney verification, monitoring, and removal procedures
+- [ ] Applicant protection policy — published refund, dispute, and case transfer rights
+- [ ] Money transmission compliance — ensure escrow model complies with state/federal money transmitter regulations
+- [ ] PCI DSS compliance — payment card data handled through certified processor (never stored on platform)
