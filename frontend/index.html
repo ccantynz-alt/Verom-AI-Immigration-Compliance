@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+    <script src="/static/js/auth.js"></script>
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
         <div class="nav-container">
@@ -36,6 +37,7 @@
                     <span class="notification-badge" id="notifBadge">0</span>
                 </button>
                 <button class="btn btn-primary btn-sm" id="addEmployeeBtn">+ Add Employee</button>
+                <button onclick="veromAuth.logout()" class="btn btn-sm" style="margin-left:8px;background:var(--neutral-100);color:var(--neutral-700);border:1px solid var(--neutral-300);">Log out</button>
             </div>
             <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
                 <span></span><span></span><span></span>

@@ -251,6 +251,7 @@
     </style>
 </head>
 <body>
+<script src="/static/js/auth.js"></script>
 
 <!-- Navigation -->
 <nav class="app-nav">
@@ -268,7 +269,8 @@
             <button class="nav-tab" data-tab="profile">Profile</button>
         </div>
         <div class="nav-right">
-            <div class="avatar">SK</div>
+            <div class="avatar" id="userAvatar">SK</div>
+            <button onclick="veromAuth.logout()" style="background:none;border:1px solid var(--slate-300);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:500;color:var(--slate-600);cursor:pointer;">Log out</button>
         </div>
         <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
             <span></span><span></span><span></span>
@@ -278,11 +280,14 @@
 
 <div class="main">
 
+    <!-- Verification Banner -->
+    <div id="verificationBanner" style="display:none;"></div>
+
     <!-- Dashboard -->
     <div class="page active" id="page-dashboard">
         <div class="page-header">
             <div>
-                <h1>Welcome back, Attorney</h1>
+                <h1 id="welcomeHeading">Welcome back, Attorney</h1>
                 <p>Here's your practice overview for today.</p>
             </div>
         </div>
@@ -530,7 +535,40 @@
     <div class="page" id="page-profile">
         <div class="page-header">
             <div><h1>Attorney Profile</h1><p>Your public profile visible to applicants.</p></div>
-            <div class="verified-badge">&#10003; Verified Attorney</div>
+            <div class="verified-badge" id="profileVerifiedBadge" style="display:none">&#10003; Verified Attorney</div>
+        </div>
+
+        <!-- Verification Upload Section (shown when pending/rejected) -->
+        <div id="verificationUploadSection" style="display:none">
+            <div class="card" style="border:2px solid #f59e0b;margin-bottom:20px">
+                <div class="card-header" style="background:#fffbeb"><h3 style="color:#92400e">Verification Required</h3></div>
+                <div class="card-body">
+                    <p style="font-size:14px;color:var(--slate-600);margin-bottom:16px">
+                        To protect applicants and maintain platform integrity, all attorneys must verify their credentials before accessing client features. Upload the following documents:
+                    </p>
+                    <div class="form-group">
+                        <label>Bar Certificate / License <span style="color:#dc2626">*</span></label>
+                        <input type="file" id="barCertFile" class="form-input" accept=".pdf,.jpg,.jpeg,.png" style="padding:8px">
+                        <span style="font-size:12px;color:var(--slate-500)">PDF, JPG, or PNG of your bar admission certificate</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Government-Issued ID <span style="color:#dc2626">*</span></label>
+                        <input type="file" id="govIdFile" class="form-input" accept=".pdf,.jpg,.jpeg,.png" style="padding:8px">
+                        <span style="font-size:12px;color:var(--slate-500)">Passport, driver's license, or national ID</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Professional Liability Insurance (Optional)</label>
+                        <input type="file" id="insuranceFile" class="form-input" accept=".pdf,.jpg,.jpeg,.png" style="padding:8px">
+                        <span style="font-size:12px;color:var(--slate-500)">Certificate of malpractice/professional liability insurance</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Additional Notes</label>
+                        <textarea id="verificationNotes" class="form-input" rows="2" placeholder="Any additional information for verification..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" id="submitVerificationBtn">Submit for Verification</button>
+                    <div id="verificationSubmitError" style="color:#dc2626;margin-top:8px;font-size:14px;display:none"></div>
+                </div>
+            </div>
         </div>
 
         <div class="profile-section">
@@ -576,6 +614,87 @@
 
 <script>
 (function() {
+    // ========================
+    // Verification Status
+    // ========================
+    var user = window.veromAuth ? window.veromAuth.getUser() : null;
+    var token = window.veromAuth ? window.veromAuth.getToken() : null;
+    var verStatus = user ? (user.verification_status || 'not_applicable') : 'not_applicable';
+
+    // Set welcome name
+    if (user && document.getElementById('welcomeHeading')) {
+        document.getElementById('welcomeHeading').textContent = 'Welcome back, ' + (user.first_name || 'Attorney');
+    }
+
+    // Show verification banner
+    var banner = document.getElementById('verificationBanner');
+    if (banner && verStatus !== 'verified' && verStatus !== 'not_applicable') {
+        var bannerStyles = {
+            pending:   { bg: '#fef3c7', border: '#f59e0b', color: '#92400e', text: 'Your account is pending verification. Go to Profile to upload your credentials.' },
+            submitted: { bg: '#eff6ff', border: '#3b82f6', color: '#1e40af', text: 'Your verification documents are under review. You will be notified once approved.' },
+            rejected:  { bg: '#fef2f2', border: '#ef4444', color: '#991b1b', text: 'Your verification was not approved. Go to Profile to resubmit your documents.' },
+            suspended: { bg: '#fef2f2', border: '#ef4444', color: '#991b1b', text: 'Your account has been suspended. Contact support for assistance.' },
+        };
+        var s = bannerStyles[verStatus] || bannerStyles.pending;
+        banner.style.cssText = 'display:block;background:' + s.bg + ';border:1px solid ' + s.border + ';color:' + s.color + ';padding:14px 20px;border-radius:10px;margin:0 20px 20px;font-size:14px;font-weight:500;';
+        banner.textContent = s.text;
+    }
+
+    // Profile page: show verification upload or verified badge
+    var uploadSection = document.getElementById('verificationUploadSection');
+    var verifiedBadge = document.getElementById('profileVerifiedBadge');
+    if (verStatus === 'verified' && verifiedBadge) {
+        verifiedBadge.style.display = '';
+    } else if ((verStatus === 'pending' || verStatus === 'rejected') && uploadSection) {
+        uploadSection.style.display = '';
+    }
+
+    // Verification doc submission
+    var submitBtn = document.getElementById('submitVerificationBtn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', async function() {
+            var errEl = document.getElementById('verificationSubmitError');
+            errEl.style.display = 'none';
+
+            var barCert = document.getElementById('barCertFile');
+            var govId = document.getElementById('govIdFile');
+            if (!barCert.files.length) { errEl.textContent = 'Bar certificate is required.'; errEl.style.display = ''; return; }
+            if (!govId.files.length) { errEl.textContent = 'Government-issued ID is required.'; errEl.style.display = ''; return; }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                var insuranceFile = document.getElementById('insuranceFile');
+                var resp = await fetch('/api/verification/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({
+                        bar_certificate_filename: barCert.files[0].name,
+                        government_id_filename: govId.files[0].name,
+                        proof_of_insurance_filename: insuranceFile.files.length ? insuranceFile.files[0].name : '',
+                        notes: document.getElementById('verificationNotes').value,
+                    }),
+                });
+                if (!resp.ok) {
+                    var err = await resp.json();
+                    throw new Error(err.detail || 'Submission failed');
+                }
+                var updated = await resp.json();
+                // Update local user
+                user.verification_status = updated.verification_status;
+                localStorage.setItem('verom_user', JSON.stringify(user));
+                // Refresh the page to show updated status
+                window.location.reload();
+            } catch(err) {
+                errEl.textContent = err.message;
+                errEl.style.display = '';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit for Verification';
+            }
+        });
+    }
+
     // Mobile nav toggle
     document.getElementById('mobileToggle').addEventListener('click', function() {
         this.classList.toggle('active');

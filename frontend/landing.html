@@ -26,8 +26,17 @@
             <a href="#countries">Countries</a>
         </div>
         <div class="nav-cta">
-            <a href="/login" class="btn btn-outline-light">Log In</a>
-            <a href="/login" class="btn btn-primary">Get Started Free</a>
+            <select id="langSelect" class="lang-select" aria-label="Language">
+                <option value="en">EN</option>
+                <option value="zh">&#20013;&#25991;</option>
+                <option value="es">ES</option>
+                <option value="hi">&#2361;&#2367;</option>
+                <option value="ar">&#1593;&#1585;</option>
+                <option value="fr">FR</option>
+                <option value="pt">PT</option>
+            </select>
+            <a href="/login" class="btn btn-outline-light" data-i18n="nav_login">Log In</a>
+            <a href="/login" class="btn btn-primary" data-i18n="nav_cta">Get Started Free</a>
         </div>
         <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
             <span></span><span></span><span></span>
@@ -39,33 +48,33 @@
 <section class="hero">
     <div class="hero-bg"></div>
     <div class="hero-content">
-        <div class="hero-badge">AI-Powered Immigration Platform</div>
-        <h1>Immigration compliance,<br><span class="hero-gradient">handled right.</span></h1>
-        <p class="hero-sub">
+        <div class="hero-badge" data-i18n="hero_badge">AI-Powered Immigration Platform</div>
+        <h1><span data-i18n="hero_title_1">Immigration compliance,</span><br><span class="hero-gradient" data-i18n="hero_title_2">handled right.</span></h1>
+        <p class="hero-sub" data-i18n="hero_sub">
             Whether you're applying for a student visa, work permit, or family reunification &mdash;
             Verom connects you with licensed immigration attorneys and AI-powered compliance tools
             to navigate the process with confidence.
         </p>
         <div class="hero-actions">
-            <a href="/login" class="btn btn-primary btn-lg">Start Your Application</a>
-            <a href="#attorneys" class="btn btn-ghost btn-lg">Join as an Attorney &#8594;</a>
+            <a href="/login" class="btn btn-primary btn-lg" data-i18n="hero_cta_primary">Start Your Application</a>
+            <a href="#attorneys" class="btn btn-ghost btn-lg" data-i18n="hero_cta_secondary">Join as an Attorney &#8594;</a>
         </div>
         <div class="hero-stats">
             <div class="hero-stat">
-                <span class="stat-num">6+</span>
-                <span class="stat-desc">Destination countries</span>
+                <span class="stat-num">12</span>
+                <span class="stat-desc" data-i18n="stat_countries">Destination countries</span>
             </div>
             <div class="hero-stat">
                 <span class="stat-num">AI</span>
-                <span class="stat-desc">Compliance engine</span>
+                <span class="stat-desc" data-i18n="stat_engine">Compliance engine</span>
             </div>
             <div class="hero-stat">
                 <span class="stat-num">24h</span>
-                <span class="stat-desc">Attorney matching</span>
+                <span class="stat-desc" data-i18n="stat_matching">Attorney matching</span>
             </div>
             <div class="hero-stat">
                 <span class="stat-num">All visas</span>
-                <span class="stat-desc">Student, work, family &amp; more</span>
+                <span class="stat-desc" data-i18n="stat_visas">Student, work, family &amp; more</span>
             </div>
         </div>
     </div>
@@ -76,7 +85,7 @@
     <div class="container">
         <div class="problem-grid">
             <div class="problem-text">
-                <h2>Immigration shouldn't feel like a gamble.</h2>
+                <h2 data-i18n="problem_title">Immigration shouldn't feel like a gamble.</h2>
                 <p>
                     Every year, millions of people apply for visas to study, work, or join family abroad.
                     Navigating complex immigration rules alone leads to costly mistakes &mdash; rejected applications,
@@ -110,8 +119,8 @@
 <section class="personas" id="applicants">
     <div class="container">
         <div class="section-header">
-            <h2>For people going places.</h2>
-            <p>AI-guided visa applications with real attorney support &mdash; for students, workers, and families.</p>
+            <h2 data-i18n="applicant_title">For people going places.</h2>
+            <p data-i18n="applicant_sub">AI-guided visa applications with real attorney support &mdash; for students, workers, and families.</p>
         </div>
 
         <!-- Visa type cards -->
@@ -365,7 +374,7 @@
     <div class="container">
         <div class="section-header section-header--light">
             <h2>Where you're going, Verom follows.</h2>
-            <p>Launching with the top 6 immigration destinations. More countries added quarterly.</p>
+            <p>12 countries live. More corridors added quarterly.</p>
         </div>
         <div class="compliance-grid country-grid">
             <div class="compliance-card">
@@ -391,6 +400,30 @@
             <div class="compliance-card">
                 <h4>&#127475;&#127487; New Zealand</h4>
                 <p>Student visa, Skilled Migrant, Work to Residence, Partnership. Post-study work rights.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127470;&#127466; Ireland</h4>
+                <p>Stamp 1/2, Critical Skills Employment Permit, Study visa. IRP registration, GNIB.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127467;&#127479; France</h4>
+                <p>Talent Passport, Student visa, Salaried Worker. OFII, Campus France, VLS-TS.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127475;&#127473; Netherlands</h4>
+                <p>Highly Skilled Migrant, Orientation Year, Student visa. IND, 30% ruling, MVV.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127471;&#127477; Japan</h4>
+                <p>Engineer/Specialist, Student visa, Specified Skilled Worker. COE, residence card.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127480;&#127468; Singapore</h4>
+                <p>Employment Pass, S Pass, EntrePass, Student Pass. MOM, quota system.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127462;&#127466; UAE</h4>
+                <p>Golden Visa, Employment visa, Student visa. GDRFA, Emirates ID, medical fitness.</p>
             </div>
         </div>
     </div>
@@ -438,8 +471,8 @@
 <!-- CTA -->
 <section class="final-cta">
     <div class="container">
-        <h2>Your future shouldn't<br>depend on paperwork.</h2>
-        <p>Join applicants and attorneys building a better immigration experience.</p>
+        <h2 data-i18n="cta_final_title">Your future shouldn't<br>depend on paperwork.</h2>
+        <p data-i18n="cta_final_sub">Join applicants and attorneys building a better immigration experience.</p>
         <div class="cta-actions">
             <a href="/login" class="btn btn-primary btn-lg">Get Started Free</a>
             <a href="#attorneys" class="btn btn-outline btn-lg">Attorney Network</a>
@@ -481,7 +514,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 Verom.ai. All rights reserved. Verom is a technology platform and does not provide legal advice. Attorney fees are set independently by each attorney and are not determined or guaranteed by Verom.</p>
+            <p data-i18n="footer_disclaimer">&copy; 2026 Verom.ai. All rights reserved. Verom is a technology platform and does not provide legal advice. Attorney fees are set independently by each attorney and are not determined or guaranteed by Verom.</p>
         </div>
     </div>
 </footer>
@@ -530,6 +563,7 @@ document.querySelectorAll('.feature-card, .persona-card, .compliance-card, .prob
     observer.observe(el);
 });
 </script>
+<script src="/static/js/i18n.js"></script>
 
 </body>
 </html>

@@ -234,12 +234,12 @@
                 <!-- Attorney-specific fields -->
                 <div class="attorney-fields" id="attorneyFields">
                     <div class="form-group">
-                        <label for="barNumber">Bar Number</label>
-                        <input type="text" id="barNumber" class="form-input" placeholder="Your bar admission number">
+                        <label for="barNumber">Bar Number <span style="color:#dc2626">*</span></label>
+                        <input type="text" id="barNumber" class="form-input" placeholder="Your bar admission number (required)" minlength="3" maxlength="20" pattern="[A-Za-z0-9\-]{3,20}">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="jurisdiction">Jurisdiction</label>
+                            <label for="jurisdiction">Jurisdiction <span style="color:#dc2626">*</span></label>
                             <select id="jurisdiction" class="form-input">
                                 <option value="">Select country...</option>
                                 <option value="US">United States</option>
@@ -248,6 +248,12 @@
                                 <option value="AU">Australia</option>
                                 <option value="DE">Germany</option>
                                 <option value="NZ">New Zealand</option>
+                                <option value="IE">Ireland</option>
+                                <option value="FR">France</option>
+                                <option value="NL">Netherlands</option>
+                                <option value="JP">Japan</option>
+                                <option value="SG">Singapore</option>
+                                <option value="AE">UAE</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -256,8 +262,15 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="specializations">Specializations</label>
-                        <input type="text" id="specializations" class="form-input" placeholder="e.g. H-1B, Family-based, Asylum">
+                        <label for="specializations">Specializations <span style="color:#dc2626">*</span></label>
+                        <input type="text" id="specializations" class="form-input" placeholder="e.g. H-1B, Family-based, Asylum (required)">
+                    </div>
+                    <div class="form-group">
+                        <label for="firmName">Firm Name</label>
+                        <input type="text" id="firmName" class="form-input" placeholder="Your law firm (optional)">
+                    </div>
+                    <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-top:8px;font-size:13px;color:#92400e;">
+                        After registration, you will need to upload your bar certificate and government-issued ID for verification before accessing client features.
                     </div>
                 </div>
 
@@ -276,6 +289,15 @@
 
 <script>
 (function() {
+    // If already logged in, redirect to the right portal
+    const existing = localStorage.getItem('verom_token');
+    if (existing) {
+        const user = JSON.parse(localStorage.getItem('verom_user') || '{}');
+        const dest = {applicant: '/applicant', attorney: '/attorney', employer: '/app'};
+        window.location.href = dest[user.role] || '/app';
+        return;
+    }
+
     let selectedRole = 'applicant';
 
     // Role selection
@@ -284,7 +306,6 @@
             document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             selectedRole = card.dataset.role;
-            // Show/hide attorney fields
             document.getElementById('attorneyFields').classList.toggle('visible', selectedRole === 'attorney');
         });
     });
@@ -295,28 +316,108 @@
         document.getElementById('tabSignup').classList.remove('active');
         document.getElementById('loginForm').style.display = '';
         document.getElementById('signupForm').style.display = 'none';
+        clearError();
     });
     document.getElementById('tabSignup').addEventListener('click', () => {
         document.getElementById('tabSignup').classList.add('active');
         document.getElementById('tabLogin').classList.remove('active');
         document.getElementById('signupForm').style.display = '';
         document.getElementById('loginForm').style.display = 'none';
+        clearError();
     });
 
-    // Form submission
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
+    function showError(msg) {
+        let el = document.getElementById('authError');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'authError';
+            el.style.cssText = 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:14px;display:none;';
+            document.querySelector('.login-card').prepend(el);
+        }
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+
+    function clearError() {
+        const el = document.getElementById('authError');
+        if (el) el.style.display = 'none';
+    }
+
+    function setLoading(btn, loading) {
+        btn.disabled = loading;
+        btn.textContent = loading ? 'Please wait...' : btn.dataset.label;
+    }
+
+    function onAuthSuccess(data) {
+        localStorage.setItem('verom_token', data.access_token);
+        localStorage.setItem('verom_user', JSON.stringify(data.user));
+        const dest = {applicant: '/applicant', attorney: '/attorney', employer: '/app'};
+        window.location.href = dest[data.user.role] || '/app';
+    }
+
+    // Login
+    const loginBtn = document.getElementById('loginBtn');
+    loginBtn.dataset.label = loginBtn.textContent;
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        // Route based on role
-        if (selectedRole === 'applicant') window.location.href = '/applicant';
-        else if (selectedRole === 'attorney') window.location.href = '/attorney';
-        else window.location.href = '/app';
+        clearError();
+        setLoading(loginBtn, true);
+        try {
+            const resp = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    email: document.getElementById('loginEmail').value,
+                    password: document.getElementById('loginPassword').value,
+                }),
+            });
+            if (!resp.ok) {
+                const err = await resp.json();
+                throw new Error(err.detail || 'Login failed');
+            }
+            onAuthSuccess(await resp.json());
+        } catch (err) {
+            showError(err.message);
+            setLoading(loginBtn, false);
+        }
     });
 
-    document.getElementById('signupForm').addEventListener('submit', (e) => {
+    // Signup
+    const signupBtn = document.getElementById('signupBtn');
+    signupBtn.dataset.label = signupBtn.textContent;
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (selectedRole === 'applicant') window.location.href = '/applicant';
-        else if (selectedRole === 'attorney') window.location.href = '/attorney';
-        else window.location.href = '/app';
+        clearError();
+        setLoading(signupBtn, true);
+        try {
+            const body = {
+                email: document.getElementById('signupEmail').value,
+                password: document.getElementById('signupPassword').value,
+                first_name: document.getElementById('signupFirst').value,
+                last_name: document.getElementById('signupLast').value,
+                role: selectedRole,
+            };
+            if (selectedRole === 'attorney') {
+                body.bar_number = document.getElementById('barNumber').value;
+                body.jurisdiction = document.getElementById('jurisdiction').value;
+                body.years_experience = parseInt(document.getElementById('yearsExp').value) || 0;
+                body.specializations = document.getElementById('specializations').value;
+                body.firm_name = document.getElementById('firmName').value;
+            }
+            const resp = await fetch('/api/auth/signup', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body),
+            });
+            if (!resp.ok) {
+                const err = await resp.json();
+                throw new Error(err.detail || 'Signup failed');
+            }
+            onAuthSuccess(await resp.json());
+        } catch (err) {
+            showError(err.message);
+            setLoading(signupBtn, false);
+        }
     });
 })();
 </script>

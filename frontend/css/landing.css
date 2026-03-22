@@ -108,7 +108,18 @@ body {
 }
 .nav-links a:hover { color: #fff; }
 
-.nav-cta { display: flex; gap: 12px; }
+.nav-cta { display: flex; gap: 12px; align-items: center; }
+.lang-select {
+    appearance: none; -webkit-appearance: none; background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.25); border-radius: 8px;
+    color: #fff; padding: 6px 12px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+}
+.lang-select option { background: var(--slate-800); color: #fff; }
+.landing-nav.scrolled .lang-select {
+    background: var(--slate-100); border-color: var(--slate-300); color: var(--slate-700);
+}
+.landing-nav.scrolled .lang-select option { background: #fff; color: var(--slate-800); }
 
 .mobile-toggle {
     display: none; background: none; border: none; cursor: pointer;
@@ -384,7 +395,7 @@ body {
 }
 .compliance-section .container { position: relative; z-index: 1; }
 .compliance-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-.country-grid { grid-template-columns: repeat(3, 1fr); }
+.country-grid { grid-template-columns: repeat(4, 1fr); }
 .compliance-card {
     padding: 28px; border-radius: var(--radius);
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
@@ -448,7 +459,7 @@ body {
 /* ---- Responsive ---- */
 @media (max-width: 1024px) {
     .feature-grid, .attorney-value { grid-template-columns: repeat(2, 1fr); }
-    .country-grid { grid-template-columns: repeat(2, 1fr); }
+    .country-grid { grid-template-columns: repeat(3, 1fr); }
     .visa-types { grid-template-columns: repeat(3, 1fr); }
     .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
 }
