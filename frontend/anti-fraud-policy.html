@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verom.ai - Anti-Fraud Policy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --blue-500: #3b82f6; --blue-600: #2563eb; --slate-50: #f8fafc;
+            --slate-200: #e2e8f0; --slate-500: #64748b; --slate-600: #475569;
+            --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; color: var(--slate-700); background: #fff; line-height: 1.8; }
+        .top-bar { background: var(--slate-900); padding: 16px 24px; display: flex; align-items: center; }
+        .nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        .brand-icon { font-size: 24px; color: var(--blue-500); }
+        .brand-text { font-size: 22px; font-weight: 800; color: #fff; }
+        .highlight { color: var(--blue-500); }
+        .container { max-width: 800px; margin: 0 auto; padding: 60px 24px 80px; }
+        h1 { font-size: 36px; font-weight: 800; color: var(--slate-800); margin-bottom: 8px; }
+        .last-updated { font-size: 14px; color: var(--slate-500); margin-bottom: 40px; }
+        h2 { font-size: 22px; font-weight: 700; color: var(--slate-800); margin-top: 40px; margin-bottom: 12px; }
+        h3 { font-size: 18px; font-weight: 600; color: var(--slate-800); margin-top: 24px; margin-bottom: 8px; }
+        p, li { font-size: 15px; margin-bottom: 12px; }
+        ul, ol { padding-left: 24px; margin-bottom: 16px; }
+        li { margin-bottom: 6px; }
+        a { color: var(--blue-600); }
+        .callout { background: var(--slate-50); border-left: 4px solid var(--blue-500); padding: 16px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .footer { background: var(--slate-900); color: rgba(255,255,255,0.5); text-align: center; padding: 32px 24px; font-size: 13px; }
+    </style>
+</head>
+<body>
+<div class="top-bar">
+    <a href="/" class="nav-brand">
+        <span class="brand-icon">&#9670;</span>
+        <span class="brand-text">Verom<span class="highlight">.ai</span></span>
+    </a>
+</div>
+<div class="container">
+    <h1>Anti-Fraud Policy</h1>
+    <p class="last-updated">Last updated: March 22, 2026</p>
+
+    <p>Verom.ai is committed to maintaining a safe, trustworthy platform for applicants, attorneys, and employers. This Anti-Fraud Policy describes how we prevent, detect, and respond to fraudulent activity.</p>
+
+    <div class="callout">
+        <strong>Our approach:</strong> We combine automated monitoring, human review, and community reporting to detect fraud quickly. Every verification step and safety measure exists to protect legitimate users and maintain the integrity of the immigration process.
+    </div>
+
+    <h2>1. Attorney Verification</h2>
+    <p>Before any attorney can accept cases through the Verom marketplace, they must pass our multi-layer verification process:</p>
+
+    <h3>Initial Verification</h3>
+    <ul>
+        <li><strong>Bar number verification</strong> — Automated lookup against state bar association databases for all US jurisdictions. International equivalents (SRA for UK, Law Society for Canada, MARA for Australia) for non-US attorneys</li>
+        <li><strong>Disciplinary record check</strong> — Cross-reference against bar disciplinary databases to identify suspensions, disbarments, or sanctions</li>
+        <li><strong>Malpractice insurance verification</strong> — Proof of active professional liability coverage required</li>
+        <li><strong>Identity verification</strong> — Government-issued photo ID matched against profile information</li>
+        <li><strong>Manual review</strong> — During our launch phase, every attorney application receives human review by the Verom Trust & Safety team</li>
+    </ul>
+
+    <h3>Ongoing Monitoring</h3>
+    <ul>
+        <li>Quarterly re-verification of bar status for all active attorneys</li>
+        <li>Continuous monitoring of disciplinary databases for new actions</li>
+        <li>Annual insurance coverage re-verification</li>
+        <li>Real-time monitoring of platform activity for anomalous patterns</li>
+    </ul>
+
+    <h2>2. Automated Fraud Detection</h2>
+    <p>Verom uses automated systems to continuously monitor for suspicious activity:</p>
+
+    <h3>Activity Monitoring</h3>
+    <ul>
+        <li><strong>Filing rate tracking</strong> — Attorneys who accept cases but show abnormally low filing rates are flagged for review</li>
+        <li><strong>Response time monitoring</strong> — Persistent unresponsiveness triggers escalating alerts and potential case reassignment</li>
+        <li><strong>Receipt number validation</strong> — Filing proof is cross-referenced against government case status APIs to confirm authenticity</li>
+    </ul>
+
+    <h3>Behavioral Anomaly Detection</h3>
+    <ul>
+        <li><strong>Rapid case collection</strong> — Accepting many cases in a short period without corresponding work output</li>
+        <li><strong>Template responses</strong> — Identical or near-identical communications across unrelated cases</li>
+        <li><strong>Document patterns</strong> — Reusing identical documents across different clients or cases</li>
+        <li><strong>Unusual payment patterns</strong> — Requests for off-platform payments, unusual refund patterns</li>
+    </ul>
+
+    <h3>Performance Scoring</h3>
+    <p>Every attorney receives an internal performance score based on:</p>
+    <ul>
+        <li>Filing rates and timeliness</li>
+        <li>Client response times</li>
+        <li>Case outcomes (approval rates relative to case complexity)</li>
+        <li>Client feedback and satisfaction ratings</li>
+        <li>Compliance with platform policies</li>
+    </ul>
+    <p>Attorneys with scores below acceptable thresholds are reviewed by the Trust & Safety team.</p>
+
+    <h2>3. Cross-Platform Checks</h2>
+    <p>Verom checks for attorneys flagged on other legal platforms, consumer protection databases, and regulatory enforcement actions. This includes:</p>
+    <ul>
+        <li>State bar complaint databases</li>
+        <li>FTC and state attorney general enforcement actions</li>
+        <li>Consumer complaint databases (BBB, consumer affairs)</li>
+        <li>Immigration-specific fraud databases and alerts</li>
+    </ul>
+
+    <h2>4. Applicant Protections</h2>
+    <ul>
+        <li><strong>Escrow payments</strong> — All marketplace payments are held in escrow, never sent directly to attorneys</li>
+        <li><strong>Milestone verification</strong> — Payments released only when proof of work is provided</li>
+        <li><strong>Off-platform payment warnings</strong> — Clear, prominent warnings that payments outside Verom are not protected</li>
+        <li><strong>Auto-refund</strong> — If an attorney is inactive for 30+ days, applicants can trigger automatic refund</li>
+        <li><strong>Case transfer</strong> — If an attorney is removed, cases are transferred seamlessly to a new qualified attorney</li>
+    </ul>
+
+    <h2>5. Reporting Fraud</h2>
+    <p>Anyone can report suspected fraud through:</p>
+    <ul>
+        <li><strong>In-platform reporting</strong> — Every profile and case has a "Report" button</li>
+        <li><strong>Email</strong> — trust@verom.ai (monitored 24/7)</li>
+        <li><strong>Anonymous tip line</strong> — Reports can be submitted without identifying yourself</li>
+    </ul>
+    <p>All reports are investigated by the Trust & Safety team within 48 hours. Reporters are protected from retaliation.</p>
+
+    <h2>6. Graduated Consequences</h2>
+    <p>When fraud or policy violations are confirmed, Verom applies graduated consequences:</p>
+    <ol>
+        <li><strong>Warning</strong> — Written notice with required corrective action within 7 days</li>
+        <li><strong>Payment hold</strong> — All pending payouts frozen during investigation</li>
+        <li><strong>Marketplace suspension</strong> — Removed from case matching; existing cases continue under monitoring</li>
+        <li><strong>Network removal</strong> — Permanent ban from the Verom platform; all cases transferred; remaining escrow returned to clients</li>
+    </ol>
+    <p>Serious fraud (forged documents, identity theft, embezzlement) may result in immediate removal and referral to law enforcement.</p>
+
+    <h2>7. Appeals Process</h2>
+    <p>Attorneys subject to enforcement actions may appeal within 14 days:</p>
+    <ul>
+        <li>Submit a written appeal with supporting evidence to trust@verom.ai</li>
+        <li>Appeals are reviewed by a senior Trust & Safety team member not involved in the original decision</li>
+        <li>Decision on appeal is communicated within 10 business days</li>
+        <li>The appeal decision is final</li>
+    </ul>
+
+    <h2>8. Cooperation with Authorities</h2>
+    <p>Verom cooperates with law enforcement, bar associations, and regulatory authorities in investigations of fraud. We may report suspected criminal activity to appropriate authorities and share relevant information as required by law.</p>
+
+    <h2>Contact</h2>
+    <p>For fraud reports or questions about this policy, contact <strong>trust@verom.ai</strong>.</p>
+</div>
+<div class="footer">
+    &copy; 2026 Verom.ai. All rights reserved. Verom is a technology platform and does not provide legal advice.
+</div>
+</body>
+</html>

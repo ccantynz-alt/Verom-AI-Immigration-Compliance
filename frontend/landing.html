@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verom.ai - AI-Powered Immigration Compliance Platform</title>
+    <meta name="description" content="AI-powered immigration platform connecting applicants with licensed attorneys. Student visas, work permits, family reunification — 6 countries, one platform.">
     <link rel="stylesheet" href="/static/css/landing.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -21,12 +22,21 @@
             <a href="#applicants">Applicants</a>
             <a href="#attorneys">Attorneys</a>
             <a href="#employers">Employers</a>
-            <a href="#how-it-works">How It Works</a>
+            <a href="#why-verom">Why Verom</a>
             <a href="#countries">Countries</a>
         </div>
         <div class="nav-cta">
-            <a href="/login" class="btn btn-outline-light">Log In</a>
-            <a href="/login" class="btn btn-primary">Get Started</a>
+            <select id="langSelect" class="lang-select" aria-label="Language">
+                <option value="en">EN</option>
+                <option value="zh">&#20013;&#25991;</option>
+                <option value="es">ES</option>
+                <option value="hi">&#2361;&#2367;</option>
+                <option value="ar">&#1593;&#1585;</option>
+                <option value="fr">FR</option>
+                <option value="pt">PT</option>
+            </select>
+            <a href="/login" class="btn btn-outline-light" data-i18n="nav_login">Log In</a>
+            <a href="/login" class="btn btn-primary" data-i18n="nav_cta">Get Started Free</a>
         </div>
         <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
             <span></span><span></span><span></span>
@@ -38,33 +48,33 @@
 <section class="hero">
     <div class="hero-bg"></div>
     <div class="hero-content">
-        <div class="hero-badge">AI-Powered Immigration Platform</div>
-        <h1>Immigration compliance,<br><span class="hero-gradient">handled right.</span></h1>
-        <p class="hero-sub">
+        <div class="hero-badge" data-i18n="hero_badge">AI-Powered Immigration Platform</div>
+        <h1><span data-i18n="hero_title_1">Immigration compliance,</span><br><span class="hero-gradient" data-i18n="hero_title_2">handled right.</span></h1>
+        <p class="hero-sub" data-i18n="hero_sub">
             Whether you're applying for a student visa, work permit, or family reunification &mdash;
             Verom connects you with licensed immigration attorneys and AI-powered compliance tools
             to navigate the process with confidence.
         </p>
         <div class="hero-actions">
-            <a href="/login" class="btn btn-primary btn-lg">Start Your Application</a>
-            <a href="#attorneys" class="btn btn-ghost btn-lg">Join as an Attorney &#8594;</a>
+            <a href="/login" class="btn btn-primary btn-lg" data-i18n="hero_cta_primary">Start Your Application</a>
+            <a href="#attorneys" class="btn btn-ghost btn-lg" data-i18n="hero_cta_secondary">Join as an Attorney &#8594;</a>
         </div>
         <div class="hero-stats">
             <div class="hero-stat">
-                <span class="stat-num">6+</span>
-                <span class="stat-desc">Destination countries</span>
+                <span class="stat-num">12</span>
+                <span class="stat-desc" data-i18n="stat_countries">Destination countries</span>
             </div>
             <div class="hero-stat">
                 <span class="stat-num">AI</span>
-                <span class="stat-desc">Compliance review</span>
+                <span class="stat-desc" data-i18n="stat_engine">Compliance engine</span>
             </div>
             <div class="hero-stat">
                 <span class="stat-num">24h</span>
-                <span class="stat-desc">Attorney matching</span>
+                <span class="stat-desc" data-i18n="stat_matching">Attorney matching</span>
             </div>
             <div class="hero-stat">
                 <span class="stat-num">All visas</span>
-                <span class="stat-desc">Student, work, family &amp; more</span>
+                <span class="stat-desc" data-i18n="stat_visas">Student, work, family &amp; more</span>
             </div>
         </div>
     </div>
@@ -75,7 +85,7 @@
     <div class="container">
         <div class="problem-grid">
             <div class="problem-text">
-                <h2>Immigration shouldn't feel like a gamble.</h2>
+                <h2 data-i18n="problem_title">Immigration shouldn't feel like a gamble.</h2>
                 <p>
                     Every year, millions of people apply for visas to study, work, or join family abroad.
                     Navigating complex immigration rules alone leads to costly mistakes &mdash; rejected applications,
@@ -109,47 +119,47 @@
 <section class="personas" id="applicants">
     <div class="container">
         <div class="section-header">
-            <h2>For people going places.</h2>
-            <p>AI-guided visa applications with real attorney support &mdash; for students, workers, and families.</p>
+            <h2 data-i18n="applicant_title">For people going places.</h2>
+            <p data-i18n="applicant_sub">AI-guided visa applications with real attorney support &mdash; for students, workers, and families.</p>
         </div>
 
         <!-- Visa type cards -->
         <div class="visa-types">
             <div class="visa-type-card">
-                <span class="visa-type-icon">&#127891;</span>
+                <span class="visa-type-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
                 <h4>Student Visas</h4>
-                <p>F-1, Tier 4, Study Permits, subclass 500</p>
+                <p>F-1, Tier 4, Study Permits</p>
             </div>
             <div class="visa-type-card">
-                <span class="visa-type-icon">&#128188;</span>
+                <span class="visa-type-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
                 <h4>Work Visas</h4>
-                <p>H-1B, Skilled Worker, EU Blue Card, TN</p>
+                <p>H-1B, Skilled Worker, TN</p>
             </div>
             <div class="visa-type-card">
-                <span class="visa-type-icon">&#128106;</span>
+                <span class="visa-type-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
                 <h4>Family &amp; Spouse</h4>
-                <p>K-1, Partner visas, dependent visas, I-130</p>
+                <p>K-1, Partner, I-130</p>
             </div>
             <div class="visa-type-card">
-                <span class="visa-type-icon">&#127968;</span>
+                <span class="visa-type-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
                 <h4>Permanent Residency</h4>
-                <p>Green Cards, ILR, Express Entry, EB categories</p>
+                <p>Green Card, ILR, PR</p>
             </div>
             <div class="visa-type-card">
-                <span class="visa-type-icon">&#128200;</span>
-                <h4>Investor &amp; Entrepreneur</h4>
-                <p>E-2, EB-5, Innovator, Start-up visas</p>
+                <span class="visa-type-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+                <h4>Investor</h4>
+                <p>E-2, EB-5, Innovator</p>
             </div>
             <div class="visa-type-card">
-                <span class="visa-type-icon">&#128196;</span>
-                <h4>Employer Compliance</h4>
-                <p>I-9, LCA, PAF, ICE audit readiness</p>
+                <span class="visa-type-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>
+                <h4>Employer</h4>
+                <p>I-9, LCA, PAF, Audit</p>
             </div>
         </div>
 
         <div class="student-flow">
             <div class="persona-card featured">
-                <div class="persona-icon">&#129302;</div>
+                <div class="icon-wrap icon-wrap--blue"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v1a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10H5a2 2 0 0 0-2 2v1a7 7 0 0 0 14 0v-1a2 2 0 0 0-2-2z"/><line x1="12" y1="18" x2="12" y2="22"/></svg></div>
                 <h3>AI Application Assistant</h3>
                 <p>Tell us where you want to go and why. Our AI guides you through every step, checks your application against real immigration rules, and flags issues before you submit.</p>
                 <ul class="persona-features">
@@ -161,9 +171,9 @@
                 </ul>
             </div>
             <div class="persona-card">
-                <div class="persona-icon">&#9878;</div>
+                <div class="icon-wrap icon-wrap--blue"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v6"/><path d="M8 11h6"/></svg></div>
                 <h3>Attorney Matching</h3>
-                <p>Need professional help? We match you with a licensed immigration attorney in your destination country. They know the local rules, the consulate quirks, and exactly how to get your visa approved.</p>
+                <p>Need professional help? We match you with a licensed immigration attorney in your destination country who knows the local rules and how to get your visa approved.</p>
                 <ul class="persona-features">
                     <li>Matched to attorneys in your destination country</li>
                     <li>Attorney ratings and verified success rates</li>
@@ -173,7 +183,7 @@
                 </ul>
             </div>
             <div class="persona-card">
-                <div class="persona-icon">&#128202;</div>
+                <div class="icon-wrap icon-wrap--teal"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
                 <h3>Track Everything</h3>
                 <p>Your entire visa journey in one dashboard. From initial application to approval, see exactly where you stand, what's needed next, and when your deadlines are.</p>
                 <ul class="persona-features">
@@ -191,60 +201,60 @@
 <!-- For Attorneys -->
 <section class="features" id="attorneys">
     <div class="container">
-        <div class="section-header">
+        <div class="section-header section-header--light">
             <h2>For attorneys who want more clients, less overhead.</h2>
-            <p>Qualified immigration cases in your jurisdiction. We bring you the clients.</p>
+            <p>Pre-qualified immigration cases in your jurisdiction. We bring you the clients &mdash; you focus on the law.</p>
         </div>
         <div class="attorney-value">
             <div class="feature-card highlight-card">
-                <div class="feature-icon">&#128176;</div>
+                <div class="icon-wrap" style="background:rgba(59,130,246,0.15);color:#93c5fd"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
                 <h4>Steady Client Pipeline</h4>
-                <p>Applicants heading to your country need you. Browse pre-qualified cases, review their AI-checked applications, and accept the work you want. No cold outreach. No marketing spend.</p>
+                <p>Applicants heading to your country need you. Browse pre-qualified cases, review their AI-checked applications, and accept the work you want.</p>
             </div>
             <div class="feature-card highlight-card">
-                <div class="feature-icon">&#128203;</div>
+                <div class="icon-wrap" style="background:rgba(59,130,246,0.15);color:#93c5fd"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
                 <h4>Pre-Screened Applications</h4>
-                <p>Every application passes through our AI compliance engine first. By the time it reaches you, red flags are identified, documents are organized, and the heavy lifting is done.</p>
+                <p>Every application passes through our AI compliance engine first. By the time it reaches you, red flags are identified and documents are organized.</p>
             </div>
             <div class="feature-card highlight-card">
-                <div class="feature-icon">&#127760;</div>
+                <div class="icon-wrap" style="background:rgba(59,130,246,0.15);color:#93c5fd"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
                 <h4>Country-Matched Cases</h4>
-                <p>US attorneys see US-bound applicants. UK attorneys see UK-bound applicants. Cases are routed to attorneys licensed in the destination country &mdash; no jurisdictional mismatch.</p>
+                <p>US attorneys see US-bound applicants. UK attorneys see UK-bound applicants. No jurisdictional mismatch.</p>
             </div>
         </div>
         <div class="feature-grid">
             <div class="feature-card">
-                <div class="feature-icon">&#128101;</div>
+                <div class="icon-wrap" style="background:rgba(255,255,255,0.08);color:#93c5fd"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
                 <h4>Client Portfolio</h4>
                 <p>Manage all your Verom clients in one dashboard with case status, documents, and messaging.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">&#128276;</div>
+                <div class="icon-wrap" style="background:rgba(255,255,255,0.08);color:#93c5fd"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
                 <h4>Deadline Alerts</h4>
                 <p>Automated reminders for filing deadlines, document expirations, and appointment windows.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">&#128196;</div>
+                <div class="icon-wrap" style="background:rgba(255,255,255,0.08);color:#93c5fd"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
                 <h4>Document Vault</h4>
                 <p>Secure, shared document storage between you and your clients. Organized by case and category.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">&#128200;</div>
+                <div class="icon-wrap" style="background:rgba(255,255,255,0.08);color:#93c5fd"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
                 <h4>Success Analytics</h4>
                 <p>Track your approval rates, average processing times, and client satisfaction scores.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">&#9989;</div>
+                <div class="icon-wrap" style="background:rgba(255,255,255,0.08);color:#93c5fd"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 12 15 16 9"/></svg></div>
                 <h4>Compliance Engine</h4>
                 <p>Our AI cross-checks every application against current immigration rules for the destination country.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">&#128274;</div>
+                <div class="icon-wrap" style="background:rgba(255,255,255,0.08);color:#93c5fd"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
                 <h4>Verified Profiles</h4>
                 <p>Build trust with a verified attorney profile showing your credentials, specializations, and success rate.</p>
             </div>
         </div>
-        <div style="text-align:center; margin-top:40px">
+        <div style="text-align:center; margin-top:48px">
             <a href="/login" class="btn btn-primary btn-lg">Join the Attorney Network</a>
         </div>
     </div>
@@ -259,38 +269,313 @@
         </div>
         <div class="feature-grid">
             <div class="feature-card">
-                <div class="feature-icon">&#128202;</div>
+                <div class="icon-wrap icon-wrap--blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></div>
                 <h4>Compliance Dashboard</h4>
                 <p>Real-time visibility into your organization's immigration compliance status with risk scoring and alerts.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">&#128203;</div>
+                <div class="icon-wrap icon-wrap--blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
                 <h4>I-9 &amp; LCA Tracking</h4>
                 <p>Automated I-9 reverification reminders, LCA wage compliance checks, and Public Access File management.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">&#128737;</div>
+                <div class="icon-wrap icon-wrap--amber"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
                 <h4>ICE Audit Simulator</h4>
                 <p>Run simulated audits to identify gaps before regulators find them. Get actionable remediation steps.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">&#127760;</div>
+                <div class="icon-wrap icon-wrap--teal"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
                 <h4>Global Immigration</h4>
                 <p>Track work permits, travel logs, and tax thresholds across multiple countries from one dashboard.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">&#128279;</div>
+                <div class="icon-wrap icon-wrap--blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
                 <h4>HRIS Integrations</h4>
                 <p>Connect Workday, ADP, BambooHR, and more. Sync employee data automatically.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">&#128276;</div>
+                <div class="icon-wrap icon-wrap--teal"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23" stroke="none"/></svg></div>
                 <h4>Regulatory Intelligence</h4>
                 <p>Policy change alerts, processing time updates, and visa bulletin tracking &mdash; all in one feed.</p>
             </div>
         </div>
-        <div style="text-align:center; margin-top:40px">
+        <div style="text-align:center; margin-top:48px">
             <a href="/login" class="btn btn-primary btn-lg">Explore the Compliance Dashboard</a>
+        </div>
+    </div>
+</section>
+
+<!-- Why Verom — Competitive Differentiation -->
+<section class="why-verom" id="why-verom">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">Why Choose Verom</div>
+            <h2>What other platforms can't do.</h2>
+            <p>Verom is the only immigration platform built for all three sides of the market &mdash; with protections no one else offers.</p>
+        </div>
+        <div class="diff-grid">
+            <div class="diff-card diff-card--primary">
+                <div class="diff-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <h4>Three-Sided Platform</h4>
+                <p>The only platform serving applicants, attorneys, <em>and</em> employers together. No competitor does all three.</p>
+                <span class="diff-tag">Unique to Verom</span>
+            </div>
+            <div class="diff-card diff-card--primary">
+                <div class="diff-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                </div>
+                <h4>Escrow Payment Protection</h4>
+                <p>Milestone-based escrow protects both sides. Funds release only when real work is verified. No competitor offers this.</p>
+                <span class="diff-tag">Unique to Verom</span>
+            </div>
+            <div class="diff-card diff-card--primary">
+                <div class="diff-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 12 15 16 9"/></svg>
+                </div>
+                <h4>Attorney Verification</h4>
+                <p>Bar number validation, credential checks, disciplinary monitoring, and fraud detection. Every attorney is vetted.</p>
+                <span class="diff-tag">Unique to Verom</span>
+            </div>
+            <div class="diff-card">
+                <div class="diff-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <h4>12 Countries, One Platform</h4>
+                <p>US, UK, Canada, Australia, Germany, NZ, and 6 more. Most attorney tools only cover one country.</p>
+            </div>
+            <div class="diff-card">
+                <div class="diff-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <h4>AI Compliance Engine</h4>
+                <p>Every application checked against real immigration rules before submission. Document scanning, red-flag detection, strength scoring.</p>
+            </div>
+            <div class="diff-card">
+                <div class="diff-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                </div>
+                <h4>ICE Audit Simulator</h4>
+                <p>Run mock audits before regulators arrive. Only one other platform in the market offers this.</p>
+            </div>
+        </div>
+
+        <!-- Competitor comparison table -->
+        <div class="compare-table-wrap">
+            <h3 class="compare-title">How we compare to the competition</h3>
+            <div class="compare-scroll">
+                <table class="compare-table">
+                    <thead>
+                        <tr>
+                            <th>Capability</th>
+                            <th class="compare-verom">Verom.ai</th>
+                            <th>Envoy Global</th>
+                            <th>Docketwise</th>
+                            <th>INSZoom</th>
+                            <th>Boundless</th>
+                            <th>LawLogix</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Serves applicants, attorneys &amp; employers</td>
+                            <td class="compare-verom"><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-partial">Partial</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Attorney marketplace with choice</td>
+                            <td class="compare-verom"><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Escrow payment protection</td>
+                            <td class="compare-verom"><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Attorney verification &amp; fraud detection</td>
+                            <td class="compare-verom"><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Multi-country support (12+)</td>
+                            <td class="compare-verom"><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Multi-language UI (7+ languages)</td>
+                            <td class="compare-verom"><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                        </tr>
+                        <tr>
+                            <td>ICE audit simulator</td>
+                            <td class="compare-verom"><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                        </tr>
+                        <tr>
+                            <td>AI compliance engine</td>
+                            <td class="compare-verom"><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-partial">Basic</span></td>
+                            <td><span class="check-partial">Basic</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                        </tr>
+                        <tr>
+                            <td>HRIS integrations</td>
+                            <td class="compare-verom"><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-no">&mdash;</span></td>
+                            <td><span class="check-yes">&#10003;</span></td>
+                            <td><span class="check-yes">&#10003;</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Attorney ROI Section -->
+<section class="attorney-roi">
+    <div class="container">
+        <div class="roi-grid">
+            <div class="roi-content">
+                <div class="section-badge">For Attorneys</div>
+                <h2>9 hours per week of admin work &mdash; eliminated.</h2>
+                <p>Immigration attorneys spend up to 40% of their time on non-legal admin: intake forms, document chasing, deadline tracking, status updates, and government portal checking. Verom automates the 80% of casework that isn't legal judgment.</p>
+                <div class="roi-stats">
+                    <div class="roi-stat">
+                        <span class="roi-num">9 hrs</span>
+                        <span class="roi-label">Weekly admin time saved</span>
+                    </div>
+                    <div class="roi-stat">
+                        <span class="roi-num">$230K</span>
+                        <span class="roi-label">Annual recovered billable time</span>
+                    </div>
+                    <div class="roi-stat">
+                        <span class="roi-num">30 min</span>
+                        <span class="roi-label">Saved per case on intake</span>
+                    </div>
+                </div>
+                <a href="/login" class="btn btn-primary btn-lg">Start Saving Time</a>
+            </div>
+            <div class="roi-features">
+                <div class="roi-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <div>
+                        <h4>AI Client Intake</h4>
+                        <p>Dynamic questionnaires adapt by visa type. Multi-language forms. Clients upload docs via secure link.</p>
+                    </div>
+                </div>
+                <div class="roi-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <div>
+                        <h4>Automated Deadlines</h4>
+                        <p>Every filing window, renewal date, and RFE deadline tracked automatically. Calendar sync included.</p>
+                    </div>
+                </div>
+                <div class="roi-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    <div>
+                        <h4>Government Portal Unification</h4>
+                        <p>USCIS, DOL, SEVIS, Visa Bulletin &mdash; all status updates in one dashboard. No more juggling five portals.</p>
+                    </div>
+                </div>
+                <div class="roi-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <div>
+                        <h4>Auto Client Updates</h4>
+                        <p>Clients get status notifications without you lifting a finger. Reduce "any updates?" emails by 90%.</p>
+                    </div>
+                </div>
+                <div class="roi-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    <div>
+                        <h4>Smart Document Scanning</h4>
+                        <p>AI OCR reads passports, I-94s, approval notices. Auto-extracts data and files to the correct case.</p>
+                    </div>
+                </div>
+                <div class="roi-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                    <div>
+                        <h4>Success Analytics</h4>
+                        <p>Track approval rates, processing times, caseload volume, and revenue. Export reports for partners.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trust & Security -->
+<section class="trust-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Built for trust. Engineered for security.</h2>
+            <p>Immigration data is sensitive. We treat it that way.</p>
+        </div>
+        <div class="trust-grid">
+            <div class="trust-card">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <h4>256-bit Encryption</h4>
+                <p>All data encrypted in transit and at rest. Bank-grade AES-256 security.</p>
+            </div>
+            <div class="trust-card">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <h4>GDPR Compliant</h4>
+                <p>Full compliance with international data protection regulations. Your data stays yours.</p>
+            </div>
+            <div class="trust-card">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <h4>Role-Based Access</h4>
+                <p>Attorneys, applicants, and employers each see only what they should. Granular permissions throughout.</p>
+            </div>
+            <div class="trust-card">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <h4>Verified Attorneys Only</h4>
+                <p>Every attorney verified against bar associations. Disciplinary checks, credential validation, ongoing monitoring.</p>
+            </div>
+            <div class="trust-card">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <h4>Complete Audit Trail</h4>
+                <p>Every action logged. Every document versioned. Full compliance history for regulatory review.</p>
+            </div>
+            <div class="trust-card">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <h4>Fraud Monitoring</h4>
+                <p>Behavioral anomaly detection, filing verification, complaint tracking. Bad actors get flagged and removed.</p>
+            </div>
         </div>
     </div>
 </section>
@@ -303,34 +588,34 @@
             <p>Simple for applicants. Profitable for attorneys. Powered by AI.</p>
         </div>
 
-        <h3 style="text-align:center; margin-bottom:32px; color:var(--slate-500); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; font-size:13px">For Applicants</h3>
+        <div class="hiw-label">For Applicants</div>
         <div class="steps">
             <div class="step">
                 <div class="step-num">1</div>
                 <h4>Tell us your goal</h4>
-                <p>Select your visa type and destination country. We load the exact requirements and timeline for your situation.</p>
+                <p>Select your visa type and destination country. We load the exact requirements for your situation.</p>
             </div>
             <div class="step-arrow">&#8594;</div>
             <div class="step">
                 <div class="step-num">2</div>
                 <h4>Build your application</h4>
-                <p>Our AI guides you step-by-step. Upload documents, answer questions, and get real-time feedback on your application strength.</p>
+                <p>Our AI guides you step-by-step. Upload documents and get real-time feedback on your application strength.</p>
             </div>
             <div class="step-arrow">&#8594;</div>
             <div class="step">
                 <div class="step-num">3</div>
                 <h4>Get matched (optional)</h4>
-                <p>Want expert help? We match you with a licensed attorney in your destination country. Browse profiles and choose who's right for you.</p>
+                <p>We match you with a licensed attorney in your destination country. Browse profiles and choose who's right for you.</p>
             </div>
             <div class="step-arrow">&#8594;</div>
             <div class="step">
                 <div class="step-num">4</div>
                 <h4>Submit and track</h4>
-                <p>Submit with confidence. Track your application status, get alerts on next steps, and prepare for your new life abroad.</p>
+                <p>Submit with confidence. Track your status, get alerts on next steps, and prepare for your new life abroad.</p>
             </div>
         </div>
 
-        <h3 style="text-align:center; margin:48px 0 32px; color:var(--slate-500); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; font-size:13px">For Attorneys</h3>
+        <div class="hiw-label hiw-label--second">For Attorneys</div>
         <div class="steps">
             <div class="step">
                 <div class="step-num">1</div>
@@ -341,19 +626,19 @@
             <div class="step">
                 <div class="step-num">2</div>
                 <h4>Browse qualified cases</h4>
-                <p>See pre-qualified applicant cases headed to your country. Review AI-screened profiles and pick the ones you want.</p>
+                <p>See pre-qualified applicant cases headed to your country. Review AI-screened profiles and pick your cases.</p>
             </div>
             <div class="step-arrow">&#8594;</div>
             <div class="step">
                 <div class="step-num">3</div>
                 <h4>Handle the case</h4>
-                <p>Use our built-in tools for document review, compliance checking, messaging, and filing. Everything in one place.</p>
+                <p>Use our built-in tools for document review, compliance checking, messaging, and filing. All in one place.</p>
             </div>
             <div class="step-arrow">&#8594;</div>
             <div class="step">
                 <div class="step-num">4</div>
                 <h4>Get paid</h4>
-                <p>Set your own fees. Automatic invoicing and secure payment processing. Focus on the law, not the billing.</p>
+                <p>Set your own fees. Automatic invoicing and secure payment processing. Focus on the law, not billing.</p>
             </div>
         </div>
     </div>
@@ -362,9 +647,9 @@
 <!-- Countries -->
 <section class="compliance-section" id="countries">
     <div class="container">
-        <div class="section-header">
+        <div class="section-header section-header--light">
             <h2>Where you're going, Verom follows.</h2>
-            <p>Launching with the top 6 immigration destinations. More countries added quarterly.</p>
+            <p>12 countries live. More corridors added quarterly.</p>
         </div>
         <div class="compliance-grid country-grid">
             <div class="compliance-card">
@@ -391,11 +676,35 @@
                 <h4>&#127475;&#127487; New Zealand</h4>
                 <p>Student visa, Skilled Migrant, Work to Residence, Partnership. Post-study work rights.</p>
             </div>
+            <div class="compliance-card">
+                <h4>&#127470;&#127466; Ireland</h4>
+                <p>Stamp 1/2, Critical Skills Employment Permit, Study visa. IRP registration, GNIB.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127467;&#127479; France</h4>
+                <p>Talent Passport, Student visa, Salaried Worker. OFII, Campus France, VLS-TS.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127475;&#127473; Netherlands</h4>
+                <p>Highly Skilled Migrant, Orientation Year, Student visa. IND, 30% ruling, MVV.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127471;&#127477; Japan</h4>
+                <p>Engineer/Specialist, Student visa, Specified Skilled Worker. COE, residence card.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127480;&#127468; Singapore</h4>
+                <p>Employment Pass, S Pass, EntrePass, Student Pass. MOM, quota system.</p>
+            </div>
+            <div class="compliance-card">
+                <h4>&#127462;&#127466; UAE</h4>
+                <p>Golden Visa, Employment visa, Student visa. GDRFA, Emirates ID, medical fitness.</p>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- How We Work (replaces pricing) -->
+<!-- How We Work -->
 <section class="pricing-section">
     <div class="container">
         <div class="section-header">
@@ -404,23 +713,23 @@
         </div>
         <div class="persona-grid pricing-grid">
             <div class="persona-card">
-                <div class="persona-icon">&#127891;</div>
+                <div class="icon-wrap icon-wrap--blue"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
                 <h3>Applicants</h3>
                 <p>AI-powered tools to guide your application, check compliance, and match you with the right attorney for your case.</p>
                 <ul class="persona-features">
                     <li>AI application assistant: included</li>
                     <li>Document scanning and review: included</li>
                     <li>Deadline tracking: included</li>
-                    <li>Attorney matching: browse and compare profiles</li>
-                    <li>Attorney fees set by each attorney individually</li>
+                    <li>Attorney matching: browse and compare</li>
+                    <li>Attorney fees set individually by each attorney</li>
                 </ul>
                 <a href="/login" class="btn btn-primary btn-block">Start Your Application</a>
             </div>
             <div class="persona-card featured">
                 <div class="persona-badge">Grow Your Practice</div>
-                <div class="persona-icon">&#9878;</div>
+                <div class="icon-wrap icon-wrap--teal"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
                 <h3>Attorneys</h3>
-                <p>Get qualified client leads without marketing spend. Set your own rates. We handle matching, scheduling, and document management.</p>
+                <p>Get qualified client leads without marketing spend. Set your own rates. We handle matching, scheduling, and documents.</p>
                 <ul class="persona-features">
                     <li>Profile listing: included</li>
                     <li>Client matching: included</li>
@@ -437,10 +746,10 @@
 <!-- CTA -->
 <section class="final-cta">
     <div class="container">
-        <h2>Your future shouldn't depend on paperwork.</h2>
-        <p>Join applicants and attorneys building a better immigration experience.</p>
+        <h2 data-i18n="cta_final_title">Your future shouldn't<br>depend on paperwork.</h2>
+        <p data-i18n="cta_final_sub">Join applicants and attorneys building a better immigration experience.</p>
         <div class="cta-actions">
-            <a href="/login" class="btn btn-primary btn-lg">Get Started</a>
+            <a href="/login" class="btn btn-primary btn-lg">Get Started Free</a>
             <a href="#attorneys" class="btn btn-outline btn-lg">Attorney Network</a>
         </div>
     </div>
@@ -469,7 +778,7 @@
                 <a href="/login">Join Network</a>
                 <a href="#attorneys">Attorney Features</a>
                 <a href="/login">Client Dashboard</a>
-                <a href="/api/docs">API Documentation</a>
+                <a href="#why-verom">Why Verom</a>
             </div>
             <div class="footer-col">
                 <h4>Legal</h4>
@@ -480,7 +789,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 Verom.ai. All rights reserved. Verom is a technology platform and does not provide legal advice. Attorney fees are set independently by each attorney and are not determined or guaranteed by Verom.</p>
+            <p data-i18n="footer_disclaimer">&copy; 2026 Verom.ai. All rights reserved. Verom is a technology platform and does not provide legal advice. Attorney fees are set independently by each attorney and are not determined or guaranteed by Verom.</p>
         </div>
     </div>
 </footer>
@@ -511,7 +820,25 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 window.addEventListener('scroll', () => {
     document.querySelector('.landing-nav').classList.toggle('scrolled', window.scrollY > 50);
 });
+
+// Scroll-triggered animations
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.feature-card, .persona-card, .compliance-card, .problem-card, .visa-type-card, .step').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+});
 </script>
+<script src="/static/js/i18n.js"></script>
 
 </body>
 </html>

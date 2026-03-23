@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verom.ai - Escrow Payment Terms</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
+            --slate-50: #f8fafc; --slate-200: #e2e8f0; --slate-500: #64748b;
+            --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b;
+            --slate-900: #0f172a;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; color: var(--slate-700); background: #fff; line-height: 1.8; }
+        .top-bar { background: var(--slate-900); padding: 16px 24px; display: flex; align-items: center; }
+        .nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        .brand-icon { font-size: 24px; color: var(--blue-500); }
+        .brand-text { font-size: 22px; font-weight: 800; color: #fff; }
+        .highlight { color: var(--blue-500); }
+        .container { max-width: 800px; margin: 0 auto; padding: 60px 24px 80px; }
+        h1 { font-size: 36px; font-weight: 800; color: var(--slate-800); margin-bottom: 8px; }
+        .last-updated { font-size: 14px; color: var(--slate-500); margin-bottom: 40px; }
+        h2 { font-size: 22px; font-weight: 700; color: var(--slate-800); margin-top: 40px; margin-bottom: 12px; }
+        h3 { font-size: 18px; font-weight: 600; color: var(--slate-800); margin-top: 24px; margin-bottom: 8px; }
+        p, li { font-size: 15px; margin-bottom: 12px; }
+        ul, ol { padding-left: 24px; margin-bottom: 16px; }
+        li { margin-bottom: 6px; }
+        a { color: var(--blue-600); }
+        .callout { background: var(--slate-50); border-left: 4px solid var(--blue-500); padding: 16px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .warning { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .milestone-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+        .milestone-table th { background: var(--slate-50); padding: 10px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--slate-200); }
+        .milestone-table td { padding: 10px 12px; border-bottom: 1px solid var(--slate-200); }
+        .milestone-table tr:last-child td { border-bottom: none; }
+        .footer { background: var(--slate-900); color: rgba(255,255,255,0.5); text-align: center; padding: 32px 24px; font-size: 13px; }
+    </style>
+</head>
+<body>
+<div class="top-bar">
+    <a href="/" class="nav-brand">
+        <span class="brand-icon">&#9670;</span>
+        <span class="brand-text">Verom<span class="highlight">.ai</span></span>
+    </a>
+</div>
+<div class="container">
+    <h1>Escrow Payment Terms</h1>
+    <p class="last-updated">Last updated: March 22, 2026</p>
+
+    <p>These Escrow Payment Terms ("Escrow Terms") govern how payments are handled between applicants and attorneys through the Verom.ai platform. These terms supplement the general <a href="/terms">Terms of Service</a>.</p>
+
+    <div class="callout">
+        <strong>Why escrow:</strong> Verom's escrow system protects both applicants and attorneys. Applicants know their money is safe until work is performed. Attorneys know payment is secured before they begin work. Everyone benefits from a transparent, milestone-based payment process.
+    </div>
+
+    <h2>1. How Escrow Works</h2>
+    <ol>
+        <li><strong>Applicant pays into escrow</strong> — When an applicant engages an attorney through the marketplace, payment is deposited into a Verom-managed escrow account. Funds are never sent directly to the attorney.</li>
+        <li><strong>Milestones are defined</strong> — Each case has milestones based on the visa type. Both the applicant and attorney see the milestone schedule before the engagement begins.</li>
+        <li><strong>Attorney completes work</strong> — As the attorney reaches each milestone, they submit proof of completion through the platform.</li>
+        <li><strong>Funds are released</strong> — Once proof is verified (receipt numbers, filing confirmations, or equivalent), the corresponding payment is released to the attorney.</li>
+        <li><strong>Case completes</strong> — Final payment is released when the case reaches its conclusion (approval, completion of services, or other defined endpoint).</li>
+    </ol>
+
+    <h2>2. Milestone Definitions by Visa Type</h2>
+    <p>Each visa category has standard milestones. Below are examples for common visa types:</p>
+
+    <h3>H-1B (Work Visa — US)</h3>
+    <table class="milestone-table">
+        <tr><th>Milestone</th><th>Payment Release</th><th>Proof Required</th></tr>
+        <tr><td>Intake & case assessment complete</td><td>15%</td><td>Signed retainer, intake summary</td></tr>
+        <tr><td>LCA filed with DOL</td><td>15%</td><td>LCA confirmation number</td></tr>
+        <tr><td>LCA approved, I-129 petition filed</td><td>30%</td><td>USCIS receipt number</td></tr>
+        <tr><td>Case adjudicated (approval/RFE response)</td><td>40%</td><td>Approval notice or RFE response filing</td></tr>
+    </table>
+
+    <h3>I-130 / I-485 (Family-Based Green Card — US)</h3>
+    <table class="milestone-table">
+        <tr><th>Milestone</th><th>Payment Release</th><th>Proof Required</th></tr>
+        <tr><td>Intake & document collection complete</td><td>15%</td><td>Signed retainer, document checklist</td></tr>
+        <tr><td>I-130 petition filed</td><td>20%</td><td>USCIS receipt number</td></tr>
+        <tr><td>I-485 / concurrent filing submitted</td><td>25%</td><td>Receipt numbers for all filings</td></tr>
+        <tr><td>Interview preparation complete</td><td>15%</td><td>Interview prep notes, client confirmation</td></tr>
+        <tr><td>Case adjudicated</td><td>25%</td><td>Decision notice</td></tr>
+    </table>
+
+    <h3>Skilled Worker (UK)</h3>
+    <table class="milestone-table">
+        <tr><th>Milestone</th><th>Payment Release</th><th>Proof Required</th></tr>
+        <tr><td>Intake & eligibility assessment</td><td>20%</td><td>Assessment report, signed engagement</td></tr>
+        <tr><td>Certificate of Sponsorship obtained</td><td>30%</td><td>CoS reference number</td></tr>
+        <tr><td>Application submitted to Home Office</td><td>30%</td><td>Submission confirmation</td></tr>
+        <tr><td>Decision received</td><td>20%</td><td>Decision letter</td></tr>
+    </table>
+
+    <h3>Express Entry (Canada)</h3>
+    <table class="milestone-table">
+        <tr><th>Milestone</th><th>Payment Release</th><th>Proof Required</th></tr>
+        <tr><td>Profile assessment & EE profile created</td><td>20%</td><td>EE profile number</td></tr>
+        <tr><td>ITA received & application prepared</td><td>30%</td><td>ITA confirmation</td></tr>
+        <tr><td>Application submitted to IRCC</td><td>30%</td><td>IRCC acknowledgment</td></tr>
+        <tr><td>COPR received</td><td>20%</td><td>COPR document</td></tr>
+    </table>
+
+    <p>Milestone definitions for additional visa types (student visas, investor visas, asylum, etc.) are available in the platform when setting up each engagement.</p>
+
+    <h2>3. Partial Release and Filing Fees</h2>
+    <p>Attorneys may request early partial release to cover government filing fees:</p>
+    <ul>
+        <li>Filing fee advances require documentation of the specific fees to be paid</li>
+        <li>Filing fees are released directly upon request with proof of the fee amount from the relevant government agency</li>
+        <li>Attorney must provide filing receipt within 14 days of receiving the advance</li>
+    </ul>
+
+    <h2>4. Refund Policy</h2>
+    <h3>Money-Back Protection Window</h3>
+    <p>Applicants may request a full refund within 72 hours of initial payment if no substantive legal work has been performed. After 72 hours, refunds are governed by milestone completion:</p>
+    <ul>
+        <li>Unreleased milestones are fully refundable upon case termination</li>
+        <li>Released milestones (where proof was verified) are non-refundable</li>
+        <li>Partially completed milestones are resolved through the dispute process</li>
+    </ul>
+
+    <h3>Auto-Refund on Inactivity</h3>
+    <p>If an attorney takes no verifiable action on a case for 30 consecutive days after accepting it:</p>
+    <ul>
+        <li>The applicant is notified and given the option to request a refund or wait</li>
+        <li>If no action is taken within an additional 14 days, remaining escrow funds are automatically returned to the applicant</li>
+        <li>The attorney's performance score is adjusted accordingly</li>
+    </ul>
+
+    <div class="warning">
+        <strong>Important:</strong> Never make payments to an attorney outside of the Verom platform. Off-platform payments are not protected by our escrow system, and we cannot assist with disputes involving off-platform transactions.
+    </div>
+
+    <h2>5. Dispute Resolution</h2>
+    <p>If an applicant and attorney disagree about milestone completion or payment release:</p>
+    <ol>
+        <li><strong>Direct resolution</strong> — Both parties are encouraged to communicate and resolve the issue directly through the platform messaging system</li>
+        <li><strong>Verom mediation</strong> — Either party may request Verom mediation. A Verom dispute specialist will review the case, evidence, and communications within 5 business days</li>
+        <li><strong>Binding decision</strong> — If mediation does not resolve the dispute, Verom will issue a binding decision based on the evidence, milestone definitions, and the terms of this agreement</li>
+        <li><strong>External arbitration</strong> — If either party disagrees with Verom's decision, they may pursue binding arbitration as described in the <a href="/terms">Terms of Service</a></li>
+    </ol>
+    <p>During dispute resolution, contested funds remain in escrow until a resolution is reached.</p>
+
+    <h2>6. Platform Fees</h2>
+    <p>Verom charges a transparent platform fee on marketplace transactions:</p>
+    <ul>
+        <li>The platform fee is disclosed to both the applicant and attorney before the engagement begins</li>
+        <li>The fee is deducted at the time of each milestone release</li>
+        <li>Attorneys see their net payout (after platform fee) for each milestone</li>
+        <li>Applicants see the total amount including the platform fee at checkout</li>
+    </ul>
+
+    <h2>7. Payment Processing</h2>
+    <ul>
+        <li>Payments are processed through Stripe, a PCI DSS Level 1 certified payment processor</li>
+        <li>Verom does not store credit card numbers or payment card data on our servers</li>
+        <li>Attorney payouts are processed through Stripe Connect to the attorney's verified bank account</li>
+        <li>Payouts are typically processed within 2-5 business days of milestone release</li>
+    </ul>
+
+    <h2>8. Tax Obligations</h2>
+    <p>Attorneys are responsible for their own tax obligations. Verom will provide 1099 forms (US) or equivalent tax documentation as required by law. Verom does not withhold taxes from attorney payouts.</p>
+
+    <h2>9. Compliance</h2>
+    <p>Verom's escrow system is designed to comply with applicable state and federal money transmission regulations. Escrow funds are held in segregated accounts and are not commingled with Verom's operating funds.</p>
+
+    <h2>10. Changes to These Terms</h2>
+    <p>Verom may update these Escrow Terms with 30 days advance notice. Existing escrow arrangements continue under the terms in effect at the time the escrow was created.</p>
+
+    <h2>Contact</h2>
+    <p>For questions about escrow, payments, or refunds, contact <strong>payments@verom.ai</strong>.</p>
+</div>
+<div class="footer">
+    &copy; 2026 Verom.ai. All rights reserved. Verom is a technology platform and does not provide legal advice.
+</div>
+</body>
+</html>

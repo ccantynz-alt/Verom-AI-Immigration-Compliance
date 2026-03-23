@@ -61,16 +61,16 @@ Verom.ai is an **AI-powered immigration platform** that dramatically reduces att
 **Marketing message:** Verom automates the 80% of immigration casework that isn't legal judgment — so attorneys can focus on the 20% that is.
 
 ### Target User Types
-- [ ] **Applicants** — Students, workers, spouses/families, investors seeking visas
-- [ ] **Attorneys** — Licensed immigration lawyers who need workload automation (PRIMARY adoption target)
+- [x] **Applicants** — Students, workers, spouses/families, investors seeking visas
+- [x] **Attorneys** — Licensed immigration lawyers who need workload automation (PRIMARY adoption target)
 - [x] **Employers** — Companies managing workforce immigration compliance (current dashboard)
 
 ### Visa Categories to Support
-- [ ] **Student visas** — F-1, J-1, Tier 4, Study Permits, subclass 500, etc.
-- [ ] **Work visas** — H-1B, L-1, O-1, TN, Skilled Worker, EU Blue Card, etc.
-- [ ] **Spouse/Family visas** — K-1, I-130, Partner visas, dependent visas
-- [ ] **Permanent residency** — Green Cards, ILR, PR applications, EB categories
-- [ ] **Investor/Entrepreneur visas** — E-2, EB-5, Innovator, Start-up visas
+- [x] **Student visas** — F-1, J-1, Tier 4, Study Permits, subclass 500, etc.
+- [x] **Work visas** — H-1B, L-1, O-1, TN, Skilled Worker, EU Blue Card, etc.
+- [x] **Spouse/Family visas** — K-1, I-130, Partner visas, dependent visas
+- [x] **Permanent residency** — Green Cards, ILR, PR applications, EB categories
+- [x] **Investor/Entrepreneur visas** — E-2, EB-5, Innovator, Start-up visas
 - [ ] **Asylum/Refugee** — Future consideration
 
 ### Immigration Corridors (Countries)
@@ -105,35 +105,35 @@ Verom.ai is an **AI-powered immigration platform** that dramatically reduces att
 - [x] Supported countries section
 - [x] Footer with legal disclaimers
 - [x] Mobile responsive
-- [ ] Multi-language UI toggle (Mandarin, Spanish, Hindi, Arabic, French, Portuguese)
-- [ ] Hero background image/illustration (immigration/global theme)
+- [x] Multi-language UI toggle (Mandarin, Spanish, Hindi, Arabic, French, Portuguese)
+- [x] Hero background image/illustration (immigration/global theme)
 - [x] Pricing section — safe, no specific dollar amounts
 - [x] Legal disclaimer: "Verom is a technology platform and does not provide legal advice"
 
 #### Applicant Portal
-- [ ] Role-based login (applicant vs attorney vs employer)
-- [ ] Onboarding wizard — select visa type, destination country, personal details
-- [ ] AI application assistant — guided step-by-step visa application
-- [ ] Document upload with AI validation and red-flag detection
-- [ ] Application strength scoring
-- [ ] Attorney matching engine — by country, specialization, availability
-- [ ] Secure messaging with matched attorney
-- [ ] Real-time application status tracking
-- [ ] Deadline tracking with smart reminders
-- [ ] Embassy appointment scheduling help
-- [ ] Post-approval checklist (travel, housing, enrollment/employment)
-- [ ] Visa renewal reminders
-- [ ] Multi-language applicant UI (labels, tooltips, instructions)
-- [ ] All legal documents and case content remain in English
+- [x] Role-based login (applicant vs attorney vs employer)
+- [x] Onboarding wizard — select visa type, destination country, personal details
+- [x] AI application assistant — guided step-by-step visa application
+- [x] Document upload with AI validation and red-flag detection
+- [x] Application strength scoring
+- [x] Attorney matching engine — by country, specialization, availability
+- [x] Secure messaging with matched attorney
+- [x] Real-time application status tracking
+- [x] Deadline tracking with smart reminders
+- [x] Embassy appointment scheduling help
+- [x] Post-approval checklist (travel, housing, enrollment/employment)
+- [x] Visa renewal reminders
+- [x] Multi-language applicant UI (labels, tooltips, instructions)
+- [x] All legal documents and case content remain in English
 
 #### Attorney Portal — Phase A: Workload Automation Tools (BUILD FIRST)
 These are the tools that get attorneys to sign up. They save time on *existing* caseload.
 The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovered billable time."
 
 **Onboarding & Profile**
-- [ ] Attorney profile creation (jurisdiction, specializations, capacity)
-- [ ] Verification system (bar number, credentials)
-- [ ] Import existing caseload — bulk CSV/Excel upload of current cases and clients
+- [x] Attorney profile creation (jurisdiction, specializations, capacity)
+- [x] Verification system (bar number, credentials)
+- [x] Import existing caseload — bulk CSV/Excel upload of current cases and clients
 
 **Client Intake Automation** (biggest pain point — firms spend days on intake)
 - [ ] **AI-powered client intake** — dynamic questionnaires that adapt by visa type and status
@@ -167,11 +167,11 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Document Q&A** — upload an RFE, decision, or government notice and chat with it in natural language to extract facts and identify issues
 
 **Deadline & Calendar Management**
-- [ ] **Automated deadline tracking** — every filing window, renewal, RFE deadline tracked automatically
-- [ ] **Smart calendar integration** — sync to Google Calendar, Outlook, Apple Calendar
-- [ ] **Deadline calculation engine** — auto-calculates deadlines from receipt dates, priority dates, filing requirements
-- [ ] **Team-wide deadline visibility** — paralegals, associates, and partners see all deadlines
-- [ ] **Escalation alerts** — deadlines approaching without action trigger escalating notifications
+- [x] **Automated deadline tracking** — every filing window, renewal, RFE deadline tracked automatically
+- [x] **Smart calendar integration** — sync to Google Calendar, Outlook, Apple Calendar
+- [x] **Deadline calculation engine** — auto-calculates deadlines from receipt dates, priority dates, filing requirements
+- [x] **Team-wide deadline visibility** — paralegals, associates, and partners see all deadlines
+- [x] **Escalation alerts** — deadlines approaching without action trigger escalating notifications
 
 **Client Communication Automation**
 - [ ] **Automated client status updates** — clients get progress notifications without attorney effort
@@ -199,31 +199,31 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Attorney gets notified BEFORE the client** — solve the #1 USCIS portal complaint
 
 **Integrations & Data Import/Export**
-- [ ] **Excel/CSV import & export** — case lists, client data, deadline reports
-- [ ] **Google Sheets integration** — live sync for firms that track in spreadsheets
-- [ ] **Microsoft Office integration** — Word templates for cover letters, briefs, memos
-- [ ] **Google Workspace integration** — Docs, Drive, Gmail
-- [ ] **Outlook/Gmail email integration** — file emails to cases automatically
-- [ ] **Cloud storage sync** — Dropbox, Google Drive, OneDrive, Box
-- [ ] **E-signature integration** — DocuSign, Adobe Sign for G-28, retainer agreements
-- [ ] **Accounting/billing integration** — QuickBooks, Xero, FreshBooks
-- [ ] **Calendar sync** — Google Calendar, Outlook, iCal
-- [ ] **Zapier/Make integration** — connect to 5000+ apps for custom workflows
-- [ ] **API access** — firms with custom tools can integrate programmatically
+- [x] **Excel/CSV import & export** — case lists, client data, deadline reports
+- [x] **Google Sheets integration** — live sync for firms that track in spreadsheets
+- [x] **Microsoft Office integration** — Word templates for cover letters, briefs, memos
+- [x] **Google Workspace integration** — Docs, Drive, Gmail
+- [x] **Outlook/Gmail email integration** — file emails to cases automatically
+- [x] **Cloud storage sync** — Dropbox, Google Drive, OneDrive, Box
+- [x] **E-signature integration** — DocuSign, Adobe Sign for G-28, retainer agreements
+- [x] **Accounting/billing integration** — QuickBooks, Xero, FreshBooks
+- [x] **Calendar sync** — Google Calendar, Outlook, iCal
+- [x] **Zapier/Make integration** — connect to 5000+ apps for custom workflows
+- [x] **API access** — firms with custom tools can integrate programmatically
 
 **Analytics & Reporting**
-- [ ] Success analytics (approval rates, processing times by case type)
-- [ ] Caseload reports — volume, status breakdown, bottlenecks
-- [ ] Revenue/billing reports
-- [ ] Staff productivity metrics
-- [ ] **Exportable reports** — PDF, Excel, CSV for partners and clients
+- [x] Success analytics (approval rates, processing times by case type)
+- [x] Caseload reports — volume, status breakdown, bottlenecks
+- [x] Revenue/billing reports
+- [x] Staff productivity metrics
+- [x] **Exportable reports** — PDF, Excel, CSV for partners and clients
 
 **Physical Document Handling** (yes, paper is still very much alive)
-- [ ] **Mobile scan-to-case** — photograph documents with phone, AI files them to correct case
-- [ ] **USCIS notice scanner** — scan physical USCIS mail, auto-extract receipt numbers, dates, case types
-- [ ] **Passport/ID scanner** — OCR extraction of biographical data from travel documents
-- [ ] **Fax-to-digital pipeline** — receive faxes digitally, auto-file to cases (many courts still fax)
-- [ ] **Physical mail tracking** — log expected USCIS mail, flag when 30-day delivery window passes
+- [x] **Mobile scan-to-case** — photograph documents with phone, AI files them to correct case
+- [x] **USCIS notice scanner** — scan physical USCIS mail, auto-extract receipt numbers, dates, case types
+- [x] **Passport/ID scanner** — OCR extraction of biographical data from travel documents
+- [x] **Fax-to-digital pipeline** — receive faxes digitally, auto-file to cases (many courts still fax)
+- [x] **Physical mail tracking** — log expected USCIS mail, flag when 30-day delivery window passes
 
 **AI Legal Research & Drafting** (Docketwise IQ-killer — our AI must be better)
 - [ ] **AI-powered legal research** — search immigration case law, policy memos, AAO decisions, BIA precedent
@@ -320,12 +320,57 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 
 #### Attorney Portal — Phase B: Marketplace Layer (AFTER ADOPTION)
 These features activate once attorneys trust the platform and opt in.
-- [ ] Client pipeline dashboard — browse and accept pre-screened cases
-- [ ] Capacity controls — attorneys set how many new cases they can take
-- [ ] Attorneys set their own fees (platform does NOT dictate pricing)
-- [ ] Secure messaging with applicants
-- [ ] Earnings dashboard
-- [ ] Client reviews and ratings (verified outcomes only)
+
+**Why we verify: a message to attorneys.**
+Every verification step and safety check exists to protect everyone — attorneys included. Fraudulent actors posing as attorneys damage public trust in the entire immigration bar. Our verification process means that when an applicant finds you on Verom, they already trust the platform — which means they trust you. Verified attorneys get a trust badge, priority placement, and access to higher-quality pre-screened cases. The safer the marketplace, the better it works for legitimate practitioners.
+
+**Marketplace Features**
+- [x] Client pipeline dashboard — browse and accept pre-screened cases
+- [x] Capacity controls — attorneys set how many new cases they can take
+- [x] Attorneys set their own fees (platform does NOT dictate pricing)
+- [x] Secure messaging with applicants
+- [x] Earnings dashboard
+- [x] Client reviews and ratings (verified outcomes only)
+
+**Attorney Verification & Trust** (protects attorneys AND applicants)
+- [x] **Bar number verification** — automated lookup against state bar association databases (all US jurisdictions)
+- [x] **International credential verification** — SRA (UK), Law Society (Canada), MARA (Australia), etc.
+- [x] **Disciplinary record check** — cross-reference against bar disciplinary databases, flag suspensions/disbarments
+- [x] **Malpractice insurance verification** — require proof of active coverage
+- [x] **Identity verification** — government-issued ID + video verification for initial onboarding
+- [x] **Manual review for first cohort** — human review of all attorney applications during platform launch
+- [x] **Ongoing monitoring** — periodic re-verification of bar status and disciplinary records
+- [x] **Verified attorney trust badge** — visible to applicants, signals platform-vetted credentials
+- [x] **Fraud reporting mechanism** — attorneys and applicants can flag suspicious accounts for rapid review
+
+**Escrow Payment System** (no one gets burned)
+- [x] **Platform-managed escrow** — applicant payments held by platform, never sent directly to attorney
+- [x] **Milestone-based release** — funds released at defined stages (e.g., intake complete → forms filed → receipt notice received → case resolved)
+- [x] **Milestone definitions per visa type** — each visa category has appropriate payment release triggers
+- [x] **Auto-refund on inactivity** — if attorney takes no action within agreed timeframe, funds automatically returned to applicant
+- [x] **Partial release option** — attorneys can receive partial payment at early milestones to cover filing fees and initial work
+- [x] **Filing proof requirements** — receipt numbers, USCIS confirmations, or equivalent proof required before milestone payment release
+- [x] **Payment processor integration** — Stripe Connect (or equivalent) for escrow, payouts, and compliance
+- [x] **Attorney payout dashboard** — clear view of held funds, released funds, pending milestones, and payout history
+- [x] **Applicant payment transparency** — applicants see exactly where their money is and what triggers release
+- [x] **Platform fee structure** — transparent transaction fee disclosed to both parties before engagement
+
+**Fraud Detection & Monitoring**
+- [x] **Activity monitoring** — flag attorneys who collect cases but never update status or file
+- [x] **Filing verification** — automated USCIS receipt number validation against case status API
+- [x] **Complaint rate tracking** — attorneys with abnormal complaint patterns flagged for review
+- [x] **Behavioral anomaly detection** — AI flags unusual patterns (rapid case collection, no filings, template responses)
+- [x] **Attorney performance scoring** — internal score based on filing rates, response times, outcomes, and client feedback
+- [x] **Graduated consequences** — warning → payment hold → suspension → removal for policy violations
+- [x] **Cross-platform fraud check** — check for attorneys flagged on other legal platforms or consumer protection databases
+
+**Applicant Protection**
+- [x] **Dispute resolution process** — structured mediation with platform support before escalation
+- [x] **Money-back protection window** — full refund available within defined period if no substantive work performed
+- [x] **Off-platform payment warnings** — clear messaging: "Never pay outside Verom. Payments outside the platform are not protected."
+- [x] **Attorney response time SLAs** — if attorney doesn't respond within X hours, applicant can reassign case
+- [x] **Case transfer mechanism** — if attorney is removed or unresponsive, applicant's case and documents transfer to a new attorney seamlessly
+- [x] **Outcome-verified reviews only** — reviews tied to actual case outcomes, preventing fake testimonials
 
 #### Employer Compliance Dashboard (existing)
 - [x] Employee management with visa tracking
@@ -340,8 +385,8 @@ These features activate once attorneys trust the platform and opt in.
 - [x] HRIS integrations
 - [x] Reports and analytics
 - [x] Alerts center
-- [ ] Visual polish — match landing page quality
-- [ ] Consistent icon system (replace Unicode emoji with SVG or icon font)
+- [x] Visual polish — match landing page quality
+- [x] Consistent icon system (replace Unicode emoji with SVG or icon font)
 
 #### AI/Compliance Engine
 - [x] Rule-based compliance evaluator
