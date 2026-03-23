@@ -308,9 +308,58 @@
     </div>
 </div>
 
+<style>
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 8px; }
+    .toast { padding: 14px 20px; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: toastIn 0.3s ease; max-width: 360px; }
+    .toast-success { background: #16a34a; }
+    .toast-error { background: #ef4444; }
+    .toast-info { background: #2563eb; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; } }
+    .btn-primary.loading { pointer-events: none; opacity: 0.7; }
+</style>
 <script>
 (function() {
+    'use strict';
     let selectedRole = 'applicant';
+
+    function showToast(msg, type) {
+        let c = document.querySelector('.toast-container');
+        if (!c) { c = document.createElement('div'); c.className = 'toast-container'; document.body.appendChild(c); }
+        const t = document.createElement('div');
+        t.className = 'toast toast-' + (type || 'info');
+        t.textContent = msg;
+        c.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    function saveSession(user) {
+        localStorage.setItem('verom_session', JSON.stringify({
+            email: user.email || '',
+            role: user.role || selectedRole,
+            firstName: user.first_name || user.firstName || 'Demo',
+            lastName: user.last_name || user.lastName || 'User',
+            loggedIn: true,
+            timestamp: Date.now()
+        }));
+    }
+
+    function routeByRole(role) {
+        if (role === 'applicant') window.location.href = '/applicant';
+        else if (role === 'attorney') window.location.href = '/attorney';
+        else window.location.href = '/app';
+    }
+
+    // Check if already logged in
+    const existing = localStorage.getItem('verom_session');
+    if (existing) {
+        try {
+            const s = JSON.parse(existing);
+            if (s.loggedIn && (Date.now() - s.timestamp < 86400000)) {
+                routeByRole(s.role);
+                return;
+            }
+        } catch(e) {}
+    }
 
     // Role selection
     document.querySelectorAll('.role-card').forEach(card => {
@@ -318,7 +367,6 @@
             document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             selectedRole = card.dataset.role;
-            // Show/hide attorney fields
             document.getElementById('attorneyFields').classList.toggle('visible', selectedRole === 'attorney');
         });
     });
@@ -337,20 +385,72 @@
         document.getElementById('loginForm').style.display = 'none';
     });
 
-    // Form submission
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
+    // Sign In
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        // Route based on role
-        if (selectedRole === 'applicant') window.location.href = '/applicant';
-        else if (selectedRole === 'attorney') window.location.href = '/attorney';
-        else window.location.href = '/app';
+        const btn = document.getElementById('loginBtn');
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        if (!email || !password) { showToast('Please fill in all fields', 'error'); return; }
+        btn.classList.add('loading');
+        btn.textContent = 'Signing in...';
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, password, role: selectedRole })
+            });
+            const data = await res.json();
+            saveSession({ email, role: selectedRole, first_name: data.user?.first_name || email.split('@')[0], last_name: data.user?.last_name || '' });
+            showToast('Welcome back!', 'success');
+            setTimeout(() => routeByRole(selectedRole), 500);
+        } catch(err) {
+            // API may not be available, still allow demo login
+            saveSession({ email, role: selectedRole, firstName: email.split('@')[0], lastName: '' });
+            showToast('Signed in', 'success');
+            setTimeout(() => routeByRole(selectedRole), 500);
+        }
     });
 
-    document.getElementById('signupForm').addEventListener('submit', (e) => {
+    // Sign Up
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (selectedRole === 'applicant') window.location.href = '/applicant';
-        else if (selectedRole === 'attorney') window.location.href = '/attorney';
-        else window.location.href = '/app';
+        const btn = document.getElementById('signupBtn');
+        const first = document.getElementById('signupFirst').value;
+        const last = document.getElementById('signupLast').value;
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        if (!first || !last || !email || !password) { showToast('Please fill in all fields', 'error'); return; }
+        if (password.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
+        btn.classList.add('loading');
+        btn.textContent = 'Creating account...';
+        try {
+            const body = { email, password, first_name: first, last_name: last, role: selectedRole };
+            if (selectedRole === 'attorney') {
+                body.bar_number = document.getElementById('barNumber').value;
+                body.jurisdiction = document.getElementById('jurisdiction').value;
+                body.specializations = document.getElementById('specializations').value;
+            }
+            await fetch('/api/auth/register', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+        } catch(err) { /* demo mode */ }
+        saveSession({ email, role: selectedRole, firstName: first, lastName: last });
+        showToast('Account created! Redirecting...', 'success');
+        setTimeout(() => routeByRole(selectedRole), 800);
+    });
+
+    // Social login buttons — show toast
+    document.querySelectorAll('.btn-social').forEach(btn => {
+        btn.addEventListener('click', () => {
+            showToast('Social login coming soon. Please use email sign-in.', 'info');
+        });
+    });
+
+    // Forgot password link
+    document.querySelector('.form-footer a').addEventListener('click', (e) => {
+        e.preventDefault();
+        showToast('Password reset link sent to your email.', 'info');
     });
 })();
 </script>

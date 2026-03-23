@@ -441,3 +441,500 @@ def delete_integration(integration_id: str) -> None:
 @app.get("/api/hris/mappings/{provider}")
 def get_default_mappings(provider: HRISProvider) -> list:
     return hris_service.get_default_mappings(provider)
+
+
+# =============================================
+# Auth endpoints (demo)
+# =============================================
+
+import uuid
+from datetime import datetime
+from typing import Optional
+
+_users: dict[str, dict] = {}
+_sessions: dict[str, dict] = {}
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+    role: str = "applicant"
+
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    first_name: str
+    last_name: str
+    role: str = "applicant"
+    bar_number: str = ""
+    jurisdiction: str = ""
+    specializations: str = ""
+
+
+@app.post("/api/auth/login")
+def auth_login(req: LoginRequest) -> dict:
+    """Demo login: accept any credentials, create session."""
+    session_id = str(uuid.uuid4())
+    user = _users.get(req.email, {
+        "email": req.email,
+        "role": req.role,
+        "first_name": "Demo",
+        "last_name": "User",
+    })
+    _sessions[session_id] = user
+    return {"session_id": session_id, "user": user}
+
+
+@app.post("/api/auth/register")
+def auth_register(req: RegisterRequest) -> dict:
+    """Demo registration: store user, create session."""
+    user = {
+        "email": req.email,
+        "role": req.role,
+        "first_name": req.first_name,
+        "last_name": req.last_name,
+        "bar_number": req.bar_number,
+        "jurisdiction": req.jurisdiction,
+        "specializations": req.specializations,
+    }
+    _users[req.email] = user
+    session_id = str(uuid.uuid4())
+    _sessions[session_id] = user
+    return {"session_id": session_id, "user": user}
+
+
+# =============================================
+# Attorney endpoints
+# =============================================
+
+_attorney_profile: dict = {
+    "id": "att-001",
+    "first_name": "Sarah",
+    "last_name": "Kim",
+    "email": "sarah.kim@verom.ai",
+    "bar_number": "NY-2015-28394",
+    "jurisdiction": "New York, NY",
+    "years_experience": 12,
+    "specializations": ["H-1B", "O-1", "EB-2", "F-1", "Family"],
+    "bio": "Immigration attorney specializing in employment-based and student visas with 12 years of experience.",
+    "capacity": 5,
+    "rating": 4.9,
+    "total_cases": 342,
+    "success_rate": 96,
+}
+
+_attorney_cases: dict[str, dict] = {}
+_attorney_browse: dict[str, dict] = {}
+_attorney_calendar: dict[str, dict] = {}
+_attorney_earnings: dict = {}
+
+
+def _init_attorney_demo_data() -> None:
+    """Populate demo data for attorney endpoints."""
+    global _attorney_earnings
+
+    cases = [
+        {"id": "ac-001", "client_name": "Maria Garcia", "visa_type": "F-1", "status": "new", "country": "US", "submitted": "2026-03-20", "priority": "medium", "notes": "Undergraduate student visa application for Fall 2026."},
+        {"id": "ac-002", "client_name": "Ahmed Hassan", "visa_type": "Skilled Worker", "status": "new", "country": "UK", "submitted": "2026-03-19", "priority": "high", "notes": "Software engineer role at London fintech company."},
+        {"id": "ac-003", "client_name": "Raj Mehta", "visa_type": "H-1B", "status": "in_progress", "country": "US", "submitted": "2026-03-10", "priority": "high", "notes": "H-1B petition for senior data scientist position."},
+        {"id": "ac-004", "client_name": "Li Wei", "visa_type": "F-1", "status": "in_progress", "country": "US", "submitted": "2026-03-08", "priority": "medium", "notes": "Graduate student visa for MS Computer Science."},
+        {"id": "ac-005", "client_name": "John Lee", "visa_type": "H-1B Transfer", "status": "in_progress", "country": "US", "submitted": "2026-03-05", "priority": "high", "notes": "Employer transfer from consulting firm to tech company."},
+        {"id": "ac-006", "client_name": "Priya Patel", "visa_type": "EAD Renewal", "status": "in_progress", "country": "US", "submitted": "2026-03-01", "priority": "urgent", "notes": "EAD expiring in 45 days, expedited processing requested."},
+        {"id": "ac-007", "client_name": "Ana Santos", "visa_type": "O-1", "status": "rfe", "country": "US", "submitted": "2026-02-15", "priority": "urgent", "notes": "RFE received for extraordinary ability evidence. Response due April 1."},
+        {"id": "ac-008", "client_name": "Yuki Tanaka", "visa_type": "O-1", "status": "approved", "country": "US", "submitted": "2026-01-20", "priority": "low", "notes": "O-1 approved for acclaimed researcher."},
+        {"id": "ac-009", "client_name": "Wei Chen", "visa_type": "EB-2", "status": "approved", "country": "US", "submitted": "2026-01-05", "priority": "low", "notes": "EB-2 NIW approved for AI researcher."},
+    ]
+    for c in cases:
+        _attorney_cases[c["id"]] = c
+
+    browse_cases = [
+        {"id": "br-001", "applicant_name": "Carlos Rivera", "visa_type": "H-1B", "country": "US", "ai_score": 92, "summary": "Software engineer with 6 years experience, MS from Stanford. Strong H-1B candidate.", "submitted": "2026-03-21", "specialization_match": True},
+        {"id": "br-002", "applicant_name": "Fatima Al-Rashid", "visa_type": "O-1", "country": "US", "ai_score": 88, "summary": "Award-winning journalist seeking O-1 visa. Multiple international awards.", "submitted": "2026-03-20", "specialization_match": True},
+        {"id": "br-003", "applicant_name": "Kenji Yamamoto", "visa_type": "EB-2", "country": "US", "ai_score": 95, "summary": "PhD in biomedical engineering with 15 publications. Exceptional EB-2 NIW candidate.", "submitted": "2026-03-19", "specialization_match": True},
+        {"id": "br-004", "applicant_name": "Elena Petrov", "visa_type": "F-1", "country": "US", "ai_score": 85, "summary": "Graduate student admitted to Columbia University MBA program.", "submitted": "2026-03-18", "specialization_match": True},
+    ]
+    for b in browse_cases:
+        _attorney_browse[b["id"]] = b
+
+    calendar_events = [
+        {"id": "ev-001", "title": "Ana Santos — RFE Response Deadline", "date": "2026-04-01", "type": "deadline", "case_id": "ac-007", "priority": "urgent"},
+        {"id": "ev-002", "title": "Priya Patel — EAD Filing Deadline", "date": "2026-04-10", "type": "deadline", "case_id": "ac-006", "priority": "high"},
+        {"id": "ev-003", "title": "Raj Mehta — H-1B Lottery Results", "date": "2026-03-31", "type": "milestone", "case_id": "ac-003", "priority": "high"},
+        {"id": "ev-004", "title": "Li Wei — SEVIS Fee Payment Due", "date": "2026-04-05", "type": "deadline", "case_id": "ac-004", "priority": "medium"},
+        {"id": "ev-005", "title": "John Lee — Employer Support Letter Due", "date": "2026-04-08", "type": "deadline", "case_id": "ac-005", "priority": "medium"},
+        {"id": "ev-006", "title": "Maria Garcia — Initial Consultation", "date": "2026-03-25", "type": "consultation", "case_id": "ac-001", "priority": "medium"},
+    ]
+    for ev in calendar_events:
+        _attorney_calendar[ev["id"]] = ev
+
+    _attorney_earnings = {
+        "this_month": 14250.00,
+        "last_month": 18500.00,
+        "ytd": 47800.00,
+        "pending": 6500.00,
+        "payments": [
+            {"id": "pay-001", "client": "Yuki Tanaka", "amount": 5500.00, "date": "2026-03-15", "status": "paid", "description": "O-1 visa — final payment"},
+            {"id": "pay-002", "client": "Wei Chen", "amount": 4750.00, "date": "2026-03-10", "status": "paid", "description": "EB-2 NIW — approval milestone"},
+            {"id": "pay-003", "client": "Raj Mehta", "amount": 2000.00, "date": "2026-03-05", "status": "paid", "description": "H-1B — retainer deposit"},
+            {"id": "pay-004", "client": "John Lee", "amount": 2000.00, "date": "2026-03-02", "status": "paid", "description": "H-1B Transfer — retainer deposit"},
+            {"id": "pay-005", "client": "Ana Santos", "amount": 3500.00, "date": "2026-02-28", "status": "paid", "description": "O-1 — RFE response work"},
+            {"id": "pay-006", "client": "Priya Patel", "amount": 1500.00, "date": "2026-03-20", "status": "pending", "description": "EAD Renewal — filing fee advance"},
+            {"id": "pay-007", "client": "Maria Garcia", "amount": 2500.00, "date": "2026-03-22", "status": "pending", "description": "F-1 — initial consultation + retainer"},
+            {"id": "pay-008", "client": "Ahmed Hassan", "amount": 2500.00, "date": "2026-03-22", "status": "pending", "description": "Skilled Worker — initial consultation + retainer"},
+        ],
+    }
+
+
+_init_attorney_demo_data()
+
+
+class AttorneyProfileUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    jurisdiction: Optional[str] = None
+    years_experience: Optional[int] = None
+    specializations: Optional[list[str]] = None
+    bio: Optional[str] = None
+    capacity: Optional[int] = None
+
+
+class AttorneyCaseCreate(BaseModel):
+    client_name: str
+    visa_type: str
+    country: str = "US"
+    priority: str = "medium"
+    notes: str = ""
+
+
+class AttorneyCaseUpdate(BaseModel):
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class CalendarEventCreate(BaseModel):
+    title: str
+    date: str
+    type: str = "deadline"
+    case_id: str = ""
+    priority: str = "medium"
+
+
+@app.get("/api/attorney/profile")
+def get_attorney_profile() -> dict:
+    return _attorney_profile
+
+
+@app.put("/api/attorney/profile")
+def update_attorney_profile(update: AttorneyProfileUpdate) -> dict:
+    for field, value in update.model_dump(exclude_none=True).items():
+        _attorney_profile[field] = value
+    return _attorney_profile
+
+
+@app.get("/api/attorney/cases")
+def get_attorney_cases() -> list[dict]:
+    return list(_attorney_cases.values())
+
+
+@app.post("/api/attorney/cases", status_code=201)
+def create_attorney_case(req: AttorneyCaseCreate) -> dict:
+    case_id = f"ac-{str(uuid.uuid4())[:8]}"
+    case = {
+        "id": case_id,
+        "client_name": req.client_name,
+        "visa_type": req.visa_type,
+        "status": "new",
+        "country": req.country,
+        "submitted": datetime.utcnow().strftime("%Y-%m-%d"),
+        "priority": req.priority,
+        "notes": req.notes,
+    }
+    _attorney_cases[case_id] = case
+    return case
+
+
+@app.patch("/api/attorney/cases/{case_id}")
+def update_attorney_case(case_id: str, update: AttorneyCaseUpdate) -> dict:
+    case = _attorney_cases.get(case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail=f"Attorney case {case_id} not found")
+    for field, value in update.model_dump(exclude_none=True).items():
+        case[field] = value
+    return case
+
+
+@app.get("/api/attorney/browse")
+def browse_available_cases() -> list[dict]:
+    return list(_attorney_browse.values())
+
+
+@app.post("/api/attorney/browse/{case_id}/accept", status_code=200)
+def accept_browse_case(case_id: str) -> dict:
+    browse_case = _attorney_browse.pop(case_id, None)
+    if browse_case is None:
+        raise HTTPException(status_code=404, detail=f"Browse case {case_id} not found")
+    new_id = f"ac-{str(uuid.uuid4())[:8]}"
+    new_case = {
+        "id": new_id,
+        "client_name": browse_case["applicant_name"],
+        "visa_type": browse_case["visa_type"],
+        "status": "new",
+        "country": browse_case["country"],
+        "submitted": datetime.utcnow().strftime("%Y-%m-%d"),
+        "priority": "medium",
+        "notes": browse_case.get("summary", ""),
+    }
+    _attorney_cases[new_id] = new_case
+    return new_case
+
+
+@app.get("/api/attorney/calendar")
+def get_attorney_calendar() -> list[dict]:
+    return list(_attorney_calendar.values())
+
+
+@app.post("/api/attorney/calendar", status_code=201)
+def create_calendar_event(req: CalendarEventCreate) -> dict:
+    event_id = f"ev-{str(uuid.uuid4())[:8]}"
+    event = {
+        "id": event_id,
+        "title": req.title,
+        "date": req.date,
+        "type": req.type,
+        "case_id": req.case_id,
+        "priority": req.priority,
+    }
+    _attorney_calendar[event_id] = event
+    return event
+
+
+@app.delete("/api/attorney/calendar/{event_id}", status_code=204)
+def delete_calendar_event(event_id: str) -> None:
+    if _attorney_calendar.pop(event_id, None) is None:
+        raise HTTPException(status_code=404, detail=f"Calendar event {event_id} not found")
+
+
+@app.get("/api/attorney/earnings")
+def get_attorney_earnings() -> dict:
+    return _attorney_earnings
+
+
+# =============================================
+# Applicant endpoints
+# =============================================
+
+_applicant_applications: dict[str, dict] = {}
+_applicant_consultations: dict[str, dict] = {}
+_applicant_documents: dict[str, list[dict]] = {}
+_applicant_messages: list[dict] = []
+
+_demo_attorneys: list[dict] = [
+    {
+        "id": "att-001",
+        "first_name": "Sarah",
+        "last_name": "Kim",
+        "country": "US",
+        "specializations": ["Student Visas", "Work Visas"],
+        "match_score": 96,
+        "years_experience": 12,
+        "rating": 4.9,
+        "total_reviews": 215,
+        "bio": "Immigration attorney specializing in employment-based and student visas with 12 years of experience in New York.",
+        "availability": "Available",
+    },
+    {
+        "id": "att-002",
+        "first_name": "James",
+        "last_name": "Patel",
+        "country": "UK",
+        "specializations": ["Skilled Worker", "ILR"],
+        "match_score": 94,
+        "years_experience": 8,
+        "rating": 4.8,
+        "total_reviews": 163,
+        "bio": "UK immigration solicitor with deep expertise in Skilled Worker visas and settlement applications.",
+        "availability": "Available",
+    },
+    {
+        "id": "att-003",
+        "first_name": "Maria",
+        "last_name": "Lopez",
+        "country": "Canada",
+        "specializations": ["Express Entry", "Study Permits"],
+        "match_score": 97,
+        "years_experience": 15,
+        "rating": 4.9,
+        "total_reviews": 298,
+        "bio": "Canadian immigration lawyer with 15 years of experience in Express Entry and study permit applications.",
+        "availability": "Available",
+    },
+    {
+        "id": "att-004",
+        "first_name": "Daniel",
+        "last_name": "Weber",
+        "country": "Germany",
+        "specializations": ["EU Blue Card", "Student Visa"],
+        "match_score": 92,
+        "years_experience": 10,
+        "rating": 4.7,
+        "total_reviews": 134,
+        "bio": "German immigration specialist focusing on EU Blue Card applications and student residence permits.",
+        "availability": "Available",
+    },
+]
+
+
+class ApplicationCreate(BaseModel):
+    visa_type: str
+    destination_country: str
+    first_name: str
+    last_name: str
+    email: str
+    phone: str = ""
+    nationality: str = ""
+    education_level: str = ""
+    years_experience: int = 0
+    english_proficiency: str = ""
+    notes: str = ""
+
+
+class ConsultationRequest(BaseModel):
+    attorney_id: str
+    application_id: str = ""
+    preferred_date: str = ""
+    preferred_time: str = ""
+    notes: str = ""
+
+
+class DocumentUpload(BaseModel):
+    application_id: str
+    document_type: str
+    file_name: str
+    file_size: int = 0
+    notes: str = ""
+
+
+class MessageCreate(BaseModel):
+    recipient_id: str
+    application_id: str = ""
+    subject: str = ""
+    body: str
+
+
+@app.post("/api/applicant/applications", status_code=201)
+def create_application(req: ApplicationCreate) -> dict:
+    app_id = f"app-{str(uuid.uuid4())[:8]}"
+    application = {
+        "id": app_id,
+        "visa_type": req.visa_type,
+        "destination_country": req.destination_country,
+        "first_name": req.first_name,
+        "last_name": req.last_name,
+        "email": req.email,
+        "phone": req.phone,
+        "nationality": req.nationality,
+        "education_level": req.education_level,
+        "years_experience": req.years_experience,
+        "english_proficiency": req.english_proficiency,
+        "notes": req.notes,
+        "status": "submitted",
+        "ai_score": None,
+        "created_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.utcnow().isoformat(),
+    }
+    _applicant_applications[app_id] = application
+    return application
+
+
+@app.get("/api/applicant/applications")
+def list_applications() -> list[dict]:
+    return list(_applicant_applications.values())
+
+
+@app.get("/api/applicant/applications/{app_id}")
+def get_application(app_id: str) -> dict:
+    application = _applicant_applications.get(app_id)
+    if application is None:
+        raise HTTPException(status_code=404, detail=f"Application {app_id} not found")
+    return application
+
+
+@app.get("/api/applicant/attorneys")
+def browse_attorneys(country: Optional[str] = None, specialization: Optional[str] = None) -> list[dict]:
+    results = _demo_attorneys
+    if country:
+        results = [a for a in results if a["country"].lower() == country.lower()]
+    if specialization:
+        results = [a for a in results if any(specialization.lower() in s.lower() for s in a["specializations"])]
+    return results
+
+
+@app.post("/api/applicant/consultations", status_code=201)
+def request_consultation(req: ConsultationRequest) -> dict:
+    consult_id = f"con-{str(uuid.uuid4())[:8]}"
+    consultation = {
+        "id": consult_id,
+        "attorney_id": req.attorney_id,
+        "application_id": req.application_id,
+        "preferred_date": req.preferred_date,
+        "preferred_time": req.preferred_time,
+        "notes": req.notes,
+        "status": "requested",
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    _applicant_consultations[consult_id] = consultation
+    return consultation
+
+
+@app.get("/api/applicant/consultations")
+def list_consultations() -> list[dict]:
+    return list(_applicant_consultations.values())
+
+
+@app.post("/api/applicant/documents/upload", status_code=201)
+def upload_document(req: DocumentUpload) -> dict:
+    doc_id = f"doc-{str(uuid.uuid4())[:8]}"
+    doc = {
+        "id": doc_id,
+        "application_id": req.application_id,
+        "document_type": req.document_type,
+        "file_name": req.file_name,
+        "file_size": req.file_size,
+        "notes": req.notes,
+        "status": "uploaded",
+        "uploaded_at": datetime.utcnow().isoformat(),
+    }
+    if req.application_id not in _applicant_documents:
+        _applicant_documents[req.application_id] = []
+    _applicant_documents[req.application_id].append(doc)
+    return doc
+
+
+@app.get("/api/applicant/documents/{app_id}")
+def get_application_documents(app_id: str) -> list[dict]:
+    return _applicant_documents.get(app_id, [])
+
+
+@app.get("/api/applicant/messages")
+def get_messages() -> list[dict]:
+    return _applicant_messages
+
+
+@app.post("/api/applicant/messages", status_code=201)
+def send_message(req: MessageCreate) -> dict:
+    msg_id = f"msg-{str(uuid.uuid4())[:8]}"
+    message = {
+        "id": msg_id,
+        "recipient_id": req.recipient_id,
+        "application_id": req.application_id,
+        "subject": req.subject,
+        "body": req.body,
+        "direction": "outbound",
+        "read": False,
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    _applicant_messages.append(message)
+    return message

@@ -259,6 +259,7 @@
         </div>
         <div class="nav-right">
             <div class="avatar">JD</div>
+            <button class="nav-tab" onclick="localStorage.removeItem('verom_session');localStorage.removeItem('verom_applicant');window.location.href='/login'" style="font-size:13px;color:var(--slate-400)">Sign Out</button>
         </div>
     </div>
 </nav>
@@ -583,89 +584,7 @@
     </div>
 </div>
 
-<script>
-(function() {
-    // Tab navigation
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + tab.dataset.tab).classList.add('active');
-        });
-    });
-
-    // Wizard state
-    let wizardData = { type: '', country: '', firstName: '', lastName: '' };
-    let currentStep = 1;
-
-    const typeLabels = { student: 'Student Visa', work: 'Work Visa', family: 'Family / Spouse', pr: 'Permanent Residency', investor: 'Investor / Entrepreneur', other: 'Other' };
-    const countryLabels = { US: 'United States', UK: 'United Kingdom', CA: 'Canada', AU: 'Australia', DE: 'Germany', NZ: 'New Zealand' };
-
-    // Option card selection
-    document.querySelectorAll('#step1 .option-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelectorAll('#step1 .option-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            wizardData.type = card.dataset.value;
-            document.getElementById('step1Next').disabled = false;
-        });
-    });
-    document.querySelectorAll('#step2 .option-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelectorAll('#step2 .option-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            wizardData.country = card.dataset.value;
-            document.getElementById('step2Next').disabled = false;
-        });
-    });
-
-    function showStep(step) {
-        currentStep = step;
-        for (let i = 1; i <= 4; i++) {
-            document.getElementById('step' + i).style.display = i === step ? '' : 'none';
-        }
-        // Update step indicators
-        const steps = document.querySelectorAll('.wizard-step');
-        const connectors = document.querySelectorAll('.step-connector');
-        steps.forEach((s, idx) => {
-            const circle = s.querySelector('.step-circle');
-            const label = s.querySelector('.step-label');
-            circle.classList.remove('active', 'completed');
-            label.classList.remove('active', 'completed');
-            if (idx + 1 < step) { circle.classList.add('completed'); circle.innerHTML = '&#10003;'; label.classList.add('completed'); }
-            else if (idx + 1 === step) { circle.classList.add('active'); circle.textContent = idx + 1; label.classList.add('active'); }
-            else { circle.textContent = idx + 1; }
-        });
-        connectors.forEach((c, idx) => {
-            c.classList.toggle('completed', idx + 1 < step);
-        });
-    }
-
-    document.getElementById('step1Next').addEventListener('click', () => showStep(2));
-    document.getElementById('step2Back').addEventListener('click', () => showStep(1));
-    document.getElementById('step2Next').addEventListener('click', () => showStep(3));
-    document.getElementById('step3Back').addEventListener('click', () => showStep(2));
-    document.getElementById('step3Next').addEventListener('click', () => {
-        wizardData.firstName = document.getElementById('appFirstName').value;
-        wizardData.lastName = document.getElementById('appLastName').value;
-        // Populate review
-        document.getElementById('reviewType').textContent = typeLabels[wizardData.type] || wizardData.type;
-        document.getElementById('reviewCountry').textContent = countryLabels[wizardData.country] || wizardData.country;
-        document.getElementById('reviewName').textContent = (wizardData.firstName + ' ' + wizardData.lastName).trim() || '-';
-        document.getElementById('reviewCitizenship').textContent = document.getElementById('appCitizenship').value || '-';
-        showStep(4);
-    });
-    document.getElementById('step4Back').addEventListener('click', () => showStep(3));
-    document.getElementById('step4Submit').addEventListener('click', () => {
-        // Switch to dashboard
-        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-        document.querySelector('[data-tab=dashboard]').classList.add('active');
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('page-dashboard').classList.add('active');
-    });
-})();
-</script>
+<script src="/static/js/applicant.js"></script>
 
 </body>
 </html>

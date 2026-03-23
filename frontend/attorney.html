@@ -245,6 +245,7 @@
         </div>
         <div class="nav-right">
             <div class="avatar">SK</div>
+            <button class="nav-tab" onclick="localStorage.removeItem('verom_session');localStorage.removeItem('verom_attorney');window.location.href='/login'" style="font-size:13px;color:var(--slate-400)">Sign Out</button>
         </div>
     </div>
 </nav>
@@ -554,18 +555,7 @@
 
 </div>
 
-<script>
-(function() {
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + tab.dataset.tab).classList.add('active');
-        });
-    });
-})();
-</script>
+<script src="/static/js/attorney.js"></script>
 
 </body>
 </html>
