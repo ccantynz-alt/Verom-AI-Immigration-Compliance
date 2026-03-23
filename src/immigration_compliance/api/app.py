@@ -90,6 +90,10 @@ from immigration_compliance.services.stickiness_service import (
     PWAService,
 )
 from immigration_compliance.services.competitor_intel_service import CompetitorIntelService
+from immigration_compliance.services.hris_deep_service import HRISDeepService
+from immigration_compliance.services.benchmarking_service import BenchmarkingService
+from immigration_compliance.services.flat_rate_service import FlatRateService
+from immigration_compliance.services.uscis_client_service import USCISClientService
 
 # Resolve frontend directory
 _root = Path(__file__).resolve().parent.parent.parent.parent
@@ -144,6 +148,12 @@ pwa_service = PWAService()
 
 # Competitor Intel
 competitor_intel = CompetitorIntelService()
+
+# Gap Closers — competitive response features
+hris_deep = HRISDeepService()
+benchmarking = BenchmarkingService()
+flat_rate = FlatRateService()
+uscis_client = USCISClientService()
 
 # Auth dependency
 _bearer = HTTPBearer(auto_error=False)
@@ -1347,3 +1357,151 @@ def get_feature_gaps():
 @app.get("/api/intel/advantages")
 def get_advantages():
     return competitor_intel.get_advantages()
+
+
+# =============================================
+# Deep HRIS Integration endpoints (counter Deel)
+# =============================================
+
+@app.post("/api/hris-deep/lifecycle-event")
+def handle_lifecycle_event(event: dict):
+    return hris_deep.handle_lifecycle_event(event)
+
+@app.get("/api/hris-deep/payroll-alerts")
+def get_payroll_alerts(company_id: str = ""):
+    return hris_deep.get_payroll_immigration_alerts(company_id)
+
+@app.post("/api/hris-deep/screen-new-hire")
+def screen_new_hire(employee_data: dict):
+    return hris_deep.screen_new_hire(employee_data)
+
+@app.get("/api/hris-deep/screening-queue")
+def get_screening_queue():
+    return hris_deep.get_screening_queue()
+
+@app.get("/api/hris-deep/workforce-snapshot/{company_id}")
+def get_workforce_snapshot(company_id: str):
+    return hris_deep.get_workforce_immigration_snapshot(company_id)
+
+@app.post("/api/hris-deep/import-deel")
+def import_from_deel(data: list[dict]):
+    return hris_deep.import_from_deel(data)
+
+@app.get("/api/hris-deep/event-log")
+def get_hris_event_log(employee_id: str = ""):
+    return hris_deep.get_event_log(employee_id or None)
+
+
+# =============================================
+# Time-Savings Benchmarking endpoints
+# =============================================
+
+@app.get("/api/benchmarks/platform")
+def get_platform_benchmarks():
+    return benchmarking.get_platform_benchmarks()
+
+@app.get("/api/benchmarks/competitor-comparison")
+def get_benchmark_comparison():
+    return benchmarking.get_competitor_comparison()
+
+@app.post("/api/benchmarks/firm-roi")
+def calculate_firm_roi(firm_data: dict):
+    return benchmarking.calculate_firm_roi(firm_data)
+
+@app.post("/api/benchmarks/log-task")
+def log_benchmark_task(task_data: dict):
+    return benchmarking.log_task_completion(task_data)
+
+@app.get("/api/benchmarks/aggregate")
+def get_aggregate_benchmarks():
+    return benchmarking.get_aggregate_metrics()
+
+
+# =============================================
+# Flat-Rate Pricing endpoints (counter Alma)
+# =============================================
+
+@app.get("/api/pricing/templates")
+def get_pricing_templates(visa_type: str = ""):
+    return flat_rate.get_package_templates(visa_type or None)
+
+@app.post("/api/pricing/packages")
+def create_pricing_package(attorney_id: str, package_data: dict):
+    return flat_rate.create_attorney_package(attorney_id, package_data)
+
+@app.get("/api/pricing/packages/{attorney_id}")
+def get_attorney_packages(attorney_id: str):
+    return flat_rate.get_attorney_packages(attorney_id)
+
+@app.get("/api/pricing/marketplace")
+def get_marketplace_packages(visa_type: str = ""):
+    return flat_rate.get_published_packages(visa_type or None)
+
+@app.post("/api/pricing/engagements")
+def create_pricing_engagement(package_id: str, applicant_id: str, attorney_id: str):
+    return flat_rate.create_engagement(package_id, applicant_id, attorney_id)
+
+@app.get("/api/pricing/engagements/{engagement_id}")
+def get_pricing_engagement(engagement_id: str):
+    result = flat_rate.get_engagement(engagement_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Engagement not found")
+    return result
+
+@app.patch("/api/pricing/engagements/{engagement_id}/milestones/{milestone_order}")
+def advance_pricing_milestone(engagement_id: str, milestone_order: int):
+    result = flat_rate.advance_milestone(engagement_id, milestone_order)
+    if not result:
+        raise HTTPException(status_code=404, detail="Engagement not found")
+    return result
+
+@app.get("/api/pricing/compare-models")
+def compare_pricing_models():
+    return flat_rate.compare_pricing_models()
+
+
+# =============================================
+# USCIS Client API endpoints (developer.uscis.gov)
+# =============================================
+
+@app.get("/api/uscis-client/validate/{receipt_number}")
+def validate_receipt(receipt_number: str):
+    return uscis_client.validate_receipt_number(receipt_number)
+
+@app.get("/api/uscis-client/status/{receipt_number}")
+def get_uscis_status(receipt_number: str):
+    result = uscis_client.get_case_status(receipt_number)
+    if "error" in result and "receipt_number" not in result.get("status", {}):
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+@app.post("/api/uscis-client/bulk-status")
+def bulk_uscis_status(receipt_numbers: list[str]):
+    return uscis_client.bulk_status_check(receipt_numbers)
+
+@app.get("/api/uscis-client/processing-times/{form_type}")
+def get_uscis_processing_times(form_type: str):
+    result = uscis_client.get_processing_times(form_type)
+    if not result:
+        raise HTTPException(status_code=404, detail=f"Unknown form type: {form_type}")
+    return result
+
+@app.get("/api/uscis-client/processing-times")
+def get_all_uscis_processing_times():
+    return uscis_client.get_all_processing_times()
+
+@app.post("/api/uscis-client/subscribe")
+def subscribe_uscis_updates(receipt_number: str, webhook_url: str = "", email: str = ""):
+    return uscis_client.subscribe_to_updates(receipt_number, webhook_url, email)
+
+@app.get("/api/uscis-client/subscriptions")
+def get_uscis_subscriptions(receipt_number: str = ""):
+    return uscis_client.get_subscriptions(receipt_number or None)
+
+@app.get("/api/uscis-client/status-categories")
+def get_uscis_status_categories():
+    return uscis_client.get_status_categories()
+
+@app.post("/api/uscis-client/detect-changes")
+def detect_uscis_changes():
+    return uscis_client.detect_status_changes()

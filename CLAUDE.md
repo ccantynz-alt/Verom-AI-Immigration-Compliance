@@ -322,35 +322,35 @@ Check these competitors quarterly and ensure we match or exceed:
 - [x] **Bridge US** — immigration case management for attorneys (researched, attorney portal exceeds)
 
 ### New Competitors Identified (March 2026 Research)
-- [ ] **Casium** (AI2 Incubator, $5M seed 2025) — agentic AI for visa filings, scans public data (HIGH THREAT)
-- [ ] **LegalBridge AI** (2026 ABA TECHSHOW) — AI case management, 70+ firms, 60% prep time reduction (HIGH THREAT)
-- [ ] **US Immigration AI** (LA, 2025) — unified AI case solution for full-spectrum immigration
-- [ ] **Deel Immigration** (formerly LegalPad) — employer visa services in 25+ countries bundled with payroll (HIGH THREAT — very sticky)
-- [ ] **Alma** — O-1A/H-1B with flat-rate pricing, 99%+ approval rate
+- [x] **Casium** (AI2 Incubator, $5M seed 2025) — agentic AI for visa filings, scans public data (HIGH THREAT — countered with agentic pipeline + marketplace + multi-country)
+- [x] **LegalBridge AI** (2026 ABA TECHSHOW) — AI case management, 70+ firms, 60% prep time reduction (HIGH THREAT — countered with benchmarked time-savings engine showing >60% reduction with methodology)
+- [x] **US Immigration AI** (LA, 2025) — unified AI case solution for full-spectrum immigration (countered with deeper features + multi-country)
+- [x] **Deel Immigration** (formerly LegalPad) — employer visa services in 25+ countries bundled with payroll (HIGH THREAT — countered with deep HRIS integration, Deel import tool, lifecycle events)
+- [x] **Alma** — O-1A/H-1B with flat-rate pricing, 99%+ approval rate (countered with flat-rate pricing packages + milestone escrow)
 
 ### Market Domination Features (Nobody Has Built These Yet)
 These are the features that win the billion-dollar market. Build before anyone else.
 
 **Tier 1 — Build Immediately (Competitive Moat)**
-- [ ] **Agentic AI intake-to-filing pipeline** — autonomous multi-step workflows (intake → validate → populate forms → generate letters → flag issues → queue for review)
-- [ ] **H-1B wage-weighted lottery simulator** — model selection probability under new March 2026 rules, cost-benefit analysis for employers
-- [ ] **EAD gap risk manager** — track every EAD in workforce, calculate 180-day filing windows, auto-generate renewals (automatic extensions eliminated Oct 2025)
-- [ ] **Pre-filing compliance scanner** — mirror USCIS's own AI analysis (PAiTH) to catch issues BEFORE filing (same-day RFEs are now a thing)
-- [ ] **USCIS Case Status API integration** — real-time via developer.uscis.gov (API is live and available)
+- [x] **Agentic AI intake-to-filing pipeline** — autonomous multi-step workflows (intake → validate → populate forms → generate letters → flag issues → queue for review)
+- [x] **H-1B wage-weighted lottery simulator** — model selection probability under new March 2026 rules, cost-benefit analysis for employers
+- [x] **EAD gap risk manager** — track every EAD in workforce, calculate 180-day filing windows, auto-generate renewals (automatic extensions eliminated Oct 2025)
+- [x] **Pre-filing compliance scanner** — mirror USCIS's own AI analysis (PAiTH) to catch issues BEFORE filing (same-day RFEs are now a thing)
+- [x] **USCIS Case Status API integration** — real-time via developer.uscis.gov (production-ready client with caching, batch ops, subscriptions)
 
 **Tier 2 — Build Next (Differentiation)**
-- [ ] **Cross-country immigration strategy optimizer** — input employee profile, get ranked visa pathways across US/UK/Canada/Australia/Germany with timelines and costs
-- [ ] **Social media compliance audit tool** — DS-160 now requires social media disclosure for H-1B/H-4 (Dec 2025 requirement)
-- [ ] **Regulatory change impact engine** — when Federal Register notice publishes, AI identifies every active case affected
-- [ ] **Immigration-aware compensation planning** — connect visa strategy to salary decisions ("Level 3 wage increases H-1B selection by X%")
-- [ ] **Government data transparency dashboard** — crowdsourced processing times from platform users where government data is lacking
+- [x] **Cross-country immigration strategy optimizer** — input employee profile, get ranked visa pathways across US/UK/Canada/Australia/Germany with timelines and costs
+- [x] **Social media compliance audit tool** — DS-160 now requires social media disclosure for H-1B/H-4 (Dec 2025 requirement)
+- [x] **Regulatory change impact engine** — when Federal Register notice publishes, AI identifies every active case affected
+- [x] **Immigration-aware compensation planning** — connect visa strategy to salary decisions ("Level 3 wage increases H-1B selection by X%")
+- [x] **Government data transparency dashboard** — crowdsourced processing times from platform users where government data is lacking
 
 **Tier 3 — Build for Stickiness (Users Never Leave)**
-- [ ] **Gamified compliance scoring** — firm-wide score (0-100), case completion streaks, certification badges
-- [ ] **Attorney outcome analytics** — match based on historical approval rates, RFE response success, processing times per visa type
-- [ ] **Community forum & peer network** — attorney case strategy discussions, regulatory updates
-- [ ] **Annual immigration benchmark report** — "Your firm's metrics vs. industry averages" (only for active users)
-- [ ] **Progressive web app with offline mode** — for applicants with unreliable internet, SMS-based status updates
+- [x] **Gamified compliance scoring** — firm-wide score (0-100), case completion streaks, certification badges
+- [x] **Attorney outcome analytics** — match based on historical approval rates, RFE response success, processing times per visa type
+- [x] **Community forum & peer network** — attorney case strategy discussions, regulatory updates
+- [x] **Annual immigration benchmark report** — "Your firm's metrics vs. industry averages" (only for active users)
+- [x] **Progressive web app with offline mode** — for applicants with unreliable internet, SMS-based status updates
 
 ### Language Strategy
 - **Applicant-facing UI:** Multi-language support planned (Phase 2)
