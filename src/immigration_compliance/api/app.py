@@ -94,6 +94,7 @@ from immigration_compliance.services.hris_deep_service import HRISDeepService
 from immigration_compliance.services.benchmarking_service import BenchmarkingService
 from immigration_compliance.services.flat_rate_service import FlatRateService
 from immigration_compliance.services.uscis_client_service import USCISClientService
+from immigration_compliance.services.crawler_service import CompetitiveCrawlerService
 
 # Resolve frontend directory
 _root = Path(__file__).resolve().parent.parent.parent.parent
@@ -148,6 +149,9 @@ pwa_service = PWAService()
 
 # Competitor Intel
 competitor_intel = CompetitorIntelService()
+
+# International Competitive Crawler
+crawler = CompetitiveCrawlerService()
 
 # Gap Closers — competitive response features
 hris_deep = HRISDeepService()
@@ -1505,3 +1509,69 @@ def get_uscis_status_categories():
 @app.post("/api/uscis-client/detect-changes")
 def detect_uscis_changes():
     return uscis_client.detect_status_changes()
+
+
+# =============================================
+# International Competitive Intelligence Crawler
+# =============================================
+
+@app.get("/api/crawler/sources")
+def get_crawl_sources(region: str = ""):
+    return crawler.get_crawl_sources(region or None)
+
+@app.get("/api/crawler/keywords")
+def get_crawl_keywords():
+    return crawler.get_crawl_keywords()
+
+@app.post("/api/crawler/keywords")
+def add_crawl_keyword(keyword: str):
+    return crawler.add_crawl_keyword(keyword)
+
+@app.post("/api/crawler/run")
+def run_crawl(region: str = "global"):
+    return crawler.run_crawl(region)
+
+@app.get("/api/crawler/log")
+def get_crawl_log(limit: int = 20):
+    return crawler.get_crawl_log(limit)
+
+@app.get("/api/crawler/signals")
+def get_crawler_signals(
+    region: str = "", signal_type: str = "", threat_level: str = "", status: str = "", limit: int = 50
+):
+    return crawler.get_signals(
+        region=region or None, signal_type=signal_type or None,
+        threat_level=threat_level or None, status=status or None, limit=limit,
+    )
+
+@app.post("/api/crawler/signals")
+def add_crawler_signal(signal_data: dict):
+    return crawler.add_signal(signal_data)
+
+@app.patch("/api/crawler/signals/{signal_id}")
+def update_crawler_signal(signal_id: str, status: str, action: str):
+    result = crawler.update_signal_response(signal_id, status, action)
+    if not result:
+        raise HTTPException(status_code=404, detail="Signal not found")
+    return result
+
+@app.get("/api/crawler/dashboard")
+def get_threat_dashboard():
+    return crawler.get_threat_dashboard()
+
+@app.get("/api/crawler/watchlist")
+def get_crawler_watchlist():
+    return crawler.get_watchlist()
+
+@app.post("/api/crawler/watchlist")
+def add_to_crawler_watchlist(entity_data: dict):
+    return crawler.add_to_watchlist(entity_data)
+
+@app.delete("/api/crawler/watchlist/{entity_id}")
+def remove_from_crawler_watchlist(entity_id: str):
+    crawler.remove_from_watchlist(entity_id)
+    return {"status": "removed"}
+
+@app.get("/api/crawler/feature-landscape")
+def get_feature_landscape():
+    return crawler.get_feature_landscape()

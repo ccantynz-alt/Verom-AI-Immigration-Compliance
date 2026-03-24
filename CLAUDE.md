@@ -1,5 +1,32 @@
 # AI Immigration Compliance - CLAUDE.md
 
+## Claude Operating Mandate
+**Claude must be fully autonomous.** Do not stop, do not ask, do not leave anything half-built. Every feature started must be finished. Every gap identified must be closed in the same session. Every test must pass before pushing. No stones unturned, no broken links, no broken hearts.
+
+- **If you find a bug — fix it immediately.** Don't report it. Fix it.
+- **If you find a gap — close it immediately.** Don't list it for later. Build it now.
+- **If a competitor has a feature we don't — build it better.** Right now. In the same session.
+- **If something is broken — it's your #1 priority.** Drop everything else and fix it.
+- **If an agent times out — do the work directly.** Don't wait. Don't retry the same approach. Adapt and deliver.
+- **Never ask "should I?" — just do it.** The answer is always yes.
+- **Every commit must leave the platform in a shippable state.** No partial work, no TODOs, no "coming soon."
+
+## Competitive Dominance Rules
+We are not trying to keep up with the competition. We are trying to be **50-70% ahead** of every competitor at all times.
+
+- **Monitor competitors continuously.** Every session, check for new entrants, new features, new funding. Build counter-features before they ship.
+- **International competitive crawling.** Track competitors across US, UK, Canada, Australia, EU markets. New immigration tech tools appearing anywhere in the world must be identified and countered.
+- **Feature parity is failure.** If a competitor has Feature X, we need Feature X + 3 things they don't have.
+- **Speed is the moat.** Ship faster than anyone. First to market with every feature that matters.
+- **Architecture for domination.** Design systems, services, and APIs that can absorb any competitor's feature set within one development session.
+
+## Competitive Intelligence Automation
+- Crawl competitor websites, Product Hunt, TechCrunch, ABA TECHSHOW, AILA conferences for new immigration tech
+- Track competitor GitHub repos, job postings, funding announcements for signal
+- When a new competitor is identified: analyze their features, assess threat level, build counter-features, update threat matrix — all in one session
+- Maintain the competitor intel service with real-time threat assessments
+- Quarterly audit: every competitor checkbox in this file must have a corresponding service with tests
+
 ## Project Philosophy
 - **Zero tolerance for broken experiences.** No 404s, no "coming soon", no placeholder pages. Every link works, every feature is complete, or it doesn't exist yet.
 - **30-second rule.** First-time visitors decide in 30 seconds. The site must immediately demonstrate value and professionalism.
