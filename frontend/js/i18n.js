@@ -128,21 +128,22 @@
         },
     };
 
-    // Map of data-i18n keys to their English defaults (captured on first load)
+    // Capture English defaults from the HTML BEFORE any translation runs.
+    // This is done once at page load so we always have the original English text.
     var englishDefaults = {};
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        englishDefaults[el.getAttribute('data-i18n')] = el.innerHTML;
+    });
 
     function applyLanguage(lang) {
         var dict = translations[lang];
         document.querySelectorAll('[data-i18n]').forEach(function(el) {
             var key = el.getAttribute('data-i18n');
-            // Capture English default on first run
-            if (!englishDefaults[key]) {
-                englishDefaults[key] = el.innerHTML;
-            }
-            if (dict && dict[key]) {
+            if (lang !== 'en' && dict && dict[key]) {
                 el.innerHTML = dict[key];
             } else {
-                el.innerHTML = englishDefaults[key];
+                // English or missing key — restore original
+                el.innerHTML = englishDefaults[key] || el.innerHTML;
             }
         });
         // Set dir for RTL languages
