@@ -11,6 +11,16 @@
 </head>
 <body>
 
+<!-- Coming Soon Banner -->
+<div class="coming-soon-banner" id="comingSoonBanner">
+    <div class="banner-inner">
+        <span class="banner-pulse"></span>
+        <span class="banner-text">Coming Soon &mdash; Verom.ai launches in 2026. <strong>Join the early access waitlist.</strong></span>
+        <a href="/login" class="banner-cta">Get Early Access</a>
+        <button class="banner-close" id="bannerClose" aria-label="Close banner">&times;</button>
+    </div>
+</div>
+
 <!-- Navigation -->
 <nav class="landing-nav">
     <div class="nav-inner">
@@ -795,6 +805,15 @@
 </footer>
 
 <script>
+// Coming soon banner close
+document.getElementById('bannerClose').addEventListener('click', function() {
+    document.getElementById('comingSoonBanner').classList.add('hidden');
+    sessionStorage.setItem('bannerDismissed', '1');
+});
+if (sessionStorage.getItem('bannerDismissed') === '1') {
+    document.getElementById('comingSoonBanner').classList.add('hidden');
+}
+
 // Mobile nav toggle
 document.getElementById('mobileToggle').addEventListener('click', function() {
     this.classList.toggle('active');
