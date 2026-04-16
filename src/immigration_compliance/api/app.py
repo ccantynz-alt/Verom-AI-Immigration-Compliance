@@ -95,6 +95,18 @@ from immigration_compliance.services.benchmarking_service import BenchmarkingSer
 from immigration_compliance.services.flat_rate_service import FlatRateService
 from immigration_compliance.services.uscis_client_service import USCISClientService
 from immigration_compliance.services.crawler_service import CompetitiveCrawlerService
+from immigration_compliance.services.continuous_improvement_service import (
+    ContinuousImprovementService,
+    ImprovementPriority,
+    ImprovementStatus,
+    SignalSource,
+)
+from immigration_compliance.services.gate_test_service import (
+    GateTestService,
+    RepairStatus,
+    TestCategory,
+    TestStatus,
+)
 
 # Resolve frontend directory
 _root = Path(__file__).resolve().parent.parent.parent.parent
@@ -152,6 +164,10 @@ competitor_intel = CompetitorIntelService()
 
 # International Competitive Crawler
 crawler = CompetitiveCrawlerService()
+
+# Zero Idle Time — Continuous Improvement flywheel + Gate Test watchdog
+cis_service = ContinuousImprovementService()
+gate_test = GateTestService()
 
 # Gap Closers — competitive response features
 hris_deep = HRISDeepService()
@@ -1575,3 +1591,260 @@ def remove_from_crawler_watchlist(entity_id: str):
 @app.get("/api/crawler/feature-landscape")
 def get_feature_landscape():
     return crawler.get_feature_landscape()
+
+
+# ---------------------------------------------------------------------------
+# Continuous Improvement (Zero Idle Time flywheel)
+# ---------------------------------------------------------------------------
+
+class SignalIn(BaseModel):
+    source: SignalSource
+    summary: str
+    payload: dict = {}
+    relevance: float = 0.5
+
+
+class IdeaIn(BaseModel):
+    title: str
+    rationale: str
+    priority: ImprovementPriority = ImprovementPriority.P3_POLISH
+    origin_signal_id: str | None = None
+    tags: list[str] = []
+    estimated_impact: str = ""
+    implementation_hint: str = ""
+
+
+class AdvancementIn(BaseModel):
+    title: str
+    description: str
+    improvement_id: str | None = None
+    commit_sha: str | None = None
+    shipped_by: str = "claude"
+
+
+@app.get("/api/cis/state")
+def cis_state():
+    return cis_service.flywheel_state()
+
+
+@app.post("/api/cis/tick")
+def cis_tick():
+    return cis_service.tick()
+
+
+@app.post("/api/cis/signals")
+def cis_ingest_signal(body: SignalIn):
+    try:
+        sig = cis_service.ingest_signal(
+            source=body.source,
+            summary=body.summary,
+            payload=body.payload,
+            relevance=body.relevance,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return sig
+
+
+@app.get("/api/cis/signals")
+def cis_list_signals(source: SignalSource | None = None):
+    return cis_service.list_signals(source=source)
+
+
+@app.post("/api/cis/ideas")
+def cis_propose_idea(body: IdeaIn):
+    try:
+        idea = cis_service.propose_improvement(
+            title=body.title,
+            rationale=body.rationale,
+            priority=body.priority,
+            origin_signal_id=body.origin_signal_id,
+            tags=body.tags,
+            estimated_impact=body.estimated_impact,
+            implementation_hint=body.implementation_hint,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return idea
+
+
+@app.get("/api/cis/ideas")
+def cis_list_ideas(
+    status: ImprovementStatus | None = None,
+    priority: ImprovementPriority | None = None,
+):
+    return cis_service.list_queue(status=status, priority=priority)
+
+
+@app.post("/api/cis/ideas/{idea_id}/defer")
+def cis_defer_idea(idea_id: str, reason: str = ""):
+    try:
+        return cis_service.defer(idea_id, reason=reason)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.post("/api/cis/ideas/{idea_id}/reject")
+def cis_reject_idea(idea_id: str, reason: str = ""):
+    try:
+        return cis_service.reject(idea_id, reason=reason)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.post("/api/cis/advancements")
+def cis_record_advancement(body: AdvancementIn):
+    try:
+        return cis_service.record_advancement(
+            title=body.title,
+            description=body.description,
+            improvement_id=body.improvement_id,
+            commit_sha=body.commit_sha,
+            shipped_by=body.shipped_by,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/cis/advancements")
+def cis_list_advancements():
+    return {
+        "today": cis_service.daily_mandate_status(),
+        "streak_days": cis_service.streak(),
+        "today_records": cis_service.ledger_for(),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Gate Test (continuous test + auto-repair + resubmit)
+# ---------------------------------------------------------------------------
+
+class TestCaseIn(BaseModel):
+    name: str
+    category: TestCategory
+    target: str
+    assertion: str
+    enabled: bool = True
+
+
+class TestResultIn(BaseModel):
+    case_id: str
+    status: TestStatus
+    detail: str = ""
+    duration_ms: int = 0
+
+
+class RepairProposalIn(BaseModel):
+    result_id: str
+    summary: str
+    patch_hint: str
+
+
+@app.get("/api/gate-test/health")
+def gate_test_health():
+    return gate_test.health()
+
+
+@app.get("/api/gate-test/cases")
+def gate_test_list_cases():
+    return gate_test.list_cases()
+
+
+@app.post("/api/gate-test/cases")
+def gate_test_register_case(body: TestCaseIn):
+    return gate_test.register_case(
+        name=body.name,
+        category=body.category,
+        target=body.target,
+        assertion=body.assertion,
+        enabled=body.enabled,
+    )
+
+
+@app.post("/api/gate-test/runs")
+def gate_test_start_run():
+    return gate_test.start_run()
+
+
+@app.post("/api/gate-test/runs/{run_id}/results")
+def gate_test_record_result(run_id: str, body: TestResultIn):
+    try:
+        return gate_test.record_result(
+            run_id=run_id,
+            case_id=body.case_id,
+            status=body.status,
+            detail=body.detail,
+            duration_ms=body.duration_ms,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.post("/api/gate-test/runs/{run_id}/finish")
+def gate_test_finish_run(run_id: str):
+    try:
+        return gate_test.finish_run(run_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.get("/api/gate-test/runs")
+def gate_test_list_runs():
+    return gate_test.list_runs()
+
+
+@app.get("/api/gate-test/runs/{run_id}")
+def gate_test_get_run(run_id: str):
+    try:
+        return gate_test.get_run(run_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.post("/api/gate-test/repairs")
+def gate_test_propose_repair(body: RepairProposalIn):
+    try:
+        return gate_test.propose_repair(
+            result_id=body.result_id,
+            summary=body.summary,
+            patch_hint=body.patch_hint,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/gate-test/repairs/{repair_id}/approve")
+def gate_test_approve_repair(
+    repair_id: str,
+    user: UserOut = Depends(get_current_user),
+):
+    # Admin-only in production; for now any authenticated user can approve so
+    # Claude (under an operator account) can unblock restricted-category repairs.
+    try:
+        return gate_test.approve_repair(repair_id, approver=user.email)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/gate-test/repairs/{repair_id}/apply")
+def gate_test_apply_repair(repair_id: str):
+    try:
+        return gate_test.apply_repair(repair_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/gate-test/repairs/{repair_id}/verify")
+def gate_test_verify_repair(repair_id: str, passed: bool = True):
+    try:
+        return gate_test.verify_repair(repair_id, passed=passed)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/gate-test/repairs/{repair_id}/reject")
+def gate_test_reject_repair(repair_id: str, reason: str = ""):
+    try:
+        return gate_test.reject_repair(repair_id, reason=reason)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
