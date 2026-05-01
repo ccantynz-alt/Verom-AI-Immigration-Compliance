@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filing Packets — Verom</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--blue-600:#2563eb;--violet-600:#7c3aed;--slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;--slate-500:#64748b;--slate-700:#334155;--slate-800:#1e293b;--slate-900:#0f172a}
+body{font-family:'Inter',sans-serif;color:var(--slate-800);background:var(--slate-50);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+.shell{max-width:1000px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.brand-text{font-size:18px;font-weight:800}
+h1{font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-0.02em}
+.lead{font-size:13px;color:var(--slate-500);margin-bottom:18px}
+.panel{background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:18px;margin-bottom:14px}
+.panel h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);margin-bottom:10px}
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 2px 6px rgba(37,99,235,0.25)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+.fld{margin-bottom:10px}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--slate-700);margin-bottom:4px}
+.fld input,.fld select{width:100%;padding:8px 10px;border:1.5px solid var(--slate-200);border-radius:8px;font-size:13px;font-family:inherit}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.packet-row{padding:11px 13px;border:1px solid var(--slate-200);border-radius:9px;margin-bottom:6px;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.preview{font-family:'Courier New',monospace;font-size:11px;color:var(--slate-700);white-space:pre-wrap;background:var(--slate-50);border:1px solid var(--slate-200);border-radius:9px;padding:14px;max-height:600px;overflow-y:auto;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="shell">
+<a class="brand" href="/workbench"><div class="brand-mark">V</div><div class="brand-text">Verom<span style="color:var(--blue-600)">.ai</span></div></a>
+<h1>Filing-ready packets</h1>
+<p class="lead">Assemble cover letter + populated forms + exhibits into a paginated PDF ready for USCIS submission.</p>
+
+<div class="panel">
+    <h3>Assemble new packet</h3>
+    <div class="row">
+        <div class="fld"><label>Workspace</label><select id="ws"></select></div>
+        <div class="fld"><label>Attorney name</label><input id="atty_name" placeholder="Jennifer Park"></div>
+    </div>
+    <div class="row">
+        <div class="fld"><label>Firm name</label><input id="atty_firm"></div>
+        <div class="fld"><label>Bar number</label><input id="atty_bar"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-primary" onclick="assemble()">Assemble packet</button>
+        <label style="font-size:12px;color:var(--slate-600);display:flex;align-items:center;gap:5px"><input type="checkbox" id="addendum"> Include attorney addendum</label>
+    </div>
+</div>
+
+<div class="panel">
+    <h3>My packets</h3>
+    <div id="packetList"></div>
+</div>
+
+<div class="panel" id="preview-panel" style="display:none">
+    <h3>Preview <span style="text-transform:none;font-weight:500;color:var(--slate-500)" id="previewMeta"></span></h3>
+    <div id="downloads"></div>
+    <div class="preview" id="preview"></div>
+</div>
+</div>
+
+<script>
+function api(p,o){o=o||{};o.headers=o.headers||{};o.headers['Content-Type']='application/json';var t=localStorage.getItem('verom_token');if(t)o.headers['Authorization']='Bearer '+t;return fetch(p,o).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||'HTTP '+r.status)});var ct=r.headers.get('content-type')||'';return ct.indexOf('json')>=0?r.json():r.text()})}
+function loadWorkspaces(){
+    api('/api/case-workspaces').then(function(ws){
+        document.getElementById('ws').innerHTML = ws.map(function(w){return '<option value="'+w.id+'">'+(w.label||w.visa_type)+'</option>';}).join('') || '<option>No cases</option>';
+    });
+}
+function loadPackets(){
+    api('/api/packets').then(function(ps){
+        var c = document.getElementById('packetList');
+        if (!ps.length){c.innerHTML='<div style="color:var(--slate-400);font-size:12px;padding:8px">No packets assembled yet</div>';return;}
+        var html = '';
+        ps.forEach(function(p){
+            html += '<div class="packet-row"><div><strong>'+(p.label||p.visa_type)+'</strong> — '+p.forms.length+' forms, '+p.exhibits.length+' exhibits, ~'+p.page_count_estimate+' pages';
+            html += '<div style="font-size:11px;color:var(--slate-500)">'+(p.generated_at||'').slice(0,16).replace('T',' ')+'</div></div>';
+            html += '<div><button class="btn btn-outline" style="padding:5px 11px;font-size:11px;margin-right:4px" onclick="showPacket(\''+p.id+'\')">Preview</button>';
+            html += '<a class="btn btn-primary" style="padding:5px 11px;font-size:11px" href="/api/packets/'+p.id+'/pdf" target="_blank">PDF</a></div></div>';
+        });
+        c.innerHTML = html;
+    });
+}
+function assemble(){
+    var ws = document.getElementById('ws').value;
+    var atty = {name:document.getElementById('atty_name').value, firm:document.getElementById('atty_firm').value, bar_number:document.getElementById('atty_bar').value};
+    var addendum = document.getElementById('addendum').checked;
+    if (!ws){alert('Pick a workspace');return;}
+    api('/api/packets/assemble',{method:'POST',body:JSON.stringify({workspace_id:ws,attorney_profile:atty,include_strength_summary:addendum})}).then(function(p){
+        loadPackets();
+        showPacket(p.id);
+    }).catch(function(e){alert('Assemble failed: '+e.message)});
+}
+function showPacket(id){
+    api('/api/packets/'+id).then(function(p){
+        document.getElementById('preview-panel').style.display='block';
+        document.getElementById('previewMeta').textContent = '· ' + p.forms.length + ' forms, ' + p.exhibits.length + ' exhibits';
+        document.getElementById('downloads').innerHTML =
+            '<a class="btn btn-primary" href="/api/packets/'+id+'/pdf" target="_blank" style="margin-right:6px">Download PDF</a>'+
+            '<a class="btn btn-outline" href="/api/packets/'+id+'/text" target="_blank">Download text</a>';
+        api('/api/packets/'+id+'/text').then(function(t){
+            document.getElementById('preview').textContent = t;
+        });
+    });
+}
+loadWorkspaces();loadPackets();
+</script>
+</body>
+</html>

@@ -381,6 +381,34 @@ def serve_forms_workspace() -> HTMLResponse:
 def serve_case_workspace() -> HTMLResponse:
     return _serve_html(_frontend_dir / "case-workspace.html", "Case workspace not found.")
 
+@app.get("/workbench", response_class=HTMLResponse)
+def serve_workbench() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "workbench.html", "Workbench not found.")
+
+@app.get("/petition-letter", response_class=HTMLResponse)
+def serve_petition_letter_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "petition-letter.html", "Petition letter UI not found.")
+
+@app.get("/rfe-response", response_class=HTMLResponse)
+def serve_rfe_response_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "rfe-response.html", "RFE response UI not found.")
+
+@app.get("/family-bundle", response_class=HTMLResponse)
+def serve_family_bundle_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "family-bundle.html", "Family bundle UI not found.")
+
+@app.get("/calendar", response_class=HTMLResponse)
+def serve_calendar_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "calendar.html", "Calendar sync UI not found.")
+
+@app.get("/migrate", response_class=HTMLResponse)
+def serve_migrate_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "migrate.html", "Migration UI not found.")
+
+@app.get("/packets", response_class=HTMLResponse)
+def serve_packets_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "packets.html", "Packets UI not found.")
+
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
     return HealthResponse()

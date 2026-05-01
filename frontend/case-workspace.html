@@ -129,6 +129,25 @@ body{font-family:'Inter',-apple-system,sans-serif;color:var(--slate-800);backgro
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--slate-900);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;z-index:1000;opacity:0;pointer-events:none;transition:opacity 200ms}
 .toast.show{opacity:1}
 
+/* Chatbot widget */
+.chat-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 8px 22px rgba(37,99,235,0.4);z-index:99;border:none}
+.chat-fab:hover{transform:scale(1.05)}
+.chat-window{position:fixed;bottom:90px;right:24px;width:360px;max-height:520px;background:#fff;border:1px solid var(--slate-200);border-radius:14px;box-shadow:0 20px 40px rgba(0,0,0,0.15);z-index:98;display:none;flex-direction:column;overflow:hidden}
+.chat-window.open{display:flex}
+.chat-head{padding:14px 16px;border-bottom:1px solid var(--slate-200);background:linear-gradient(135deg,var(--blue-50),var(--violet-50))}
+.chat-head h4{font-size:13px;font-weight:700;color:var(--slate-900)}
+.chat-head .sub{font-size:11px;color:var(--slate-500);margin-top:1px}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:85%;padding:8px 12px;border-radius:12px;font-size:12.5px;line-height:1.4;white-space:pre-wrap}
+.msg.bot{background:var(--slate-100);color:var(--slate-800);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.user{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.msg.system,.msg.attorney{background:var(--amber-50);color:var(--slate-800);align-self:center;font-size:11px;font-style:italic;border-radius:8px}
+.msg .grounded{font-size:10px;color:var(--slate-500);margin-top:3px;font-style:italic}
+.chat-input{display:flex;padding:10px;gap:6px;border-top:1px solid var(--slate-200)}
+.chat-input input{flex:1;padding:8px 11px;border:1px solid var(--slate-200);border-radius:9px;font-size:12px;font-family:inherit}
+.chat-input input:focus{outline:none;border-color:var(--blue-600)}
+.chat-input button{padding:8px 13px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer}
+
 .input-modal-bg{position:fixed;inset:0;background:rgba(15,23,42,0.5);display:none;align-items:center;justify-content:center;z-index:100}
 .input-modal-bg.show{display:flex}
 .input-modal{background:#fff;border-radius:14px;padding:24px;max-width:420px;width:90%;box-shadow:0 30px 80px rgba(0,0,0,0.3)}
@@ -168,6 +187,19 @@ body{font-family:'Inter',-apple-system,sans-serif;color:var(--slate-800);backgro
             <button class="btn btn-primary btn-sm" id="modalSubmit">Save</button>
         </div>
     </div>
+</div>
+
+<button class="chat-fab" id="chatFab" title="Ask the case assistant">💬</button>
+<div class="chat-window" id="chatWindow">
+    <div class="chat-head">
+        <h4>Case assistant</h4>
+        <div class="sub">Ask anything about your case</div>
+    </div>
+    <div class="chat-msgs" id="chatMsgs"></div>
+    <form class="chat-input" id="chatForm" onsubmit="sendChat(event)">
+        <input id="chatInput" placeholder="e.g. when is my deadline?" autocomplete="off">
+        <button type="submit">Send</button>
+    </form>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -537,6 +569,60 @@ window.closeModal = function(){ document.getElementById('modalBg').classList.rem
 
 loadFromQuery();
 refresh();
+
+// ----- Chatbot widget -----
+var chatConvoId = null;
+function ensureChatConvo(){
+    if (chatConvoId || !state.wsId) return Promise.resolve(null);
+    return api('/api/chatbot/conversations', {
+        method: 'POST',
+        body: JSON.stringify({ workspace_id: state.wsId })
+    }).then(function(c){
+        chatConvoId = c.id;
+        return api('/api/chatbot/conversations/' + c.id + '/messages').then(function(msgs){
+            renderChatMessages(msgs);
+        });
+    }).catch(function(){});
+}
+function renderChatMessages(msgs){
+    var c = document.getElementById('chatMsgs');
+    c.innerHTML = '';
+    (msgs || []).forEach(function(m){
+        var div = document.createElement('div');
+        div.className = 'msg ' + m.sender;
+        div.textContent = m.body;
+        if (m.grounded_in && m.grounded_in.length){
+            var g = document.createElement('div');
+            g.className = 'grounded';
+            g.textContent = '↳ from: ' + m.grounded_in.slice(0, 3).join(', ');
+            div.appendChild(g);
+        }
+        c.appendChild(div);
+    });
+    c.scrollTop = c.scrollHeight;
+}
+window.sendChat = function(e){
+    e.preventDefault();
+    var inp = document.getElementById('chatInput');
+    var body = inp.value.trim();
+    if (!body || !chatConvoId) return;
+    inp.value = '';
+    api('/api/chatbot/conversations/' + chatConvoId + '/ask', {
+        method: 'POST',
+        body: JSON.stringify({ body: body })
+    }).then(function(){
+        api('/api/chatbot/conversations/' + chatConvoId + '/messages').then(renderChatMessages);
+    }).catch(function(err){ toast('Chat error: ' + err.message); });
+};
+document.getElementById('chatFab').addEventListener('click', function(){
+    var w = document.getElementById('chatWindow');
+    if (w.classList.contains('open')){
+        w.classList.remove('open');
+    } else {
+        w.classList.add('open');
+        ensureChatConvo();
+    }
+});
 })();
 </script>
 </body>

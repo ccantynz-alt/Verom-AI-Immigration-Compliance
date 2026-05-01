@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workbench — Verom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--blue-600:#2563eb;--blue-700:#1d4ed8;
+    --violet-50:#f5f3ff;--violet-500:#8b5cf6;--violet-600:#7c3aed;
+    --slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;
+    --slate-400:#94a3b8;--slate-500:#64748b;--slate-600:#475569;--slate-700:#334155;
+    --slate-800:#1e293b;--slate-900:#0f172a;
+    --green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--green-700:#15803d;
+    --red-50:#fef2f2;--red-100:#fee2e2;--red-500:#ef4444;--red-600:#dc2626;
+    --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-500:#f59e0b;--amber-600:#d97706;
+    --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+}
+body{font-family:'Inter',-apple-system,sans-serif;color:var(--slate-800);background:var(--slate-50);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+.shell{max-width:1400px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px}
+.brand-text{font-size:18px;font-weight:800}
+.brand-text .ai{color:var(--blue-600)}
+
+.workbench-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:18px}
+.workbench-head h1{font-size:22px;font-weight:800;color:var(--slate-900);letter-spacing:-0.02em}
+.workbench-head p{font-size:13px;color:var(--slate-500);margin-top:2px}
+.kpi-strip{display:flex;gap:12px;flex-wrap:wrap}
+.kpi{background:#fff;border:1px solid var(--slate-200);border-radius:10px;padding:10px 14px;min-width:120px}
+.kpi .lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--slate-500)}
+.kpi .val{font-size:20px;font-weight:800;color:var(--slate-900);line-height:1.1;margin-top:2px}
+.kpi .sub{font-size:11px;color:var(--slate-500)}
+
+.layout{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:1100px){.layout{grid-template-columns:2.2fr 1fr}}
+
+.col{display:flex;flex-direction:column;gap:14px}
+
+.panel{background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:18px}
+.panel h3{font-size:13px;font-weight:700;color:var(--slate-900);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:0.04em}
+.panel h3 .meta{font-size:11px;color:var(--slate-500);font-weight:600;text-transform:none;letter-spacing:0}
+
+.case-row{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:12px;align-items:center;padding:11px 12px;border-bottom:1px solid var(--slate-100);font-size:13px;cursor:pointer;transition:background 100ms;text-decoration:none;color:inherit}
+.case-row:hover{background:var(--slate-50)}
+.case-row:last-child{border-bottom:none}
+.case-row .label{font-weight:600;color:var(--slate-900)}
+.case-row .meta{font-size:11px;color:var(--slate-500)}
+.status-pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:0.04em}
+.status-intake{background:var(--slate-100);color:var(--slate-700)}
+.status-documents{background:var(--blue-50);color:var(--blue-700)}
+.status-review{background:var(--violet-50);color:var(--violet-600)}
+.status-filed{background:var(--green-50);color:var(--green-700)}
+.status-rfe{background:var(--amber-50);color:var(--amber-600)}
+.status-approved{background:var(--green-100);color:var(--green-700)}
+.status-denied{background:var(--red-50);color:var(--red-600)}
+.status-withdrawn,.status-decision_pending{background:var(--slate-100);color:var(--slate-500)}
+.completeness-bar{width:60px;height:5px;background:var(--slate-200);border-radius:99px;overflow:hidden;display:inline-block;vertical-align:middle}
+.completeness-fill{height:100%;background:linear-gradient(90deg,var(--blue-600),var(--violet-600));transition:width 400ms}
+
+.alert-row{padding:11px 12px;border-radius:8px;background:var(--amber-50);border-left:3px solid var(--amber-500);margin-bottom:6px;font-size:12px;color:var(--slate-700)}
+.alert-row.high{background:var(--red-50);border-left-color:var(--red-500)}
+.alert-row.info{background:var(--blue-50);border-left-color:var(--blue-500)}
+.alert-row strong{color:var(--slate-900);display:block;margin-bottom:2px}
+
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.tool-card{padding:11px 12px;border:1px solid var(--slate-200);border-radius:9px;text-decoration:none;color:var(--slate-800);transition:all 150ms;display:flex;flex-direction:column;gap:3px}
+.tool-card:hover{border-color:var(--blue-500);background:var(--blue-50);color:var(--blue-700);transform:translateY(-1px);box-shadow:var(--shadow)}
+.tool-card .ico{font-size:18px}
+.tool-card .name{font-size:12px;font-weight:700}
+.tool-card .desc{font-size:10px;color:var(--slate-500)}
+.tool-card:hover .desc{color:var(--blue-600)}
+
+.empty-state{padding:24px;text-align:center;color:var(--slate-400);font-size:12px}
+
+.handoff-row{padding:10px 12px;border-radius:8px;background:var(--slate-50);margin-bottom:5px;font-size:12px}
+.handoff-row .q{color:var(--slate-700);font-weight:600;margin-bottom:2px}
+.handoff-row .meta{font-size:10px;color:var(--slate-500)}
+
+.deadline-row{display:flex;justify-content:space-between;align-items:center;padding:8px 11px;border-radius:7px;background:var(--slate-50);margin-bottom:5px;font-size:12px}
+.deadline-row.urgent{background:var(--red-50);border:1px solid var(--red-100)}
+.deadline-row.soon{background:var(--amber-50);border:1px solid var(--amber-100)}
+.deadline-row .lab{font-weight:600;color:var(--slate-900)}
+.deadline-row .date{font-size:10px;color:var(--slate-500)}
+.deadline-row .days{font-size:10px;font-weight:700;padding:2px 6px;border-radius:99px;background:var(--slate-200);color:var(--slate-700)}
+.deadline-row.urgent .days{background:var(--red-100);color:var(--red-600)}
+.deadline-row.soon .days{background:var(--amber-100);color:var(--amber-600)}
+
+.btn{padding:7px 13px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:inherit}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 2px 6px rgba(37,99,235,0.25)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+.btn-ghost{background:transparent;color:var(--slate-600)}
+.btn-ghost:hover{background:var(--slate-100)}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--slate-900);color:#fff;padding:10px 16px;border-radius:8px;font-size:12px;z-index:1000;opacity:0;pointer-events:none;transition:opacity 200ms}
+.toast.show{opacity:1}
+
+.global-search{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--slate-200);border-radius:9px;padding:7px 12px;width:260px}
+.global-search input{border:none;outline:none;font-size:13px;font-family:inherit;flex:1}
+.global-search .ico{color:var(--slate-400)}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<a class="brand" href="/applicant">
+    <div class="brand-mark">V</div>
+    <div class="brand-text">Verom<span class="ai">.ai</span></div>
+</a>
+
+<div class="workbench-head">
+    <div>
+        <h1>Workbench</h1>
+        <p>All your active cases, deadlines, alerts, and tools — one screen.</p>
+    </div>
+    <div class="kpi-strip" id="kpiStrip">
+        <div class="kpi"><div class="lab">Active cases</div><div class="val" id="kpiCases">—</div></div>
+        <div class="kpi"><div class="lab">Deadlines &lt; 7d</div><div class="val" id="kpiUrgent">—</div></div>
+        <div class="kpi"><div class="lab">Pending handoffs</div><div class="val" id="kpiHandoffs">—</div></div>
+        <div class="kpi"><div class="lab">Reg alerts</div><div class="val" id="kpiAlerts">—</div></div>
+    </div>
+</div>
+
+<div class="layout">
+    <div class="col">
+        <div class="panel">
+            <h3>Active cases <span class="meta" id="caseMeta">loading…</span></h3>
+            <div id="caseList"></div>
+        </div>
+
+        <div class="panel">
+            <h3>Regulatory impact <span class="meta">policy / fee / wage / bulletin alerts</span></h3>
+            <div id="regAlerts"><div class="empty-state">Loading regulatory alerts…</div></div>
+        </div>
+
+        <div class="panel">
+            <h3>Deadlines <span class="meta">next 30 days</span></h3>
+            <div id="deadlinesAggregate"><div class="empty-state">No upcoming deadlines</div></div>
+        </div>
+
+        <div class="panel">
+            <h3>Pending client handoffs <span class="meta">from the AI assistant</span></h3>
+            <div id="handoffList"><div class="empty-state">No pending handoffs</div></div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="panel">
+            <h3>Tools <span class="meta">jump to any feature</span></h3>
+            <div class="tool-grid">
+                <a class="tool-card" href="/case"><span class="ico">📋</span><span class="name">Case workspace</span><span class="desc">Unified view per case</span></a>
+                <a class="tool-card" href="/forms"><span class="ico">📝</span><span class="name">Forms</span><span class="desc">Auto-populate from intake</span></a>
+                <a class="tool-card" href="/intake/documents"><span class="ico">📁</span><span class="name">Documents</span><span class="desc">Upload + classify</span></a>
+                <a class="tool-card" href="/onboarding/applicant"><span class="ico">✨</span><span class="name">Applicant intake</span><span class="desc">Magical wizard</span></a>
+                <a class="tool-card" href="/onboarding/attorney"><span class="ico">⚖️</span><span class="name">Attorney signup</span><span class="desc">Verification flow</span></a>
+                <a class="tool-card" href="/petition-letter"><span class="ico">📄</span><span class="name">Petition letter</span><span class="desc">Section-by-section</span></a>
+                <a class="tool-card" href="/rfe-response"><span class="ico">⚡</span><span class="name">RFE drafter</span><span class="desc">Parse + draft response</span></a>
+                <a class="tool-card" href="/family-bundle"><span class="ico">👨‍👩‍👧</span><span class="name">Family bundle</span><span class="desc">Linked dependent cases</span></a>
+                <a class="tool-card" href="/calendar"><span class="ico">📅</span><span class="name">Calendar sync</span><span class="desc">ICS feed + push</span></a>
+                <a class="tool-card" href="/migrate"><span class="ico">⬆️</span><span class="name">Migrate</span><span class="desc">From Docketwise/INSZoom/etc</span></a>
+                <a class="tool-card" href="/packets"><span class="ico">📦</span><span class="name">Packets</span><span class="desc">Filing-ready PDF</span></a>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Persistence status <span class="meta" id="persistMeta">checking…</span></h3>
+            <div id="persistInfo"><div class="empty-state">Loading…</div></div>
+        </div>
+
+        <div class="panel">
+            <h3>Recent audit log <span class="meta">last 10 entries</span></h3>
+            <div id="auditList"><div class="empty-state">No audit entries</div></div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+function api(path, opts){
+    opts = opts || {};
+    opts.headers = opts.headers || {};
+    var token = localStorage.getItem('verom_token');
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(path, opts).then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error(t || ('HTTP ' + r.status)); });
+        return r.status === 204 ? null : r.json();
+    });
+}
+
+function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
+
+function days(date){
+    try {
+        var due = new Date(date).getTime();
+        return Math.round((due - Date.now()) / (1000 * 60 * 60 * 24));
+    } catch(e) { return null; }
+}
+
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function loadCases(){
+    api('/api/case-workspaces').then(function(workspaces){
+        var c = document.getElementById('caseList');
+        var meta = document.getElementById('caseMeta');
+        meta.textContent = workspaces.length + ' total';
+        document.getElementById('kpiCases').textContent = workspaces.length;
+        if (!workspaces.length){
+            c.innerHTML = '<div class="empty-state">No cases yet — start with the <a href="/onboarding/applicant" style="color:var(--blue-600)">applicant onboarding flow</a> or <a href="/migrate" style="color:var(--blue-600)">import from another platform</a>.</div>';
+            return;
+        }
+        var html = '';
+        workspaces.forEach(function(w){
+            html += '<a class="case-row" href="/case?id=' + w.id + '">';
+            html += '<span class="status-pill status-' + w.status + '">' + w.status + '</span>';
+            html += '<div><div class="label">' + escapeHtml(w.label || w.visa_type) + '</div>';
+            html += '<div class="meta">' + w.visa_type + ' · ' + w.country + (w.filing_receipt_number ? (' · ' + w.filing_receipt_number) : '') + '</div></div>';
+            html += '<div class="meta">' + (w.created_at || '').slice(0,10) + '</div>';
+            html += '<div class="completeness-bar"><div class="completeness-fill" style="width:0%" id="cf-' + w.id + '"></div></div>';
+            html += '<button class="btn btn-ghost" style="padding:4px 8px">Open →</button>';
+            html += '</a>';
+        });
+        c.innerHTML = html;
+        // Async fetch each snapshot for completeness
+        var urgentDeadlines = 0;
+        workspaces.forEach(function(w){
+            api('/api/case-workspaces/' + w.id + '/snapshot').then(function(snap){
+                var pct = (snap.completeness && snap.completeness.overall_pct) || 0;
+                var bar = document.getElementById('cf-' + w.id);
+                if (bar) bar.style.width = pct + '%';
+                // Aggregate urgent deadlines
+                (snap.deadlines || []).forEach(function(d){
+                    var rem = days(d.due_date);
+                    if (rem !== null && rem >= 0 && rem < 7) urgentDeadlines++;
+                });
+                document.getElementById('kpiUrgent').textContent = urgentDeadlines;
+                aggregateDeadlines(workspaces, snap, w);
+            }).catch(function(){});
+        });
+    }).catch(function(e){
+        document.getElementById('caseList').innerHTML = '<div class="empty-state">Sign in required to view cases. <a href="/login" style="color:var(--blue-600)">Sign in →</a></div>';
+        document.getElementById('caseMeta').textContent = 'sign in';
+        document.getElementById('kpiCases').textContent = '—';
+    });
+}
+
+var deadlineBuffer = [];
+function aggregateDeadlines(allWorkspaces, snap, workspace){
+    (snap.deadlines || []).forEach(function(d){
+        deadlineBuffer.push({
+            workspace_id: workspace.id, workspace_label: workspace.label || workspace.visa_type,
+            label: d.label, due_date: d.due_date, kind: d.kind,
+        });
+    });
+    renderDeadlines();
+}
+
+function renderDeadlines(){
+    var c = document.getElementById('deadlinesAggregate');
+    if (!deadlineBuffer.length){ c.innerHTML = '<div class="empty-state">No upcoming deadlines</div>'; return; }
+    var sorted = deadlineBuffer.slice().sort(function(a,b){ return (a.due_date||'').localeCompare(b.due_date||''); });
+    var next30 = sorted.filter(function(d){ var r = days(d.due_date); return r !== null && r <= 30 && r >= -7; });
+    if (!next30.length){ c.innerHTML = '<div class="empty-state">Nothing in the next 30 days</div>'; return; }
+    var html = '';
+    next30.slice(0, 12).forEach(function(d){
+        var rem = days(d.due_date);
+        var cls = rem < 7 ? 'urgent' : rem < 21 ? 'soon' : '';
+        var label = (rem < 0 ? Math.abs(rem) + 'd overdue' : rem + 'd');
+        html += '<div class="deadline-row ' + cls + '"><div><div class="lab">' + escapeHtml(d.label) + '</div><div class="date">' + escapeHtml(d.workspace_label) + ' · ' + d.due_date + '</div></div>';
+        html += '<div class="days">' + label + '</div></div>';
+    });
+    c.innerHTML = html;
+}
+
+function loadHandoffs(){
+    api('/api/chatbot/handoffs?status=pending').then(function(handoffs){
+        document.getElementById('kpiHandoffs').textContent = handoffs.length;
+        var c = document.getElementById('handoffList');
+        if (!handoffs.length){ c.innerHTML = '<div class="empty-state">No pending handoffs</div>'; return; }
+        var html = '';
+        handoffs.slice(0,8).forEach(function(h){
+            html += '<div class="handoff-row"><div class="q">"' + escapeHtml(h.question) + '"</div>';
+            html += '<div class="meta">' + h.intent + ' · ' + (h.created_at||'').slice(0,16).replace('T',' ') + '</div></div>';
+        });
+        c.innerHTML = html;
+    }).catch(function(){
+        document.getElementById('kpiHandoffs').textContent = '—';
+    });
+}
+
+function loadRegulatoryAlerts(){
+    api('/api/regulatory-impact/reports').then(function(reports){
+        document.getElementById('kpiAlerts').textContent = reports.length;
+        var c = document.getElementById('regAlerts');
+        if (!reports.length){ c.innerHTML = '<div class="empty-state">No regulatory alerts affecting your cases</div>'; return; }
+        var html = '';
+        reports.slice(0,6).forEach(function(r){
+            var sev = (r.affected[0] || {}).severity || 'advisory';
+            var cls = sev === 'blocking' || sev === 'action_required' ? 'high' : sev === 'advisory' ? '' : 'info';
+            html += '<div class="alert-row ' + cls + '"><strong>' + escapeHtml(r.event_title) + '</strong>';
+            html += r.affected_count + ' case' + (r.affected_count === 1 ? '' : 's') + ' affected · ' + sev + '</div>';
+        });
+        c.innerHTML = html;
+    }).catch(function(){
+        document.getElementById('kpiAlerts').textContent = '—';
+    });
+}
+
+function loadPersistence(){
+    api('/api/storage/namespaces').then(function(d){
+        document.getElementById('persistMeta').textContent = d.persistence_enabled ? 'SQLite enabled' : 'in-memory';
+        var c = document.getElementById('persistInfo');
+        if (!d.persistence_enabled){ c.innerHTML = '<div class="empty-state">Persistence is disabled (VEROM_DISABLE_PERSISTENCE=1)</div>'; return; }
+        var html = '<div style="font-size:11px;color:var(--slate-600)">' + d.namespaces.length + ' namespaces persisted to SQLite. Service state survives restarts.</div>';
+        d.namespaces.slice(0,5).forEach(function(n){
+            html += '<div style="font-size:11px;padding:5px 0;border-top:1px solid var(--slate-100);display:flex;justify-content:space-between"><span>' + n.namespace + '</span><span style="color:var(--slate-500)">' + Math.round(n.size_bytes / 1024) + 'KB</span></div>';
+        });
+        c.innerHTML = html;
+    }).catch(function(){
+        document.getElementById('persistMeta').textContent = 'sign in';
+    });
+}
+
+function loadAudit(){
+    api('/api/audit-log/persistent?limit=10').then(function(d){
+        var c = document.getElementById('auditList');
+        if (!d.persistence_enabled || !d.entries.length){ c.innerHTML = '<div class="empty-state">No audit entries</div>'; return; }
+        var html = '';
+        d.entries.forEach(function(e){
+            html += '<div style="padding:5px 0;border-bottom:1px solid var(--slate-100);font-size:11px">';
+            html += '<span style="font-weight:600;color:var(--slate-700)">' + e.action + '</span>';
+            html += ' <span style="color:var(--slate-500)">@ ' + e.namespace + '</span>';
+            html += '<div style="color:var(--slate-400);font-size:10px">' + (e.at||'').slice(0,16).replace('T',' ') + '</div>';
+            html += '</div>';
+        });
+        c.innerHTML = html;
+    }).catch(function(){});
+}
+
+loadCases();
+loadHandoffs();
+loadRegulatoryAlerts();
+loadPersistence();
+loadAudit();
+})();
+</script>
+</body>
+</html>
