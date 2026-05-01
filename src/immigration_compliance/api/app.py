@@ -121,6 +121,7 @@ from immigration_compliance.services.time_tracking_service import TimeTrackingSe
 from immigration_compliance.services.trust_accounting_service import TrustAccountingService
 from immigration_compliance.services.efiling_proxy_service import EFilingProxyService
 from immigration_compliance.services.notification_service import NotificationService
+from immigration_compliance.services.team_management_service import TeamManagementService
 from immigration_compliance.services.persistent_store_service import PersistentStore, get_default_store
 from immigration_compliance.services.storage_binding import bind_storage
 
@@ -214,6 +215,7 @@ time_tracking = TimeTrackingService(case_workspace=case_workspace)
 trust_accounting = TrustAccountingService()
 efiling_proxy = EFilingProxyService(case_workspace=case_workspace, form_population=form_population)
 notifications = NotificationService()
+team_management = TeamManagementService(case_workspace=case_workspace)
 
 # Persistent store — reads VEROM_DB_PATH env var (default: verom_state.db). Set
 # VEROM_DISABLE_PERSISTENCE=1 to fall back to in-memory only.
@@ -3849,3 +3851,203 @@ def rotate_webhook_secret(webhook_id: str, user: UserOut = Depends(require_role(
 @app.get("/api/webhooks/{webhook_id}/deliveries")
 def get_webhook_deliveries(webhook_id: str, limit: int = 100, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
     return notifications.get_webhook_delivery_log(webhook_id=webhook_id, limit=limit)
+
+
+# =============================================
+# Team Management + RBAC endpoints
+# =============================================
+
+class FirmRegisterRequest(BaseModel):
+    name: str
+    primary_state: str
+    bar_number: str | None = None
+
+class MemberAddRequest(BaseModel):
+    user_id: str
+    role: str = "attorney"
+    display_name: str = ""
+    office_id: str | None = None
+
+class MemberRoleUpdateRequest(BaseModel):
+    role: str
+
+class CustomRoleCreateRequest(BaseModel):
+    role_id: str
+    label: str
+    permissions: list[str]
+    case_visibility: str = "assigned"
+
+class OfficeCreateRequest(BaseModel):
+    name: str
+    address: str = ""
+    state: str = ""
+
+class TaskCreateRequest(BaseModel):
+    firm_id: str
+    title: str
+    assigned_to_member_id: str | None = None
+    workspace_id: str | None = None
+    priority: str = "normal"
+    due_date: str | None = None
+    description: str = ""
+
+class TaskUpdateRequest(BaseModel):
+    status: str | None = None
+    assigned_to_member_id: str | None = None
+    priority: str | None = None
+    due_date: str | None = None
+    description: str | None = None
+    title: str | None = None
+
+@app.get("/api/team/builtin-roles")
+def list_builtin_roles():
+    return TeamManagementService.list_builtin_roles()
+
+@app.get("/api/team/permissions")
+def list_all_permissions():
+    return TeamManagementService.list_all_permissions()
+
+@app.post("/api/team/firms", status_code=201)
+def register_firm(req: FirmRegisterRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return team_management.register_firm(
+        name=req.name, primary_state=req.primary_state,
+        primary_attorney_user_id=user.id, bar_number=req.bar_number,
+    )
+
+@app.get("/api/team/firms")
+def list_firms(user: UserOut = Depends(get_current_user)):
+    return team_management.list_firms()
+
+@app.get("/api/team/firms/{firm_id}")
+def get_firm(firm_id: str, user: UserOut = Depends(get_current_user)):
+    f = team_management.get_firm(firm_id)
+    if f is None:
+        raise HTTPException(status_code=404, detail="Firm not found")
+    return f
+
+@app.post("/api/team/firms/{firm_id}/members", status_code=201)
+def add_team_member(firm_id: str, req: MemberAddRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    if not team_management.has_permission(user.id, "firm.manage_members"):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    try:
+        return team_management.add_member(
+            firm_id=firm_id, user_id=req.user_id, role=req.role,
+            display_name=req.display_name, office_id=req.office_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/team/firms/{firm_id}/members")
+def list_team_members(firm_id: str, role: str | None = None, user: UserOut = Depends(get_current_user)):
+    return team_management.list_members(firm_id=firm_id, role=role)
+
+@app.patch("/api/team/members/{member_id}/role")
+def update_member_role(member_id: str, req: MemberRoleUpdateRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    if not team_management.has_permission(user.id, "firm.manage_members"):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    try:
+        return team_management.update_member_role(member_id, req.role)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.delete("/api/team/members/{member_id}")
+def deactivate_member(member_id: str, reason: str = "", user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    if not team_management.has_permission(user.id, "firm.manage_members"):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    try:
+        return team_management.deactivate_member(member_id, reason=reason)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/team/firms/{firm_id}/custom-roles", status_code=201)
+def create_custom_role(firm_id: str, req: CustomRoleCreateRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    if not team_management.has_permission(user.id, "firm.manage_roles"):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    try:
+        return team_management.create_custom_role(
+            firm_id=firm_id, role_id=req.role_id, label=req.label,
+            permissions=req.permissions, case_visibility=req.case_visibility,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/team/firms/{firm_id}/roles")
+def list_firm_roles(firm_id: str, user: UserOut = Depends(get_current_user)):
+    return team_management.list_roles_for_firm(firm_id)
+
+@app.post("/api/team/firms/{firm_id}/offices", status_code=201)
+def add_office(firm_id: str, req: OfficeCreateRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    if not team_management.has_permission(user.id, "firm.manage_offices"):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    try:
+        return team_management.add_office(firm_id, req.name, address=req.address, state=req.state)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/team/firms/{firm_id}/offices")
+def list_offices(firm_id: str, user: UserOut = Depends(get_current_user)):
+    return team_management.list_offices(firm_id=firm_id)
+
+@app.get("/api/team/me/permissions")
+def get_my_permissions(user: UserOut = Depends(get_current_user)):
+    return {"permissions": team_management.get_user_permissions(user.id)}
+
+@app.get("/api/team/me/member")
+def get_my_membership(user: UserOut = Depends(get_current_user)):
+    m = team_management.get_member_for_user(user.id)
+    if m is None:
+        return {"member": None}
+    return m
+
+# ----- Tasks -----
+
+@app.post("/api/team/tasks", status_code=201)
+def create_team_task(req: TaskCreateRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    if not team_management.has_permission(user.id, "task.create"):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    try:
+        return team_management.create_task(
+            firm_id=req.firm_id, title=req.title,
+            assigned_to_member_id=req.assigned_to_member_id,
+            workspace_id=req.workspace_id, priority=req.priority,
+            due_date=req.due_date, description=req.description,
+            created_by_user_id=user.id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.patch("/api/team/tasks/{task_id}")
+def update_team_task(task_id: str, req: TaskUpdateRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return team_management.update_task(
+            task_id=task_id, status=req.status,
+            assigned_to_member_id=req.assigned_to_member_id,
+            priority=req.priority, due_date=req.due_date,
+            description=req.description, title=req.title,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/team/tasks")
+def list_team_tasks(
+    firm_id: str | None = None,
+    assigned_to_member_id: str | None = None,
+    workspace_id: str | None = None,
+    status: str | None = None,
+    user: UserOut = Depends(get_current_user),
+):
+    return team_management.list_tasks(
+        firm_id=firm_id, assigned_to_member_id=assigned_to_member_id,
+        workspace_id=workspace_id, status=status,
+    )
+
+@app.get("/api/team/members/{member_id}/workload")
+def get_member_workload(member_id: str, user: UserOut = Depends(get_current_user)):
+    try:
+        return team_management.get_workload_for_member(member_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.get("/api/team/firms/{firm_id}/workload")
+def get_firm_workload(firm_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return team_management.get_firm_workload(firm_id)

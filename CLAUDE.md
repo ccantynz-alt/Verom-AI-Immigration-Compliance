@@ -308,13 +308,13 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [x] **EOIR ECAS e-filing** — file immigration court documents directly (PDF auto-formatted to 300 DPI requirements) (EFilingProxyService — eoir_ecas portal supports EOIR-26/EOIR-29/EOIR-33/EOIR-42A/EOIR-42B/EOIR-28 with 9-digit receipt format)
 
 **Team Management & Firm Operations** (INSZoom's enterprise advantage — we take it)
-- [ ] **Role-based access control** — attorney, paralegal, legal assistant, admin, partner permission levels
-- [ ] **Task assignment and tracking** — assign tasks to team members with deadlines and priorities
-- [ ] **Workload balancing dashboard** — visualize who's overloaded, redistribute cases intelligently
-- [ ] **Paralegal workflow queues** — structured task lists by role and priority
-- [ ] **Firm-wide case visibility** — partners see everything, associates see their cases, paralegals see assigned tasks
+- [x] **Role-based access control** — attorney, paralegal, legal assistant, admin, partner permission levels (TeamManagementService: 6 built-in roles — admin, partner, attorney, paralegal, legal_assistant, observer — plus firm-defined custom roles; 32 atomic permissions covering case, document, form, time, billing, trust, communication, filing, drafting, conflict, firm admin, and tasks; has_permission(user_id, permission) for atomic checks; case visibility tiered all/assigned/own)
+- [x] **Task assignment and tracking** — assign tasks to team members with deadlines and priorities (TeamManagementService.create_task / update_task: priority levels low/normal/high/urgent; statuses open/in_progress/completed/blocked/cancelled; assigned_to_member_id, workspace_id, due_date)
+- [x] **Workload balancing dashboard** — visualize who's overloaded, redistribute cases intelligently (TeamManagementService.get_workload_for_member counts active cases + open tasks + urgent tasks; get_firm_workload aggregates across all members for redistribution decisions)
+- [x] **Paralegal workflow queues** — structured task lists by role and priority (list_tasks filterable by assigned_to_member_id + status + workspace_id + firm_id; paralegal role gets case.view + case.update + document.view + document.upload + form.view + form.populate + time.log + task.update_own permissions)
+- [x] **Firm-wide case visibility** — partners see everything, associates see their cases, paralegals see assigned tasks (filter_visible_cases enforces case_visibility per role: admin/partner = "all" within firm, attorney/paralegal/legal_assistant/observer = "assigned" only)
 - [x] **Activity audit log** — track who did what, when, for compliance and accountability (PersistentStore.log + get_log: SQLite-backed append-only audit trail with namespace/actor/target/action filters; never updated, never deleted; survives process restarts; queryable via /api/audit-log/persistent and /api/audit-log/summary)
-- [ ] **Multi-office support** — firms with multiple locations can manage across offices
+- [x] **Multi-office support** — firms with multiple locations can manage across offices (TeamManagementService.add_office + Member.office_id; offices carry name/address/state per location)
 - [ ] **Immigration budgeting & planning tools** — help firms forecast immigration spend, case volume, and staffing needs
 
 **Conflict Check & Ethics Compliance** (legally required — no serious platform skips this)
@@ -464,7 +464,7 @@ Every verification step and safety check exists to protect everyone — attorney
 - [x] Global immigration endpoints
 - [x] HRIS integration endpoints
 - [ ] Authentication and authorization (JWT/OAuth)
-- [ ] Role-based access control (attorney, paralegal, admin, partner, applicant, employer)
+- [x] Role-based access control (attorney, paralegal, admin, partner, applicant, employer) (TeamManagementService — see RBAC entry above)
 - [ ] Applicant endpoints
 - [ ] Attorney endpoints
 - [ ] Attorney matching endpoints
@@ -480,7 +480,7 @@ Every verification step and safety check exists to protect everyone — attorney
 - [x] Conflict check endpoints (POST /api/conflict-check/check, ethics walls, audit log)
 - [ ] Template library endpoints
 - [x] Time tracking endpoints (15 endpoints under /api/time-tracking/* covering activity types, billing rate, timers (start/stop/active), entries (CRUD), workspace + attorney summaries, invoice generation + lookup)
-- [ ] Team management / task assignment endpoints
+- [x] Team management / task assignment endpoints (20+ endpoints under /api/team/* covering firms, members, custom roles, offices, tasks, workload aggregation; me/permissions returns the calling user's effective permission set)
 - [x] Mobile push notification service (NotificationService.emit dispatches to push channel via pluggable dispatcher; default stub for dev/test)
 - [x] Webhook system for real-time integrations (NotificationService outbound webhooks with HMAC-SHA256 signature in header; secrets rotateable per webhook; delivery log per webhook; subscribe to specific event types per firm)
 - [ ] Data migration / import endpoints (competitor platforms)
