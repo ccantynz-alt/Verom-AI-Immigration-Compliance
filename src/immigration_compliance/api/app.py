@@ -118,6 +118,7 @@ from immigration_compliance.services.soc_code_service import SocCodeService
 from immigration_compliance.services.document_qa_service import DocumentQAService
 from immigration_compliance.services.translation_service import TranslationService
 from immigration_compliance.services.time_tracking_service import TimeTrackingService
+from immigration_compliance.services.trust_accounting_service import TrustAccountingService
 from immigration_compliance.services.persistent_store_service import PersistentStore, get_default_store
 from immigration_compliance.services.storage_binding import bind_storage
 
@@ -208,6 +209,7 @@ soc_code_service = SocCodeService()
 document_qa = DocumentQAService()
 translation_service = TranslationService()
 time_tracking = TimeTrackingService(case_workspace=case_workspace)
+trust_accounting = TrustAccountingService()
 
 # Persistent store — reads VEROM_DB_PATH env var (default: verom_state.db). Set
 # VEROM_DISABLE_PERSISTENCE=1 to fall back to in-memory only.
@@ -3523,3 +3525,123 @@ def get_invoice(invoice_id: str, user: UserOut = Depends(require_role(UserRole.A
     if inv.get("attorney_id") and inv["attorney_id"] != user.id:
         raise HTTPException(status_code=403, detail="Access denied")
     return inv
+
+
+# =============================================
+# Trust Accounting (IOLTA) endpoints
+# =============================================
+
+class TrustAccountRegisterRequest(BaseModel):
+    firm_id: str
+    account_name: str
+    bank_name: str
+    account_number_last4: str
+    state: str
+    currency: str = "USD"
+
+class ClientLedgerOpenRequest(BaseModel):
+    client_id: str
+    client_name: str
+    workspace_id: str | None = None
+
+class TrustTransactionRequest(BaseModel):
+    client_id: str
+    kind: str
+    amount: float
+    description: str = ""
+    external_reference: str = ""
+    approved_by: str | None = None
+    reason: str | None = None
+
+class BankBalanceRequest(BaseModel):
+    balance: float
+    as_of: str | None = None
+
+@app.get("/api/trust-accounting/transaction-kinds")
+def list_trust_txn_kinds():
+    return TrustAccountingService.list_transaction_kinds()
+
+@app.post("/api/trust-accounting/accounts", status_code=201)
+def register_trust_account(req: TrustAccountRegisterRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return trust_accounting.register_account(
+        firm_id=req.firm_id, account_name=req.account_name,
+        bank_name=req.bank_name, account_number_last4=req.account_number_last4,
+        state=req.state, currency=req.currency,
+    )
+
+@app.get("/api/trust-accounting/accounts")
+def list_trust_accounts(firm_id: str | None = None, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return trust_accounting.list_accounts(firm_id=firm_id)
+
+@app.get("/api/trust-accounting/accounts/{account_id}")
+def get_trust_account(account_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    a = trust_accounting.get_account(account_id)
+    if a is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+    return a
+
+@app.post("/api/trust-accounting/accounts/{account_id}/client-ledgers", status_code=201)
+def open_client_ledger(account_id: str, req: ClientLedgerOpenRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return trust_accounting.open_client_ledger(account_id, req.client_id, req.client_name, req.workspace_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.get("/api/trust-accounting/accounts/{account_id}/client-ledgers")
+def list_client_ledgers(account_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return trust_accounting.list_client_ledgers(account_id)
+
+@app.get("/api/trust-accounting/accounts/{account_id}/client-ledgers/{client_id}")
+def get_client_ledger(account_id: str, client_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    l = trust_accounting.get_client_ledger(account_id, client_id)
+    if l is None:
+        raise HTTPException(status_code=404, detail="Client ledger not found")
+    return l
+
+@app.post("/api/trust-accounting/accounts/{account_id}/client-ledgers/{client_id}/close")
+def close_client_ledger(account_id: str, client_id: str, reason: str = "", user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return trust_accounting.close_client_ledger(account_id, client_id, reason=reason)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/trust-accounting/accounts/{account_id}/transactions", status_code=201)
+def post_trust_transaction(account_id: str, req: TrustTransactionRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return trust_accounting.post_transaction(
+            account_id=account_id, client_id=req.client_id, kind=req.kind,
+            amount=req.amount, description=req.description,
+            external_reference=req.external_reference,
+            approved_by=req.approved_by or user.id, reason=req.reason,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/trust-accounting/accounts/{account_id}/transactions")
+def list_trust_transactions(account_id: str, client_id: str | None = None, kind: str | None = None, since: str | None = None, until: str | None = None, limit: int = 200, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return trust_accounting.list_transactions(account_id=account_id, client_id=client_id, kind=kind, since=since, until=until, limit=limit)
+
+@app.post("/api/trust-accounting/accounts/{account_id}/bank-balance")
+def post_bank_balance(account_id: str, req: BankBalanceRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return trust_accounting.post_bank_balance(account_id, req.balance, as_of=req.as_of)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/trust-accounting/accounts/{account_id}/reconcile")
+def reconcile_trust_account(account_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return trust_accounting.reconcile(account_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.get("/api/trust-accounting/accounts/{account_id}/reconciliations")
+def list_reconciliations(account_id: str, limit: int = 50, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return trust_accounting.list_reconciliations(account_id=account_id, limit=limit)
+
+@app.get("/api/trust-accounting/accounts/{account_id}/client-ledgers/{client_id}/statement")
+def get_client_statement(account_id: str, client_id: str, since: str | None = None, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return trust_accounting.get_client_statement(account_id, client_id, since=since)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e

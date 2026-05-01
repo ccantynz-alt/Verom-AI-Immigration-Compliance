@@ -286,7 +286,7 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Lead-to-client conversion pipeline** — visual Kanban board from inquiry → consultation → retained → active case
 
 **Trust Accounting & Billing** (LollyLaw's #1 selling point — we must match it)
-- [ ] **Built-in IOLTA trust accounting** — three-way reconciliation (bank, trust ledger, client ledgers)
+- [x] **Built-in IOLTA trust accounting** — three-way reconciliation (bank, trust ledger, client ledgers) (TrustAccountingService: bar-required IOLTA implementation with deposit / invoice_payment / refund / disbursement / interest / adjustment / transfer transaction kinds; per-client sub-ledgers with overdraft prevention; refund/disbursement/adjustment require explicit reason; three-way reconciliation flags BANK_MISMATCH, TRUST_LEDGER_MISMATCH, NEGATIVE_CLIENT_LEDGER; client statements with date-ranged transaction history)
 - [ ] **Flat-fee billing with trust compliance** — auto-transfer from trust to operating when milestones hit
 - [ ] **Payment plan management** — recurring billing with automatic trust compliance tracking
 - [ ] **LawPay / Stripe Connect integration** — bar-compliant payment processing
@@ -471,7 +471,7 @@ Every verification step and safety check exists to protect everyone — attorney
 - [ ] Messaging system (secure, encrypted, per-case threads)
 - [ ] Payment processing integration (LawPay, Stripe Connect)
 - [ ] Multi-language content delivery
-- [ ] Trust accounting / IOLTA endpoints
+- [x] Trust accounting / IOLTA endpoints (15 endpoints under /api/trust-accounting/* covering accounts, client ledgers, transactions, bank balance posting, three-way reconciliation, and client statements)
 - [ ] CRM / lead management endpoints
 - [ ] Consultation scheduling endpoints
 - [ ] AI legal research endpoints
