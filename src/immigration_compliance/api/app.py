@@ -112,6 +112,7 @@ from immigration_compliance.services.regulatory_impact_service import Regulatory
 from immigration_compliance.services.migration_importer_service import MigrationImporterService
 from immigration_compliance.services.petition_letter_service import PetitionLetterService
 from immigration_compliance.services.rfe_response_service import RFEResponseService
+from immigration_compliance.services.persistent_store_service import PersistentStore, get_default_store
 
 # Resolve frontend directory
 _root = Path(__file__).resolve().parent.parent.parent.parent
@@ -194,6 +195,16 @@ regulatory_impact_engine = RegulatoryImpactService(case_workspace=case_workspace
 migration_importer = MigrationImporterService(case_workspace=case_workspace, intake_engine=intake_engine)
 petition_letter = PetitionLetterService(case_workspace=case_workspace, intake_engine=intake_engine, document_intake=document_intake)
 rfe_response = RFEResponseService(case_workspace=case_workspace, intake_engine=intake_engine, document_intake=document_intake)
+
+# Persistent store — reads VEROM_DB_PATH env var (default: verom_state.db). Set
+# VEROM_DISABLE_PERSISTENCE=1 to fall back to in-memory only.
+import os as _os  # noqa: E402
+persistent_store: PersistentStore | None = None
+if _os.environ.get("VEROM_DISABLE_PERSISTENCE") not in ("1", "true", "yes"):
+    try:
+        persistent_store = get_default_store()
+    except Exception:
+        persistent_store = None
 
 # Gap Closers — competitive response features
 hris_deep = HRISDeepService()
@@ -2990,3 +3001,39 @@ def get_rfe_response_review(draft_id: str, user: UserOut = Depends(get_current_u
     if ws is None or (ws["applicant_id"] != user.id and ws.get("attorney_id") != user.id):
         raise HTTPException(status_code=403, detail="Access denied")
     return PlainTextResponse(content=RFEResponseService.render_review_text(d))
+
+
+# =============================================
+# Storage / Audit Log endpoints
+# =============================================
+
+@app.get("/api/storage/namespaces")
+def list_storage_namespaces(user: UserOut = Depends(get_current_user)):
+    if persistent_store is None:
+        return {"persistence_enabled": False, "namespaces": []}
+    return {"persistence_enabled": True, "namespaces": persistent_store.list_namespaces()}
+
+@app.get("/api/audit-log/persistent")
+def get_persistent_audit_log(
+    namespace: str | None = None,
+    actor_id: str | None = None,
+    target_id: str | None = None,
+    action: str | None = None,
+    limit: int = 100,
+    user: UserOut = Depends(get_current_user),
+):
+    if persistent_store is None:
+        return {"persistence_enabled": False, "entries": []}
+    return {
+        "persistence_enabled": True,
+        "entries": persistent_store.get_log(
+            namespace=namespace, actor_id=actor_id, target_id=target_id,
+            action=action, limit=limit,
+        ),
+    }
+
+@app.get("/api/audit-log/summary")
+def get_persistent_audit_summary(user: UserOut = Depends(get_current_user)):
+    if persistent_store is None:
+        return {"persistence_enabled": False}
+    return {"persistence_enabled": True, **persistent_store.get_audit_summary()}

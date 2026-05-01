@@ -313,7 +313,7 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Workload balancing dashboard** — visualize who's overloaded, redistribute cases intelligently
 - [ ] **Paralegal workflow queues** — structured task lists by role and priority
 - [ ] **Firm-wide case visibility** — partners see everything, associates see their cases, paralegals see assigned tasks
-- [ ] **Activity audit log** — track who did what, when, for compliance and accountability
+- [x] **Activity audit log** — track who did what, when, for compliance and accountability (PersistentStore.log + get_log: SQLite-backed append-only audit trail with namespace/actor/target/action filters; never updated, never deleted; survives process restarts; queryable via /api/audit-log/persistent and /api/audit-log/summary)
 - [ ] **Multi-office support** — firms with multiple locations can manage across offices
 - [ ] **Immigration budgeting & planning tools** — help firms forecast immigration spend, case volume, and staffing needs
 
@@ -484,7 +484,7 @@ Every verification step and safety check exists to protect everyone — attorney
 - [ ] Mobile push notification service
 - [ ] Webhook system for real-time integrations
 - [ ] Data migration / import endpoints (competitor platforms)
-- [ ] Audit log system
+- [x] Audit log system (PersistentStore — SQLite-backed; see Activity audit log entry)
 
 ### Competitive Benchmarks
 Check these competitors quarterly and ensure we match or exceed:
