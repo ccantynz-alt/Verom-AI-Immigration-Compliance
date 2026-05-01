@@ -95,6 +95,10 @@ from immigration_compliance.services.benchmarking_service import BenchmarkingSer
 from immigration_compliance.services.flat_rate_service import FlatRateService
 from immigration_compliance.services.uscis_client_service import USCISClientService
 from immigration_compliance.services.crawler_service import CompetitiveCrawlerService
+from immigration_compliance.services.intake_engine_service import IntakeEngineService
+from immigration_compliance.services.rfe_predictor_service import RFEPredictorService
+from immigration_compliance.services.conflict_check_service import ConflictCheckService
+from immigration_compliance.services.onboarding_service import OnboardingService
 
 # Resolve frontend directory
 _root = Path(__file__).resolve().parent.parent.parent.parent
@@ -152,6 +156,12 @@ competitor_intel = CompetitorIntelService()
 
 # International Competitive Crawler
 crawler = CompetitiveCrawlerService()
+
+# Magical onboarding + AI intake engine
+intake_engine = IntakeEngineService()
+rfe_predictor = RFEPredictorService()
+conflict_check = ConflictCheckService()
+onboarding = OnboardingService()
 
 # Gap Closers — competitive response features
 hris_deep = HRISDeepService()
@@ -291,6 +301,14 @@ def serve_anti_fraud_policy() -> HTMLResponse:
 @app.get("/applicant-protection", response_class=HTMLResponse)
 def serve_applicant_protection() -> HTMLResponse:
     return _serve_html(_frontend_dir / "applicant-protection.html", "Applicant protection policy not found.")
+
+@app.get("/onboarding/applicant", response_class=HTMLResponse)
+def serve_onboarding_applicant() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "onboarding-applicant.html", "Applicant onboarding not found.")
+
+@app.get("/onboarding/attorney", response_class=HTMLResponse)
+def serve_onboarding_attorney() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "onboarding-attorney.html", "Attorney onboarding not found.")
 
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
@@ -1575,3 +1593,224 @@ def remove_from_crawler_watchlist(entity_id: str):
 @app.get("/api/crawler/feature-landscape")
 def get_feature_landscape():
     return crawler.get_feature_landscape()
+
+
+# =============================================
+# AI Intake Engine endpoints (magical onboarding heart)
+# =============================================
+
+class IntakeStartRequest(BaseModel):
+    visa_type: str
+
+class IntakeAnswersRequest(BaseModel):
+    answers: dict
+
+@app.get("/api/intake/visa-types")
+def list_intake_visa_types(country: str | None = None, family: str | None = None):
+    return intake_engine.list_visa_types(country=country, family=family)
+
+@app.get("/api/intake/visa-types/{visa_type}/questionnaire")
+def get_intake_questionnaire(visa_type: str):
+    try:
+        return intake_engine.get_questionnaire(visa_type)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/intake/sessions", status_code=201)
+def start_intake_session(req: IntakeStartRequest, user: UserOut = Depends(get_current_user)):
+    try:
+        return intake_engine.start_session(user.id, req.visa_type)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.get("/api/intake/sessions/{session_id}")
+def get_intake_session(session_id: str, user: UserOut = Depends(get_current_user)):
+    s = intake_engine.get_session(session_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if s["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return s
+
+@app.get("/api/intake/sessions")
+def list_intake_sessions(user: UserOut = Depends(get_current_user)):
+    return intake_engine.list_sessions(user.id)
+
+@app.post("/api/intake/sessions/{session_id}/answers")
+def submit_intake_answers(session_id: str, req: IntakeAnswersRequest, user: UserOut = Depends(get_current_user)):
+    s = intake_engine.get_session(session_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if s["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    try:
+        return intake_engine.submit_answers(session_id, req.answers)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/intake/validate")
+def validate_intake(visa_type: str, answers: dict):
+    try:
+        return intake_engine.validate_answers(visa_type, answers)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/intake/document-checklist")
+def get_intake_document_checklist(visa_type: str, answers: dict | None = None):
+    try:
+        return intake_engine.get_document_checklist(visa_type, answers or {})
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/intake/score-strength")
+def score_intake_strength(visa_type: str, answers: dict):
+    try:
+        return intake_engine.score_strength(visa_type, answers)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/intake/red-flags")
+def detect_intake_red_flags(visa_type: str, answers: dict, applicant: dict | None = None):
+    return intake_engine.detect_red_flags(visa_type, answers, applicant)
+
+@app.get("/api/intake/sessions/{session_id}/summary")
+def get_intake_summary(session_id: str, user: UserOut = Depends(get_current_user)):
+    s = intake_engine.get_session(session_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if s["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return intake_engine.get_intake_summary(session_id)
+
+
+# =============================================
+# RFE Predictor endpoints
+# =============================================
+
+class RFEPredictRequest(BaseModel):
+    visa_type: str
+    case_profile: dict
+
+@app.post("/api/rfe-predictor/predict")
+def predict_rfe(req: RFEPredictRequest):
+    return rfe_predictor.predict(req.visa_type, req.case_profile)
+
+@app.get("/api/rfe-predictor/triggers/{visa_type}")
+def list_rfe_triggers(visa_type: str):
+    return rfe_predictor.list_known_triggers(visa_type)
+
+@app.get("/api/rfe-predictor/baselines")
+def get_rfe_baselines():
+    return rfe_predictor.get_industry_baselines()
+
+
+# =============================================
+# Conflict-of-Interest Check endpoints
+# =============================================
+
+class ConflictCheckRequest(BaseModel):
+    prospect: dict
+    firm_id: str | None = None
+
+class EthicsWallRequest(BaseModel):
+    case_id: str
+    walled_off_user_ids: list[str]
+    reason: str
+
+@app.post("/api/conflict-check/clients")
+def register_conflict_client(client: dict):
+    return conflict_check.register_client(client)
+
+@app.post("/api/conflict-check/cases")
+def register_conflict_case(case: dict):
+    return conflict_check.register_case(case)
+
+@app.get("/api/conflict-check/clients")
+def list_conflict_clients(attorney_id: str | None = None, firm_id: str | None = None):
+    return conflict_check.list_clients(attorney_id=attorney_id, firm_id=firm_id)
+
+@app.get("/api/conflict-check/cases")
+def list_conflict_cases(attorney_id: str | None = None, firm_id: str | None = None):
+    return conflict_check.list_cases(attorney_id=attorney_id, firm_id=firm_id)
+
+@app.post("/api/conflict-check/check")
+def run_conflict_check(req: ConflictCheckRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return conflict_check.check_new_case(req.prospect, attorney_id=user.id, firm_id=req.firm_id)
+
+@app.get("/api/conflict-check/log")
+def get_conflict_log(attorney_id: str | None = None, firm_id: str | None = None, limit: int = 100):
+    return conflict_check.get_check_log(attorney_id=attorney_id, firm_id=firm_id, limit=limit)
+
+@app.get("/api/conflict-check/audit-summary")
+def get_conflict_audit_summary():
+    return conflict_check.get_audit_summary()
+
+@app.post("/api/conflict-check/walls")
+def create_ethics_wall(req: EthicsWallRequest):
+    return conflict_check.create_ethics_wall(req.case_id, req.walled_off_user_ids, req.reason)
+
+@app.get("/api/conflict-check/walls")
+def list_ethics_walls(case_id: str | None = None):
+    return conflict_check.list_ethics_walls(case_id=case_id)
+
+@app.delete("/api/conflict-check/walls/{wall_id}", status_code=204)
+def deactivate_ethics_wall(wall_id: str):
+    if conflict_check.deactivate_ethics_wall(wall_id) is None:
+        raise HTTPException(status_code=404, detail="Wall not found")
+
+
+# =============================================
+# Magical Onboarding endpoints
+# =============================================
+
+class OnboardingStepRequest(BaseModel):
+    step_name: str
+    data: dict
+
+@app.post("/api/onboarding/applicant/start", status_code=201)
+def start_applicant_onboarding(user: UserOut = Depends(get_current_user)):
+    return onboarding.start_applicant_onboarding(user.id)
+
+@app.post("/api/onboarding/attorney/start", status_code=201)
+def start_attorney_onboarding(user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return onboarding.start_attorney_onboarding(user.id)
+
+@app.get("/api/onboarding/sessions/{session_id}")
+def get_onboarding_session(session_id: str, user: UserOut = Depends(get_current_user)):
+    s = onboarding.get_session(session_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if s["user_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return s
+
+@app.get("/api/onboarding/me")
+def get_my_onboarding(user: UserOut = Depends(get_current_user)):
+    role = "attorney" if user.role == UserRole.ATTORNEY else "applicant"
+    s = onboarding.get_session_for_user(user.id, role)
+    if s is None:
+        if role == "attorney":
+            return onboarding.start_attorney_onboarding(user.id)
+        return onboarding.start_applicant_onboarding(user.id)
+    return s
+
+@app.post("/api/onboarding/sessions/{session_id}/steps")
+def submit_onboarding_step(session_id: str, req: OnboardingStepRequest, user: UserOut = Depends(get_current_user)):
+    s = onboarding.get_session(session_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if s["user_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    try:
+        return onboarding.submit_step(session_id, req.step_name, req.data)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.delete("/api/onboarding/sessions/{session_id}/steps/{step_name}")
+def reset_onboarding_step(session_id: str, step_name: str, user: UserOut = Depends(get_current_user)):
+    s = onboarding.get_session(session_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if s["user_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return onboarding.reset_step(session_id, step_name)

@@ -175,15 +175,15 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [x] Import existing caseload — bulk CSV/Excel upload of current cases and clients
 
 **Client Intake Automation** (biggest pain point — firms spend days on intake)
-- [ ] **AI-powered client intake** — dynamic questionnaires that adapt by visa type and status
+- [x] **AI-powered client intake** — dynamic questionnaires that adapt by visa type and status (12 visa types across US/UK/CA/AU/DE/NZ via IntakeEngineService)
 - [ ] **Multi-language intake forms** — clients fill out in their language, attorney sees English
 - [ ] **Document collection portal** — clients upload docs via secure link, AI validates completeness
 - [ ] **AI document scanning & OCR** — scan physical documents, passports, I-94s, approval notices
 - [ ] **Photo/document quality checker** — rejects blurry scans, wrong formats before submission
 - [ ] **Smart form auto-population** — intake answers pre-fill USCIS/government forms automatically
-- [ ] **Intake-to-case pipeline** — completed intake flows directly into case file, zero re-entry
+- [x] **Intake-to-case pipeline** — completed intake flows directly into case file, zero re-entry (IntakeEngineService session → case)
 - [ ] **Automatic family member profile creation** — intake data auto-creates linked profiles for spouse, children, parents with relationship mapping
-- [ ] **Conditional logic questionnaires** — questions adapt based on previous answers, visa type, and immigration status
+- [x] **Conditional logic questionnaires** — questions adapt based on previous answers, visa type, and immigration status (rules-based engine with eligibility validation, document conditional inclusion, and red-flag detection)
 
 **Case Management**
 - [ ] Case dashboard — all cases, statuses, next actions in one view
@@ -441,7 +441,7 @@ Every verification step and safety check exists to protect everyone — attorney
 - [ ] **AI document drafting engine** — cover letters, briefs, RFE responses, support letters
 - [ ] **Case outcome prediction model** — approval probability by visa type, service center, case characteristics
 - [ ] **Priority date forecasting model** — predict Visa Bulletin movement based on historical data
-- [ ] **RFE risk assessment** — flag potential RFE triggers before filing
+- [x] **RFE risk assessment** — flag potential RFE triggers before filing (RFEPredictorService with hand-curated trigger library + post-mitigation risk reduction estimates)
 - [ ] **Processing time prediction** — estimate decision timeline by form type and service center
 - [ ] **Policy change impact engine** — when new guidance drops, auto-flag affected active cases
 - [ ] **Smart form auto-population engine** — single intake → populate all required government forms
@@ -450,7 +450,7 @@ Every verification step and safety check exists to protect everyone — attorney
 - [ ] **Conflict detection AI** — flag discrepancies between extracted document data and existing database records
 - [ ] **Document Q&A engine** — upload RFEs, decisions, notices — chat with them in natural language
 - [ ] **Translation engine** — client-facing content translation with legal disclaimers
-- [ ] **Conflict of interest detection** — cross-reference new clients against existing case database
+- [x] **Conflict of interest detection** — cross-reference new clients against existing case database (ConflictCheckService — Model Rule 1.7/1.9/1.10 coverage, adverse-party detection, ethics walls)
 
 #### Backend / API
 - [x] FastAPI application
@@ -477,7 +477,7 @@ Every verification step and safety check exists to protect everyone — attorney
 - [ ] AI legal research endpoints
 - [ ] AI document drafting endpoints
 - [ ] Government e-filing proxy endpoints (USCIS, DOL FLAG, EOIR ECAS)
-- [ ] Conflict check endpoints
+- [x] Conflict check endpoints (POST /api/conflict-check/check, ethics walls, audit log)
 - [ ] Template library endpoints
 - [ ] Time tracking endpoints
 - [ ] Team management / task assignment endpoints
