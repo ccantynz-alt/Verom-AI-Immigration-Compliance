@@ -116,6 +116,7 @@ from immigration_compliance.services.support_letter_service import SupportLetter
 from immigration_compliance.services.completeness_scorer_service import CompletenessScorerService
 from immigration_compliance.services.soc_code_service import SocCodeService
 from immigration_compliance.services.document_qa_service import DocumentQAService
+from immigration_compliance.services.translation_service import TranslationService
 from immigration_compliance.services.persistent_store_service import PersistentStore, get_default_store
 from immigration_compliance.services.storage_binding import bind_storage
 
@@ -204,6 +205,7 @@ support_letter = SupportLetterService(case_workspace=case_workspace, intake_engi
 completeness_scorer = CompletenessScorerService(case_workspace=case_workspace, intake_engine=intake_engine, document_intake=document_intake)
 soc_code_service = SocCodeService()
 document_qa = DocumentQAService()
+translation_service = TranslationService()
 
 # Persistent store — reads VEROM_DB_PATH env var (default: verom_state.db). Set
 # VEROM_DISABLE_PERSISTENCE=1 to fall back to in-memory only.
@@ -3335,3 +3337,45 @@ def get_qa_history(doc_id: str, limit: int = 100, user: UserOut = Depends(get_cu
     if d.get("uploader_id") and d["uploader_id"] != user.id:
         raise HTTPException(status_code=403, detail="Access denied")
     return document_qa.get_history(doc_id, limit=limit)
+
+
+# =============================================
+# Translation Service endpoints
+# =============================================
+
+class TranslateMessageRequest(BaseModel):
+    text: str
+    source_lang: str = "en"
+    target_lang: str
+    include_disclaimer: bool = True
+
+@app.get("/api/translation/languages")
+def list_translation_languages():
+    return TranslationService.list_supported_languages()
+
+@app.get("/api/translation/disclaimers")
+def list_translation_disclaimers():
+    return TranslationService.list_disclaimers()
+
+@app.get("/api/translation/ui-keys")
+def list_translation_ui_keys():
+    return TranslationService.list_ui_keys()
+
+@app.get("/api/translation/ui-strings/{lang}")
+def get_ui_strings(lang: str):
+    try:
+        return TranslationService.get_ui_strings(lang)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/translation/translate")
+def translate_message(req: TranslateMessageRequest):
+    try:
+        return translation_service.translate_message(
+            text=req.text,
+            source_lang=req.source_lang,
+            target_lang=req.target_lang,
+            include_disclaimer=req.include_disclaimer,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e

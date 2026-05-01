@@ -176,7 +176,7 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 
 **Client Intake Automation** (biggest pain point — firms spend days on intake)
 - [x] **AI-powered client intake** — dynamic questionnaires that adapt by visa type and status (12 visa types across US/UK/CA/AU/DE/NZ via IntakeEngineService)
-- [ ] **Multi-language intake forms** — clients fill out in their language, attorney sees English
+- [x] **Multi-language intake forms** — clients fill out in their language, attorney sees English (TranslationService UI strings library covers 51 keys × 7 languages — English, Mandarin, Spanish, Hindi, Arabic, French, Portuguese; /api/translation/ui-strings/{lang} loads at page boot; legal record always remains English)
 - [x] **Document collection portal** — clients upload docs via secure link, AI validates completeness (DocumentIntakeService + /intake/documents page: drag-drop upload, classification, quality + validation, real-time completeness vs the intake checklist, extracted-data conflict detection)
 - [ ] **AI document scanning & OCR** — scan physical documents, passports, I-94s, approval notices
 - [x] **Photo/document quality checker** — rejects blurry scans, wrong formats before submission (DocumentIntakeService quality stage: format/size/DPI/page-count gating with actionable recommendations)
@@ -216,7 +216,7 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [x] **Automated client status updates** — clients get progress notifications without attorney effort (CaseWorkspaceService timeline + chatbot status answers grounded in workspace state)
 - [x] **Secure client portal** — clients check their own case status, upload docs, see next steps (/applicant + /case + /intake/documents pages, all auth-gated and snapshot-driven)
 - [ ] **Automated email/SMS sequences** — document reminders, appointment confirmations, status changes
-- [ ] **AI-translated client messages** — attorney writes in English, client reads in their language (with disclaimer)
+- [x] **AI-translated client messages** — attorney writes in English, client reads in their language (with disclaimer) (TranslationService.translate_attorney_to_client + translate_client_to_attorney with auto-attached disclaimer in target language; LLM provider boundary stable — drop in DeepL / Google Translate / Anthropic; English remains the legal record per language strategy)
 - [x] **AI client chatbot** — instant answers to common client questions (case status, next steps, document requirements) without attorney effort (ClientChatbotService: 12-intent rules-based classifier; answers ONLY from real workspace state with `grounded_in` field references — no hallucination; auto-handoff to attorney for low-confidence questions; attorney takeover/release for direct conversation; conversation persistence per workspace)
 - [ ] **WhatsApp integration** — communicate with international clients during consular processing via WhatsApp
 
@@ -449,7 +449,7 @@ Every verification step and safety check exists to protect everyone — attorney
 - [ ] **170-language OCR extraction** — extract data from documents in any language (match Filevine's bar)
 - [x] **Conflict detection AI** — flag discrepancies between extracted document data and existing database records (DocumentIntakeService.reconcile_against_checklist surfaces NAME_MISMATCH and other extracted-vs-intake conflicts; runs every reconcile cycle on the document collection page)
 - [x] **Document Q&A engine** — upload RFEs, decisions, notices — chat with them in natural language (DocumentQAService — see Document Q&A entry above)
-- [ ] **Translation engine** — client-facing content translation with legal disclaimers
+- [x] **Translation engine** — client-facing content translation with legal disclaimers (TranslationService — see Multi-language intake forms + AI-translated client messages)
 - [x] **Conflict of interest detection** — cross-reference new clients against existing case database (ConflictCheckService — Model Rule 1.7/1.9/1.10 coverage, adverse-party detection, ethics walls)
 
 #### Backend / API
