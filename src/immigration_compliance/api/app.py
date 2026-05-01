@@ -114,6 +114,7 @@ from immigration_compliance.services.petition_letter_service import PetitionLett
 from immigration_compliance.services.rfe_response_service import RFEResponseService
 from immigration_compliance.services.support_letter_service import SupportLetterService
 from immigration_compliance.services.completeness_scorer_service import CompletenessScorerService
+from immigration_compliance.services.soc_code_service import SocCodeService
 from immigration_compliance.services.persistent_store_service import PersistentStore, get_default_store
 from immigration_compliance.services.storage_binding import bind_storage
 
@@ -200,6 +201,7 @@ petition_letter = PetitionLetterService(case_workspace=case_workspace, intake_en
 rfe_response = RFEResponseService(case_workspace=case_workspace, intake_engine=intake_engine, document_intake=document_intake)
 support_letter = SupportLetterService(case_workspace=case_workspace, intake_engine=intake_engine, document_intake=document_intake)
 completeness_scorer = CompletenessScorerService(case_workspace=case_workspace, intake_engine=intake_engine, document_intake=document_intake)
+soc_code_service = SocCodeService()
 
 # Persistent store — reads VEROM_DB_PATH env var (default: verom_state.db). Set
 # VEROM_DISABLE_PERSISTENCE=1 to fall back to in-memory only.
@@ -3235,3 +3237,38 @@ def get_completeness_report(report_id: str, user: UserOut = Depends(get_current_
     if ws is None or (ws["applicant_id"] != user.id and ws.get("attorney_id") != user.id):
         raise HTTPException(status_code=403, detail="Access denied")
     return r
+
+
+# =============================================
+# SOC Code Selection endpoints
+# =============================================
+
+class SocRecommendRequest(BaseModel):
+    job_title: str
+    duties: str = ""
+    skills: list[str] | None = None
+    prefer_managerial: bool = False
+    prefer_research: bool = False
+    limit: int = 5
+
+@app.get("/api/soc-codes/catalog")
+def list_soc_catalog(search: str | None = None, limit: int = 100):
+    return SocCodeService.list_catalog(limit=limit, search=search)
+
+@app.get("/api/soc-codes/{soc_code}")
+def get_soc_entry(soc_code: str):
+    e = SocCodeService.get_by_code(soc_code)
+    if e is None:
+        raise HTTPException(status_code=404, detail="SOC code not found")
+    return e
+
+@app.post("/api/soc-codes/recommend")
+def recommend_soc_codes(req: SocRecommendRequest):
+    return soc_code_service.recommend(
+        job_title=req.job_title,
+        duties=req.duties,
+        skills=req.skills or [],
+        prefer_managerial=req.prefer_managerial,
+        prefer_research=req.prefer_research,
+        limit=req.limit,
+    )
