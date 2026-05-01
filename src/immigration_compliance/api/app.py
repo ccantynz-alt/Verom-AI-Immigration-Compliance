@@ -108,6 +108,7 @@ from immigration_compliance.services.calendar_sync_service import CalendarSyncSe
 from immigration_compliance.services.client_chatbot_service import ClientChatbotService
 from immigration_compliance.services.family_bundle_service import FamilyBundleService
 from immigration_compliance.services.packet_assembly_service import PacketAssemblyService
+from immigration_compliance.services.regulatory_impact_service import RegulatoryImpactService
 
 # Resolve frontend directory
 _root = Path(__file__).resolve().parent.parent.parent.parent
@@ -186,6 +187,7 @@ calendar_sync = CalendarSyncService(case_workspace=case_workspace)
 client_chatbot = ClientChatbotService(case_workspace=case_workspace)
 family_bundle = FamilyBundleService(case_workspace=case_workspace, intake_engine=intake_engine)
 packet_assembly = PacketAssemblyService(case_workspace=case_workspace, document_intake=document_intake, form_population=form_population)
+regulatory_impact_engine = RegulatoryImpactService(case_workspace=case_workspace)
 
 # Gap Closers — competitive response features
 hris_deep = HRISDeepService()
@@ -2697,3 +2699,75 @@ def get_packet_pdf(packet_id: str, user: UserOut = Depends(get_current_user)):
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="verom-packet-{packet_id[:8]}.pdf"'},
     )
+
+
+# =============================================
+# Regulatory Impact Hook endpoints
+# =============================================
+
+class RegulatoryEventIngest(BaseModel):
+    title: str
+    kind: str
+    impact_predicate: dict
+    severity: str = "advisory"
+    source: str = "manual"
+    effective_date: str | None = None
+    summary: str = ""
+    client_notification_template: str = ""
+    attorney_action_template: str = ""
+    link: str = ""
+
+@app.get("/api/regulatory-impact/event-kinds")
+def get_regulatory_event_kinds():
+    return {"kinds": RegulatoryImpactService.list_event_kinds(), "severities": RegulatoryImpactService.list_severity_levels()}
+
+@app.post("/api/regulatory-impact/events", status_code=201)
+def ingest_regulatory_event(req: RegulatoryEventIngest, user: UserOut = Depends(get_current_user)):
+    try:
+        return regulatory_impact_engine.ingest_event(
+            title=req.title,
+            kind=req.kind,
+            impact_predicate=req.impact_predicate,
+            severity=req.severity,
+            source=req.source,
+            effective_date=req.effective_date,
+            summary=req.summary,
+            client_notification_template=req.client_notification_template,
+            attorney_action_template=req.attorney_action_template,
+            link=req.link,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/regulatory-impact/events")
+def list_regulatory_events(kind: str | None = None, severity: str | None = None):
+    return regulatory_impact_engine.list_events(kind=kind, severity=severity)
+
+@app.get("/api/regulatory-impact/events/{event_id}")
+def get_regulatory_event(event_id: str):
+    e = regulatory_impact_engine.get_event(event_id)
+    if e is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return e
+
+@app.post("/api/regulatory-impact/events/{event_id}/analyze")
+def analyze_regulatory_event(event_id: str, only_active: bool = True, user: UserOut = Depends(get_current_user)):
+    try:
+        return regulatory_impact_engine.analyze_event(event_id, only_active=only_active)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+@app.get("/api/regulatory-impact/reports")
+def list_regulatory_reports(user: UserOut = Depends(get_current_user)):
+    if user.role == UserRole.ATTORNEY:
+        return regulatory_impact_engine.list_reports(attorney_id=user.id)
+    return regulatory_impact_engine.list_reports(applicant_id=user.id)
+
+@app.get("/api/regulatory-impact/reports/{report_id}")
+def get_regulatory_report(report_id: str, user: UserOut = Depends(get_current_user)):
+    r = regulatory_impact_engine.get_report(report_id)
+    if r is None:
+        raise HTTPException(status_code=404, detail="Report not found")
+    return r

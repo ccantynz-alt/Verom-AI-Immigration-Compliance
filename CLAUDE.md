@@ -274,7 +274,7 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **AI support letter generation** — auto-draft employer support letters, expert opinion letters from case data
 - [ ] **Bulk letter generation** — produce multiple reference letters and expert opinion letters at once from templates
 - [ ] **AI redrafting** — refine individual sections or regenerate entire drafts with targeted feedback
-- [ ] **Policy change impact analyzer** — when a new policy memo drops, AI flags which active cases are affected
+- [x] **Policy change impact analyzer** — when a new policy memo drops, AI flags which active cases are affected (RegulatoryImpactService: structured predicate DSL with all_of/any_of/not compound logic over snapshot fields; analyze_event walks every active workspace, returns per-case evidence + draft client notification + attorney action; supports 8 event kinds and 4 severity levels)
 
 **CRM & Lead Management** (no competitor combines CRM + case management this well)
 - [ ] **Website lead capture forms** — embeddable on attorney's own website, leads flow into pipeline
@@ -443,7 +443,7 @@ Every verification step and safety check exists to protect everyone — attorney
 - [ ] **Priority date forecasting model** — predict Visa Bulletin movement based on historical data
 - [x] **RFE risk assessment** — flag potential RFE triggers before filing (RFEPredictorService with hand-curated trigger library + post-mitigation risk reduction estimates)
 - [ ] **Processing time prediction** — estimate decision timeline by form type and service center
-- [ ] **Policy change impact engine** — when new guidance drops, auto-flag affected active cases
+- [x] **Policy change impact engine** — when new guidance drops, auto-flag affected active cases (RegulatoryImpactService — see Government Portal section)
 - [x] **Smart form auto-population engine** — single intake → populate all required government forms (FormPopulationService — see Phase A workload tools)
 - [x] **Document classification AI** — auto-categorize uploaded documents by type (passport, I-94, pay stub, etc.) — DocumentIntakeService classify stage covers 24 document types via declared-type override + filename heuristics; pluggable for Textract / Google DocAI / Azure Form Recognizer at the `_classify` and `_extract` boundaries
 - [ ] **170-language OCR extraction** — extract data from documents in any language (match Filevine's bar)
