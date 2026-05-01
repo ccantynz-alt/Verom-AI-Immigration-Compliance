@@ -182,7 +182,7 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [x] **Photo/document quality checker** — rejects blurry scans, wrong formats before submission (DocumentIntakeService quality stage: format/size/DPI/page-count gating with actionable recommendations)
 - [x] **Smart form auto-population** — intake answers pre-fill USCIS/government forms automatically (FormPopulationService: 7-form schema registry covering G-28/I-129/I-130/I-485/I-765/I-131/DS-160 with field-level provenance — every value carries its source identifier and confidence; populate-bundle endpoint generates all forms for a visa type in one call)
 - [x] **Intake-to-case pipeline** — completed intake flows directly into case file, zero re-entry (IntakeEngineService session → case)
-- [ ] **Automatic family member profile creation** — intake data auto-creates linked profiles for spouse, children, parents with relationship mapping
+- [x] **Automatic family member profile creation** — intake data auto-creates linked profiles for spouse, children, parents with relationship mapping (FamilyBundleService: 13 derivative-rule combinations covering H-1B/L-1/O-1/F-1/J-1/I-130/I-485 with derivative-visa mapping per relationship; auto-creates derivative workspace + derived intake session inheriting principal's address/employer/sponsor while clearing identity fields; surfaces age-cap warnings and CSPA flags)
 - [x] **Conditional logic questionnaires** — questions adapt based on previous answers, visa type, and immigration status (rules-based engine with eligibility validation, document conditional inclusion, and red-flag detection)
 
 **Case Management**
@@ -196,7 +196,7 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [x] **Bi-directional form sync** — change data in a form, it updates the client profile; change the profile, all forms update automatically (PATCH /api/forms/records/{id}/fields with provenance log + manual_overridden flag; re-running populate from a session re-pulls latest source values)
 - [x] **Auto-fill empty fields with N/A** — per USCIS guidelines, auto-populate blank fields to prevent rejection (empty_field_default in FormPopulationService.populate)
 - [ ] **350+ government forms library** — always-updated, pre-formatted immigration forms (SLA: updated within 1 hour of official USCIS release)
-- [ ] **Batch form generation** — family-based cases generate all related forms at once
+- [x] **Batch form generation** — family-based cases generate all related forms at once (FamilyBundleService.list_required_forms_for_bundle aggregates principal + derivative + EAD + Advance Parole forms across the family; FormPopulationService.populate_bundle generates them per workspace)
 - [ ] **Real-time collaborative form editing** — attorney and client simultaneously edit the same form with live chat (LollyForms-killer)
 - [ ] **H-1B electronic registration module** — dedicated workflow for H-1B lottery registration and selection tracking
 - [ ] **SOC code selection engine** — AI analyzes job descriptions to recommend correct SOC codes for labor certifications
@@ -324,7 +324,7 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Conflict check audit trail** — maintain records for bar compliance and malpractice insurance
 
 **Case Intelligence & Prediction** (our AI moat — nobody does this well yet)
-- [ ] **Family relationship mapping** — visualize petitioner, beneficiary, derivative beneficiaries, dependencies
+- [x] **Family relationship mapping** — visualize petitioner, beneficiary, derivative beneficiaries, dependencies (FamilyBundleService bundle structure: principal_workspace_id + members[] with relationship + derivative_workspace_id; get_bundle_for_workspace lookup goes both directions)
 - [ ] **Case dependency tracking** — "this I-485 can't file until this I-140 is approved"
 - [ ] **Priority date forecasting** — AI predicts when priority dates will become current based on historical Visa Bulletin trends
 - [ ] **Case outcome prediction** — "cases like this have X% approval rate at Y service center" (with disclaimers)

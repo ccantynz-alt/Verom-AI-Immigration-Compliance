@@ -106,6 +106,7 @@ from immigration_compliance.services.form_population_service import FormPopulati
 from immigration_compliance.services.case_workspace_service import CaseWorkspaceService
 from immigration_compliance.services.calendar_sync_service import CalendarSyncService
 from immigration_compliance.services.client_chatbot_service import ClientChatbotService
+from immigration_compliance.services.family_bundle_service import FamilyBundleService
 
 # Resolve frontend directory
 _root = Path(__file__).resolve().parent.parent.parent.parent
@@ -182,6 +183,7 @@ case_workspace = CaseWorkspaceService(
 )
 calendar_sync = CalendarSyncService(case_workspace=case_workspace)
 client_chatbot = ClientChatbotService(case_workspace=case_workspace)
+family_bundle = FamilyBundleService(case_workspace=case_workspace, intake_engine=intake_engine)
 
 # Gap Closers — competitive response features
 hris_deep = HRISDeepService()
@@ -2533,3 +2535,93 @@ def resolve_chatbot_handoff(handoff_id: str, req: ChatbotResolveHandoffRequest, 
     if result is None:
         raise HTTPException(status_code=404, detail="Handoff not found")
     return result
+
+
+# =============================================
+# Family Bundle Engine endpoints
+# =============================================
+
+class BundleCreateRequest(BaseModel):
+    principal_workspace_id: str
+    principal_visa_type: str
+    label: str = ""
+
+class BundleAddDependentRequest(BaseModel):
+    relationship: str
+    first_name: str
+    last_name: str
+    dob: str
+    country: str = ""
+    notes: str = ""
+
+@app.get("/api/family-bundles/combinations")
+def list_bundle_combinations():
+    return FamilyBundleService.list_supported_combinations()
+
+@app.post("/api/family-bundles", status_code=201)
+def create_family_bundle(req: BundleCreateRequest, user: UserOut = Depends(get_current_user)):
+    ws = case_workspace.get_workspace(req.principal_workspace_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail="Principal workspace not found")
+    if ws["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Only the applicant can create a family bundle")
+    return family_bundle.create_bundle(
+        applicant_id=user.id,
+        principal_workspace_id=req.principal_workspace_id,
+        principal_visa_type=req.principal_visa_type,
+        label=req.label,
+    )
+
+@app.get("/api/family-bundles")
+def list_family_bundles(user: UserOut = Depends(get_current_user)):
+    return family_bundle.list_bundles(applicant_id=user.id)
+
+@app.get("/api/family-bundles/{bundle_id}")
+def get_family_bundle(bundle_id: str, user: UserOut = Depends(get_current_user)):
+    b = family_bundle.get_bundle(bundle_id)
+    if b is None:
+        raise HTTPException(status_code=404, detail="Bundle not found")
+    if b["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return b
+
+@app.get("/api/family-bundles/{bundle_id}/snapshot")
+def get_family_bundle_snapshot(bundle_id: str, user: UserOut = Depends(get_current_user)):
+    b = family_bundle.get_bundle(bundle_id)
+    if b is None:
+        raise HTTPException(status_code=404, detail="Bundle not found")
+    if b["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return family_bundle.get_bundle_snapshot(bundle_id)
+
+@app.post("/api/family-bundles/{bundle_id}/dependents", status_code=201)
+def add_family_dependent(bundle_id: str, req: BundleAddDependentRequest, user: UserOut = Depends(get_current_user)):
+    b = family_bundle.get_bundle(bundle_id)
+    if b is None:
+        raise HTTPException(status_code=404, detail="Bundle not found")
+    if b["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    try:
+        return family_bundle.add_dependent(
+            bundle_id=bundle_id,
+            relationship=req.relationship,
+            first_name=req.first_name,
+            last_name=req.last_name,
+            dob=req.dob,
+            country=req.country,
+            notes=req.notes,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/family-bundles/{bundle_id}/forms")
+def list_family_bundle_forms(bundle_id: str, user: UserOut = Depends(get_current_user)):
+    b = family_bundle.get_bundle(bundle_id)
+    if b is None:
+        raise HTTPException(status_code=404, detail="Bundle not found")
+    if b["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    try:
+        return family_bundle.list_required_forms_for_bundle(bundle_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
