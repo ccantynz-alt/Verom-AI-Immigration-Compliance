@@ -351,9 +351,9 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Offline mode** — view case details and notes without internet, sync when connected
 
 **Competitor Migration & Onboarding** (remove every barrier to switching)
-- [ ] **One-click data migration** — import from Docketwise, INSZoom, LollyLaw, Clio, eImmigration
-- [ ] **Smart CSV/Excel field mapping** — AI maps imported columns to our data model automatically
-- [ ] **"Switch in a weekend" migration wizard** — guided step-by-step data import with validation
+- [x] **One-click data migration** — import from Docketwise, INSZoom, LollyLaw, Clio, eImmigration (MigrationImporterService: 5 competitor profiles with auto-detection from CSV header signatures; per-profile field maps + value transforms; idempotent re-runs via row hashing)
+- [x] **Smart CSV/Excel field mapping** — AI maps imported columns to our data model automatically (data-driven field_map per profile + value_transforms; auto-detection picks the right profile when headers match the signature, no manual selection needed)
+- [x] **"Switch in a weekend" migration wizard** — guided step-by-step data import with validation (preview / dry_run / import endpoints with row-by-row validation + duplicate detection + skipped reasons in the report)
 - [ ] **White-glove onboarding assistance** — free migration support for firms switching from competitors
 - [ ] **Parallel run mode** — run both systems simultaneously during transition, compare outputs
 

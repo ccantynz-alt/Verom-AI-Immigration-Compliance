@@ -109,6 +109,7 @@ from immigration_compliance.services.client_chatbot_service import ClientChatbot
 from immigration_compliance.services.family_bundle_service import FamilyBundleService
 from immigration_compliance.services.packet_assembly_service import PacketAssemblyService
 from immigration_compliance.services.regulatory_impact_service import RegulatoryImpactService
+from immigration_compliance.services.migration_importer_service import MigrationImporterService
 
 # Resolve frontend directory
 _root = Path(__file__).resolve().parent.parent.parent.parent
@@ -188,6 +189,7 @@ client_chatbot = ClientChatbotService(case_workspace=case_workspace)
 family_bundle = FamilyBundleService(case_workspace=case_workspace, intake_engine=intake_engine)
 packet_assembly = PacketAssemblyService(case_workspace=case_workspace, document_intake=document_intake, form_population=form_population)
 regulatory_impact_engine = RegulatoryImpactService(case_workspace=case_workspace)
+migration_importer = MigrationImporterService(case_workspace=case_workspace, intake_engine=intake_engine)
 
 # Gap Closers — competitive response features
 hris_deep = HRISDeepService()
@@ -2770,4 +2772,55 @@ def get_regulatory_report(report_id: str, user: UserOut = Depends(get_current_us
     r = regulatory_impact_engine.get_report(report_id)
     if r is None:
         raise HTTPException(status_code=404, detail="Report not found")
+    return r
+
+
+# =============================================
+# Migration Importer endpoints
+# =============================================
+
+class MigrationPreviewRequest(BaseModel):
+    csv_text: str
+    profile_id: str | None = None
+
+class MigrationImportRequest(BaseModel):
+    csv_text: str
+    profile_id: str | None = None
+    dry_run: bool = False
+
+@app.get("/api/migration-importer/profiles")
+def list_migration_profiles():
+    return MigrationImporterService.list_profiles()
+
+@app.get("/api/migration-importer/profiles/{profile_id}")
+def get_migration_profile(profile_id: str):
+    p = MigrationImporterService.get_profile(profile_id)
+    if p is None:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return p
+
+@app.post("/api/migration-importer/preview")
+def preview_migration(req: MigrationPreviewRequest, user: UserOut = Depends(get_current_user)):
+    return migration_importer.preview(req.csv_text, profile_id=req.profile_id)
+
+@app.post("/api/migration-importer/import", status_code=201)
+def run_migration_import(req: MigrationImportRequest, user: UserOut = Depends(get_current_user)):
+    return migration_importer.run_import(
+        applicant_owner_id=user.id,
+        csv_text=req.csv_text,
+        profile_id=req.profile_id,
+        dry_run=req.dry_run,
+    )
+
+@app.get("/api/migration-importer/imports")
+def list_migration_imports(user: UserOut = Depends(get_current_user)):
+    return migration_importer.list_imports(owner_id=user.id)
+
+@app.get("/api/migration-importer/imports/{import_id}")
+def get_migration_import(import_id: str, user: UserOut = Depends(get_current_user)):
+    r = migration_importer.get_import(import_id)
+    if r is None:
+        raise HTTPException(status_code=404, detail="Import record not found")
+    if r["applicant_owner_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
     return r
