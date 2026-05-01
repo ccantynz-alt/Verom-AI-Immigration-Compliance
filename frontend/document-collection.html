@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document Collection — Verom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--blue-600:#2563eb;--blue-700:#1d4ed8;
+    --violet-50:#f5f3ff;--violet-500:#8b5cf6;--violet-600:#7c3aed;
+    --slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;
+    --slate-400:#94a3b8;--slate-500:#64748b;--slate-600:#475569;--slate-700:#334155;
+    --slate-800:#1e293b;--slate-900:#0f172a;
+    --green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--green-700:#15803d;
+    --red-50:#fef2f2;--red-100:#fee2e2;--red-500:#ef4444;--red-600:#dc2626;
+    --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-500:#f59e0b;--amber-600:#d97706;
+    --shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -2px rgba(0,0,0,0.05);
+}
+body{font-family:'Inter',-apple-system,sans-serif;color:var(--slate-800);background:linear-gradient(180deg,#fff,var(--slate-50));line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+.shell{max-width:1100px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:24px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
+.brand-text{font-size:20px;font-weight:800}
+.brand-text .ai{color:var(--blue-600)}
+
+.head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.head h1{font-size:28px;font-weight:800;letter-spacing:-0.02em;color:var(--slate-900);margin-bottom:4px}
+.head p{color:var(--slate-500);font-size:15px}
+.completeness-card{background:#fff;border-radius:14px;padding:14px 18px;border:1px solid var(--slate-200);min-width:220px}
+.completeness-card .lab{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500)}
+.completeness-card .pct{font-size:32px;font-weight:800;color:var(--slate-900);line-height:1.1;margin:4px 0}
+.completeness-card .meta{font-size:13px;color:var(--slate-500)}
+.completeness-bar{height:6px;background:var(--slate-200);border-radius:99px;overflow:hidden;margin-top:8px}
+.completeness-fill{height:100%;background:linear-gradient(90deg,var(--blue-600),var(--violet-600));border-radius:99px;transition:width 600ms cubic-bezier(0.4,0,0.2,1);width:0%}
+
+.layout{display:grid;grid-template-columns:1fr;gap:18px}
+@media(min-width:900px){.layout{grid-template-columns:1.4fr 1fr}}
+
+.upload-zone{background:#fff;border:2px dashed var(--slate-300);border-radius:18px;padding:36px;text-align:center;transition:all 200ms;cursor:pointer}
+.upload-zone:hover,.upload-zone.dragging{border-color:var(--blue-500);background:var(--blue-50)}
+.upload-zone .ico{font-size:42px;margin-bottom:8px}
+.upload-zone .lab{font-size:16px;font-weight:700;color:var(--slate-900);margin-bottom:4px}
+.upload-zone .hint{font-size:13px;color:var(--slate-500)}
+.upload-zone input{display:none}
+
+.card{background:#fff;border:1px solid var(--slate-200);border-radius:16px;padding:22px;margin-top:16px}
+.card h3{font-size:16px;font-weight:700;color:var(--slate-900);margin-bottom:8px}
+
+.checklist-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--slate-200);border-radius:11px;margin-bottom:8px;background:#fff}
+.checklist-item.complete{background:var(--green-50);border-color:var(--green-100)}
+.checklist-item.partial{background:var(--amber-50);border-color:var(--amber-100)}
+.checklist-item.missing{background:#fff}
+.check-pip{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.check-pip.complete{background:var(--green-500);color:#fff}
+.check-pip.partial{background:var(--amber-500);color:#fff}
+.check-pip.missing{background:var(--slate-200);color:var(--slate-500)}
+.check-info{flex:1}
+.check-info .ttl{font-size:14px;font-weight:600;color:var(--slate-800)}
+.check-info .meta{font-size:12px;color:var(--slate-500);margin-top:2px}
+.check-info .uploaded{font-size:12px;color:var(--green-700);margin-top:4px}
+
+.doc-row{display:flex;gap:12px;padding:14px;border:1px solid var(--slate-200);border-radius:12px;margin-bottom:8px;background:#fff}
+.doc-icon{width:42px;height:42px;border-radius:10px;background:var(--slate-100);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-info .nm{font-size:14px;font-weight:600;color:var(--slate-800);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-info .typ{font-size:12px;color:var(--slate-500);margin-top:2px}
+.doc-info .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+.badge.green{background:var(--green-100);color:var(--green-700)}
+.badge.amber{background:var(--amber-100);color:var(--amber-600)}
+.badge.red{background:var(--red-100);color:var(--red-600)}
+.badge.slate{background:var(--slate-100);color:var(--slate-600)}
+.doc-actions{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.btn-x{background:none;border:none;color:var(--slate-400);cursor:pointer;font-size:18px;padding:4px 8px;border-radius:6px}
+.btn-x:hover{background:var(--slate-100);color:var(--red-500)}
+
+.section-head{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);margin:18px 0 10px}
+
+.empty{text-align:center;padding:32px 16px;color:var(--slate-400);font-size:14px}
+
+.alert{padding:14px 16px;border-radius:11px;font-size:13px;display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.alert .ico{font-size:18px}
+.alert.warn{background:var(--amber-50);border:1px solid var(--amber-100);color:var(--slate-800)}
+.alert.danger{background:var(--red-50);border:1px solid var(--red-100);color:var(--slate-800)}
+.alert.info{background:var(--blue-50);border:1px solid var(--blue-100);color:var(--slate-800)}
+
+.btn{padding:10px 18px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 4px 12px rgba(37,99,235,0.3)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--slate-900);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;z-index:1000;opacity:0;pointer-events:none;transition:opacity 200ms}
+.toast.show{opacity:1}
+
+.session-bar{background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--slate-600)}
+.session-bar .lbl{font-weight:600;color:var(--slate-900)}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<a class="brand" href="/applicant">
+    <div class="brand-mark">V</div>
+    <div class="brand-text">Verom<span class="ai">.ai</span></div>
+</a>
+
+<div class="head">
+    <div>
+        <h1>Document collection</h1>
+        <p>Upload required documents — we’ll classify, validate, and check for issues automatically.</p>
+    </div>
+    <div class="completeness-card">
+        <div class="lab">Completeness</div>
+        <div class="pct" id="completePct">—</div>
+        <div class="meta" id="completeMeta">No checklist loaded</div>
+        <div class="completeness-bar"><div class="completeness-fill" id="completeFill"></div></div>
+    </div>
+</div>
+
+<div class="session-bar" id="sessionBar">
+    <span><span class="lbl">Visa:</span> <span id="visaTypeName">—</span></span>
+    <span><span class="lbl">Session:</span> <span id="sessionIdShort">—</span></span>
+</div>
+
+<div class="layout">
+    <div>
+        <label class="upload-zone" for="fileInput" id="dropZone">
+            <div class="ico">⬆️</div>
+            <div class="lab">Drop files here or click to upload</div>
+            <div class="hint">PDF, JPG, PNG, TIFF, HEIC · up to 25MB · multi-file OK</div>
+            <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.heic">
+        </label>
+
+        <div class="card">
+            <h3>Your uploads</h3>
+            <div id="uploadsList"><div class="empty">No documents uploaded yet</div></div>
+        </div>
+    </div>
+
+    <div>
+        <div class="card">
+            <h3>Required documents</h3>
+            <div id="conflictsBlock"></div>
+            <div id="checklist"><div class="empty">Loading checklist…</div></div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+var state = {
+    sessionId: null,
+    visaType: null,
+    visaName: null,
+    answers: {},
+    checklist: null,
+    uploads: [],
+    reconcile: null,
+};
+
+function api(path, opts){
+    opts = opts || {};
+    opts.headers = opts.headers || {};
+    opts.headers['Content-Type'] = 'application/json';
+    var token = localStorage.getItem('verom_token');
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(path, opts).then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error(t || ('HTTP ' + r.status)); });
+        return r.status === 204 ? null : r.json();
+    });
+}
+
+function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
+
+function loadFromQueryString(){
+    var params = new URLSearchParams(window.location.search);
+    state.sessionId = params.get('session') || localStorage.getItem('verom_intake_session');
+    state.visaType = params.get('visa_type') || localStorage.getItem('verom_intake_visa') || 'H-1B';
+    state.visaName = params.get('visa_name') || localStorage.getItem('verom_intake_visa_name') || state.visaType;
+    document.getElementById('visaTypeName').textContent = state.visaName;
+    document.getElementById('sessionIdShort').textContent = state.sessionId ? state.sessionId.slice(0, 8) + '…' : 'standalone mode';
+}
+
+function loadChecklist(){
+    if (!state.visaType) return;
+    api('/api/intake/document-checklist?visa_type=' + encodeURIComponent(state.visaType), {
+        method: 'POST',
+        body: JSON.stringify(state.answers || {})
+    }).then(function(c){
+        state.checklist = c;
+        renderChecklist();
+        runReconcile();
+    }).catch(function(e){
+        document.getElementById('checklist').innerHTML = '<div class="empty">Could not load checklist (' + e.message + ')</div>';
+    });
+}
+
+function renderChecklist(){
+    var c = document.getElementById('checklist');
+    if (!state.checklist || !state.checklist.items.length){
+        c.innerHTML = '<div class="empty">No checklist items</div>';
+        return;
+    }
+    var byCat = {};
+    state.checklist.items.forEach(function(it){
+        if (!byCat[it.category]) byCat[it.category] = [];
+        byCat[it.category].push(it);
+    });
+    var order = ['identity','sponsor','education','financial','civil','health','background','evidentiary','supporting'];
+    var html = '';
+
+    var rec = state.reconcile;
+    var statusByItem = {};
+    if (rec){
+        rec.items.forEach(function(i){ statusByItem[i.checklist_item_id] = i; });
+    }
+
+    order.forEach(function(cat){
+        if (!byCat[cat]) return;
+        html += '<div class="section-head">' + cat + '</div>';
+        byCat[cat].forEach(function(it){
+            var status = (statusByItem[it.doc_id] || {}).status || 'missing';
+            var uploaded = (statusByItem[it.doc_id] || {}).uploaded || [];
+            var pipChar = status === 'complete' ? '✓' : (status === 'partial' ? '!' : '');
+            html += '<div class="checklist-item ' + status + '">';
+            html += '<div class="check-pip ' + status + '">' + pipChar + '</div>';
+            html += '<div class="check-info"><div class="ttl">' + it.label + '</div>';
+            html += '<div class="meta">' + cat + (it.required ? ' · required' : ' · optional') + '</div>';
+            if (uploaded.length){
+                html += '<div class="uploaded">✓ ' + uploaded.length + ' file' + (uploaded.length === 1 ? '' : 's') + ' linked</div>';
+            }
+            html += '</div></div>';
+        });
+    });
+    c.innerHTML = html;
+}
+
+function uploadFile(file){
+    var declared = guessTypeFromFilename(file.name);
+    return api('/api/documents-intake/upload', {
+        method: 'POST',
+        body: JSON.stringify({
+            session_id: state.sessionId,
+            filename: file.name,
+            size_bytes: file.size,
+            mime_type: file.type,
+            declared_type: declared,
+            page_count: 1,
+            resolution_dpi: 300,
+        })
+    });
+}
+
+function guessTypeFromFilename(name){
+    var n = name.toLowerCase();
+    if (n.indexOf('passport') >= 0) return 'passport';
+    if (n.indexOf('i20') >= 0 || n.indexOf('i-20') >= 0) return 'i20';
+    if (n.indexOf('i94') >= 0) return 'i94';
+    if (n.indexOf('lca') >= 0) return 'lca';
+    if (n.indexOf('i797') >= 0 || n.indexOf('approval') >= 0) return 'approval_notice';
+    if (n.indexOf('transcript') >= 0) return 'transcript';
+    if (n.indexOf('degree') >= 0 || n.indexOf('diploma') >= 0) return 'degree';
+    if (n.indexOf('ielts') >= 0 || n.indexOf('toefl') >= 0) return 'english_test';
+    if (n.indexOf('bank') >= 0 || n.indexOf('statement') >= 0) return 'bank_statement';
+    if (n.indexOf('paystub') >= 0 || n.indexOf('paycheck') >= 0) return 'paystub';
+    if (n.indexOf('tax') >= 0 || n.indexOf('1040') >= 0 || n.indexOf('w2') >= 0) return 'tax_return';
+    if (n.indexOf('marriage') >= 0) return 'marriage_certificate';
+    if (n.indexOf('birth') >= 0) return 'birth_certificate';
+    if (n.indexOf('police') >= 0) return 'police_certificate';
+    if (n.indexOf('medical') >= 0 || n.indexOf('i693') >= 0) return 'medical_exam';
+    if (n.indexOf('offer') >= 0 || n.indexOf('employment') >= 0) return 'employment_letter';
+    if (n.indexOf('expert') >= 0 || n.indexOf('support') >= 0 || n.indexOf('recommendation') >= 0) return 'support_letter';
+    if (n.indexOf('photo') >= 0 || n.indexOf('headshot') >= 0) return 'photo';
+    if (n.indexOf('ds160') >= 0 || n.indexOf('ds-160') >= 0) return 'ds160_confirmation';
+    if (n.indexOf('sevis') >= 0) return 'sevis_receipt';
+    return null;
+}
+
+function refreshUploads(){
+    return api('/api/documents-intake' + (state.sessionId ? ('?session_id=' + encodeURIComponent(state.sessionId)) : ''))
+        .then(function(list){
+            state.uploads = list || [];
+            renderUploads();
+        });
+}
+
+function renderUploads(){
+    var c = document.getElementById('uploadsList');
+    if (!state.uploads.length){
+        c.innerHTML = '<div class="empty">No documents uploaded yet</div>';
+        return;
+    }
+    var html = '';
+    state.uploads.forEach(function(d){
+        var iconMap = { passport: '🛂', i94: '🛂', i20: '📜', degree: '🎓', transcript: '🎓',
+                         english_test: '🗣️', bank_statement: '💵', paystub: '💵', tax_return: '💵',
+                         marriage_certificate: '💍', birth_certificate: '👶', police_certificate: '🛡️',
+                         medical_exam: '🏥', employment_letter: '💼', support_letter: '✍️',
+                         photo: '📷', ds160_confirmation: '📋', lca: '📋', approval_notice: '✅',
+                         id_card: '🪪', sevis_receipt: '🧾', cas_letter: '📄', cos_letter: '📄',
+                         loa_dli: '📄', coe: '📄', uni_admission: '🏫', other: '📄' };
+        var icon = iconMap[d.document_type] || '📄';
+        var statusBadge = d.status === 'ready'
+            ? '<span class="badge green">Ready</span>'
+            : '<span class="badge amber">Needs attention</span>';
+        var qIssues = (d.stages.quality.issues || []).length;
+        var vIssues = (d.stages.validate.issues || []).length;
+        var typeLabel = (d.stages.classify.label || d.document_type);
+        html += '<div class="doc-row">';
+        html += '<div class="doc-icon">' + icon + '</div>';
+        html += '<div class="doc-info"><div class="nm">' + d.filename + '</div>';
+        html += '<div class="typ">' + typeLabel + ' · ' + Math.round(d.size_bytes / 1024) + ' KB</div>';
+        html += '<div class="badges">' + statusBadge;
+        if (qIssues) html += '<span class="badge red">' + qIssues + ' quality issue' + (qIssues === 1 ? '' : 's') + '</span>';
+        if (vIssues) html += '<span class="badge red">' + vIssues + ' validation issue' + (vIssues === 1 ? '' : 's') + '</span>';
+        if (d.satisfies && d.satisfies.length) html += '<span class="badge slate">covers ' + d.satisfies.length + ' item' + (d.satisfies.length === 1 ? '' : 's') + '</span>';
+        html += '</div></div>';
+        html += '<div class="doc-actions"><button class="btn-x" data-del="' + d.id + '" title="Remove">×</button></div>';
+        html += '</div>';
+    });
+    document.getElementById('uploadsList').innerHTML = html;
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-del]'), function(b){
+        b.addEventListener('click', function(){
+            var id = b.getAttribute('data-del');
+            api('/api/documents-intake/' + id, { method: 'DELETE' })
+                .then(function(){ refreshUploads().then(runReconcile); })
+                .catch(function(e){ toast('Delete failed: ' + e.message); });
+        });
+    });
+}
+
+function runReconcile(){
+    if (!state.sessionId || !state.visaType) return;
+    api('/api/documents-intake/reconcile', {
+        method: 'POST',
+        body: JSON.stringify({
+            session_id: state.sessionId,
+            visa_type: state.visaType,
+            intake_answers: state.answers
+        })
+    }).then(function(r){
+        state.reconcile = r;
+        renderCompleteness();
+        renderChecklist();
+        renderConflicts();
+    }).catch(function(){ /* silent — reconcile is best-effort */ });
+}
+
+function renderCompleteness(){
+    var r = state.reconcile;
+    if (!r) return;
+    document.getElementById('completePct').textContent = r.completeness_pct + '%';
+    document.getElementById('completeMeta').textContent = r.total_complete + ' of ' + r.total_required + ' required';
+    document.getElementById('completeFill').style.width = r.completeness_pct + '%';
+}
+
+function renderConflicts(){
+    var c = document.getElementById('conflictsBlock');
+    var r = state.reconcile;
+    if (!r || !r.data_conflicts || !r.data_conflicts.length){ c.innerHTML = ''; return; }
+    var html = '';
+    r.data_conflicts.forEach(function(cf){
+        html += '<div class="alert ' + (cf.severity === 'high' ? 'danger' : 'warn') + '">';
+        html += '<span class="ico">⚠️</span><div><strong>' + cf.code.replace(/_/g,' ') + '</strong> — ' + cf.explanation + '<br><span style="color:var(--slate-500);font-size:12px">' + cf.recommendation + '</span></div>';
+        html += '</div>';
+    });
+    c.innerHTML = html;
+}
+
+function setupUploads(){
+    var inp = document.getElementById('fileInput');
+    var drop = document.getElementById('dropZone');
+    inp.addEventListener('change', function(e){ handleFiles(e.target.files); inp.value = ''; });
+    ['dragenter','dragover'].forEach(function(ev){
+        drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('dragging'); });
+    });
+    ['dragleave','drop'].forEach(function(ev){
+        drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('dragging'); });
+    });
+    drop.addEventListener('drop', function(e){ if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files); });
+}
+
+function handleFiles(files){
+    if (!files.length) return;
+    var promises = [];
+    Array.prototype.forEach.call(files, function(f){ promises.push(uploadFile(f)); });
+    Promise.allSettled(promises).then(function(results){
+        var ok = results.filter(function(r){ return r.status === 'fulfilled'; }).length;
+        var fail = results.length - ok;
+        if (ok) toast(ok + ' uploaded' + (fail ? ', ' + fail + ' failed' : ''));
+        if (fail && !ok) toast('Upload failed — please sign in if you have not already');
+        refreshUploads().then(runReconcile);
+    });
+}
+
+// ----- Boot -----
+loadFromQueryString();
+setupUploads();
+loadChecklist();
+refreshUploads().then(runReconcile).catch(function(){ /* not signed in — leave list empty */ });
+})();
+</script>
+</body>
+</html>

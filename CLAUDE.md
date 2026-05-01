@@ -177,9 +177,9 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 **Client Intake Automation** (biggest pain point — firms spend days on intake)
 - [x] **AI-powered client intake** — dynamic questionnaires that adapt by visa type and status (12 visa types across US/UK/CA/AU/DE/NZ via IntakeEngineService)
 - [ ] **Multi-language intake forms** — clients fill out in their language, attorney sees English
-- [ ] **Document collection portal** — clients upload docs via secure link, AI validates completeness
+- [x] **Document collection portal** — clients upload docs via secure link, AI validates completeness (DocumentIntakeService + /intake/documents page: drag-drop upload, classification, quality + validation, real-time completeness vs the intake checklist, extracted-data conflict detection)
 - [ ] **AI document scanning & OCR** — scan physical documents, passports, I-94s, approval notices
-- [ ] **Photo/document quality checker** — rejects blurry scans, wrong formats before submission
+- [x] **Photo/document quality checker** — rejects blurry scans, wrong formats before submission (DocumentIntakeService quality stage: format/size/DPI/page-count gating with actionable recommendations)
 - [ ] **Smart form auto-population** — intake answers pre-fill USCIS/government forms automatically
 - [x] **Intake-to-case pipeline** — completed intake flows directly into case file, zero re-entry (IntakeEngineService session → case)
 - [ ] **Automatic family member profile creation** — intake data auto-creates linked profiles for spouse, children, parents with relationship mapping
@@ -434,9 +434,9 @@ Every verification step and safety check exists to protect everyone — attorney
 - [x] LCA wage compliance
 - [x] Work authorization gap detection
 - [ ] Country-specific visa requirement databases
-- [ ] AI document analysis (OCR + validation)
-- [ ] Application strength scoring algorithm
-- [ ] Attorney-applicant matching algorithm
+- [x] AI document analysis (OCR + validation) — DocumentIntakeService: classify (24 doc types), extract structured fields, quality + validation + expiry checks, extracted-vs-intake conflict detection
+- [x] Application strength scoring algorithm — IntakeEngineService.score_strength with explainable factor weights per visa type
+- [x] Attorney-applicant matching algorithm — AttorneyMatchService: 7-component scoring (specialization/country/language/capacity/red-flag handling/response time/approval rate) with reason chain
 - [ ] **AI legal research engine** — immigration case law, policy memos, AAO/BIA decisions
 - [ ] **AI document drafting engine** — cover letters, briefs, RFE responses, support letters
 - [ ] **Case outcome prediction model** — approval probability by visa type, service center, case characteristics
@@ -445,9 +445,9 @@ Every verification step and safety check exists to protect everyone — attorney
 - [ ] **Processing time prediction** — estimate decision timeline by form type and service center
 - [ ] **Policy change impact engine** — when new guidance drops, auto-flag affected active cases
 - [ ] **Smart form auto-population engine** — single intake → populate all required government forms
-- [ ] **Document classification AI** — auto-categorize uploaded documents by type (passport, I-94, pay stub, etc.)
+- [x] **Document classification AI** — auto-categorize uploaded documents by type (passport, I-94, pay stub, etc.) — DocumentIntakeService classify stage covers 24 document types via declared-type override + filename heuristics; pluggable for Textract / Google DocAI / Azure Form Recognizer at the `_classify` and `_extract` boundaries
 - [ ] **170-language OCR extraction** — extract data from documents in any language (match Filevine's bar)
-- [ ] **Conflict detection AI** — flag discrepancies between extracted document data and existing database records
+- [x] **Conflict detection AI** — flag discrepancies between extracted document data and existing database records (DocumentIntakeService.reconcile_against_checklist surfaces NAME_MISMATCH and other extracted-vs-intake conflicts; runs every reconcile cycle on the document collection page)
 - [ ] **Document Q&A engine** — upload RFEs, decisions, notices — chat with them in natural language
 - [ ] **Translation engine** — client-facing content translation with legal disclaimers
 - [x] **Conflict of interest detection** — cross-reference new clients against existing case database (ConflictCheckService — Model Rule 1.7/1.9/1.10 coverage, adverse-party detection, ethics walls)

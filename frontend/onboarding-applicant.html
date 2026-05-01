@@ -565,7 +565,20 @@ function renderStep6(){
         body: JSON.stringify(state.answers)
     }).then(function(c){
         state.checklist = c;
+        // Persist for the document collection page
+        try {
+            localStorage.setItem('verom_intake_visa', state.visaType);
+            localStorage.setItem('verom_intake_visa_name', state.visaName);
+        } catch (e) {}
         renderChecklist();
+        // Add a quick link to the full upload portal
+        var docList = document.getElementById('docList');
+        if (docList){
+            var note = document.createElement('div');
+            note.style.cssText = 'margin-top:18px;padding:14px 16px;background:var(--blue-50);border:1px solid var(--blue-100);border-radius:11px;font-size:13px;color:var(--slate-700);display:flex;justify-content:space-between;align-items:center;gap:12px';
+            note.innerHTML = '<span>Ready to upload? Drop your files into the document collection portal — we will validate, classify, and link them to this checklist automatically.</span><a href="/intake/documents?visa_type=' + encodeURIComponent(state.visaType) + '&visa_name=' + encodeURIComponent(state.visaName) + '" class="btn btn-outline" style="white-space:nowrap">Open uploader →</a>';
+            docList.appendChild(note);
+        }
     }).catch(function(e){ toast('Checklist error: ' + e.message); });
 }
 
@@ -614,32 +627,42 @@ function renderStep7(){
         window.location.href = '/applicant';
     });
 
-    // Hardcoded fallback if API not available — but try API first
-    var profile = { visa_type: state.visaType, country: state.country, family: state.family };
-    setTimeout(function(){
+    var redFlagCodes = (state.flags || []).map(function(f){ return f.code; }).filter(Boolean);
+    api('/api/match/run', {
+        method: 'POST',
+        body: JSON.stringify({
+            visa_type: state.visaType,
+            country: state.country,
+            applicant_languages: ['English'],
+            red_flag_codes: redFlagCodes,
+            urgency: 'standard',
+            limit: 5
+        })
+    }).then(function(m){
         var think = document.querySelector('.ai-think');
         if (think) think.remove();
-        var attorneys = [
-            { name: 'Jennifer Park', exp: 12, rate: 96, langs: ['English','Korean'], reasons: ['Specializes in ' + state.visaType, 'Licensed in ' + state.country, 'Fast response'] },
-            { name: 'Michael Torres', exp: 8, rate: 93, langs: ['English','Spanish'], reasons: ['Experience with ' + state.visaType, 'Bilingual'] },
-            { name: 'David Kim', exp: 15, rate: 95, langs: ['English','Korean','Mandarin'], reasons: ['15 years experience', 'Multilingual'] },
-        ];
         var html = '';
-        attorneys.forEach(function(a, i){
+        if (!m.results || !m.results.length){
+            html = '<div style="padding:24px;text-align:center;color:var(--slate-500);font-size:14px">No matching attorneys found in this country yet — we are expanding coverage. Contact support for a manual referral.</div>';
+        }
+        m.results.forEach(function(a){
             var initials = a.name.split(' ').map(function(s){ return s[0]; }).join('');
             html += '<div class="attorney-card">';
             html += '<div class="attorney-avatar">' + initials + '</div>';
             html += '<div class="attorney-info">';
             html += '<div class="name">' + a.name + '</div>';
-            html += '<div class="meta">' + a.exp + ' yrs experience · ' + a.rate + '% approval rate</div>';
-            html += '<div class="match">' + (96 - i*4) + '% match</div>';
+            html += '<div class="meta">' + a.years_experience + ' yrs · ' + Math.round(a.approval_rate * 100) + '% approval · ' + a.avg_response_time_hours + 'hr response</div>';
+            html += '<div class="match">' + a.match_score + '/100 match</div>';
             html += '<div class="reasons">';
-            a.reasons.forEach(function(r){ html += '<span class="pill">' + r + '</span>'; });
-            a.langs.forEach(function(l){ html += '<span class="pill">' + l + '</span>'; });
+            (a.reasons || []).forEach(function(r){ html += '<span class="pill">' + r + '</span>'; });
             html += '</div></div></div>';
         });
         document.getElementById('attorneyList').innerHTML = html;
-    }, 800);
+    }).catch(function(e){
+        var think = document.querySelector('.ai-think');
+        if (think) think.remove();
+        document.getElementById('attorneyList').innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate-500);font-size:14px">Could not load matches: ' + e.message + '</div>';
+    });
 }
 
 renderStep1();

@@ -99,6 +99,8 @@ from immigration_compliance.services.intake_engine_service import IntakeEngineSe
 from immigration_compliance.services.rfe_predictor_service import RFEPredictorService
 from immigration_compliance.services.conflict_check_service import ConflictCheckService
 from immigration_compliance.services.onboarding_service import OnboardingService
+from immigration_compliance.services.document_intake_service import DocumentIntakeService
+from immigration_compliance.services.attorney_match_service import AttorneyMatchService
 
 # Resolve frontend directory
 _root = Path(__file__).resolve().parent.parent.parent.parent
@@ -162,6 +164,8 @@ intake_engine = IntakeEngineService()
 rfe_predictor = RFEPredictorService()
 conflict_check = ConflictCheckService()
 onboarding = OnboardingService()
+document_intake = DocumentIntakeService()
+attorney_match = AttorneyMatchService()
 
 # Gap Closers — competitive response features
 hris_deep = HRISDeepService()
@@ -309,6 +313,10 @@ def serve_onboarding_applicant() -> HTMLResponse:
 @app.get("/onboarding/attorney", response_class=HTMLResponse)
 def serve_onboarding_attorney() -> HTMLResponse:
     return _serve_html(_frontend_dir / "onboarding-attorney.html", "Attorney onboarding not found.")
+
+@app.get("/intake/documents", response_class=HTMLResponse)
+def serve_document_collection() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "document-collection.html", "Document collection not found.")
 
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
@@ -1814,3 +1822,131 @@ def reset_onboarding_step(session_id: str, step_name: str, user: UserOut = Depen
     if s["user_id"] != user.id:
         raise HTTPException(status_code=403, detail="Access denied")
     return onboarding.reset_step(session_id, step_name)
+
+
+# =============================================
+# Document Intake Pipeline endpoints
+# =============================================
+
+class DocumentUploadRequest(BaseModel):
+    session_id: str | None = None
+    filename: str
+    size_bytes: int
+    mime_type: str = ""
+    declared_type: str | None = None
+    page_count: int = 1
+    resolution_dpi: int | None = None
+    content_hash: str | None = None
+
+class DocumentReconcileRequest(BaseModel):
+    session_id: str
+    visa_type: str
+    intake_answers: dict | None = None
+
+@app.get("/api/documents-intake/types")
+def list_document_types():
+    return DocumentIntakeService.list_supported_document_types()
+
+@app.post("/api/documents-intake/upload", status_code=201)
+def upload_document(req: DocumentUploadRequest, user: UserOut = Depends(get_current_user)):
+    return document_intake.upload(
+        applicant_id=user.id,
+        session_id=req.session_id,
+        filename=req.filename,
+        size_bytes=req.size_bytes,
+        mime_type=req.mime_type,
+        declared_type=req.declared_type,
+        page_count=req.page_count,
+        resolution_dpi=req.resolution_dpi,
+        content_hash=req.content_hash,
+    )
+
+@app.get("/api/documents-intake")
+def list_uploaded_documents(session_id: str | None = None, user: UserOut = Depends(get_current_user)):
+    return document_intake.list_documents(applicant_id=user.id, session_id=session_id)
+
+@app.get("/api/documents-intake/{doc_id}")
+def get_uploaded_document(doc_id: str, user: UserOut = Depends(get_current_user)):
+    d = document_intake.get_document(doc_id)
+    if d is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if d["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return d
+
+@app.delete("/api/documents-intake/{doc_id}", status_code=204)
+def delete_uploaded_document(doc_id: str, user: UserOut = Depends(get_current_user)):
+    d = document_intake.get_document(doc_id)
+    if d is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if d["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    document_intake.delete_document(doc_id)
+
+@app.post("/api/documents-intake/reconcile")
+def reconcile_documents(req: DocumentReconcileRequest, user: UserOut = Depends(get_current_user)):
+    intake_session = intake_engine.get_session(req.session_id)
+    if intake_session is None:
+        raise HTTPException(status_code=404, detail="Intake session not found")
+    if intake_session["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    answers = req.intake_answers or intake_session["answers"]
+    checklist = intake_engine.get_document_checklist(req.visa_type, answers)
+    return document_intake.reconcile_against_checklist(
+        applicant_id=user.id,
+        session_id=req.session_id,
+        checklist=checklist,
+        intake_answers=answers,
+    )
+
+
+# =============================================
+# Attorney Match endpoints (intake-aware)
+# =============================================
+
+class AttorneyMatchRequest(BaseModel):
+    visa_type: str
+    country: str
+    applicant_languages: list[str] | None = None
+    red_flag_codes: list[str] | None = None
+    urgency: str = "standard"
+    limit: int = 5
+
+class AttorneyMatchSessionRequest(BaseModel):
+    session_id: str
+    applicant_languages: list[str] | None = None
+    limit: int = 5
+
+@app.get("/api/match/attorneys")
+def list_match_attorneys(country: str | None = None):
+    return attorney_match.list_attorneys(country=country, verified_only=True, accepting_only=True)
+
+@app.post("/api/match/run")
+def run_attorney_match(req: AttorneyMatchRequest):
+    return attorney_match.match(
+        visa_type=req.visa_type,
+        country=req.country,
+        applicant_languages=req.applicant_languages,
+        red_flag_codes=req.red_flag_codes,
+        urgency=req.urgency,
+        limit=req.limit,
+    )
+
+@app.post("/api/match/from-session")
+def match_from_intake_session(req: AttorneyMatchSessionRequest, user: UserOut = Depends(get_current_user)):
+    s = intake_engine.get_session(req.session_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Intake session not found")
+    if s["applicant_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    summary = intake_engine.get_intake_summary(req.session_id)
+    summary["country"] = s["country"]
+    return attorney_match.match_for_session(
+        intake_summary=summary,
+        applicant_languages=req.applicant_languages,
+        limit=req.limit,
+    )
+
+@app.get("/api/match/log")
+def get_match_log(limit: int = 50):
+    return attorney_match.get_match_log(limit=limit)
