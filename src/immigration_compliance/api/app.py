@@ -115,6 +115,7 @@ from immigration_compliance.services.rfe_response_service import RFEResponseServ
 from immigration_compliance.services.support_letter_service import SupportLetterService
 from immigration_compliance.services.completeness_scorer_service import CompletenessScorerService
 from immigration_compliance.services.soc_code_service import SocCodeService
+from immigration_compliance.services.document_qa_service import DocumentQAService
 from immigration_compliance.services.persistent_store_service import PersistentStore, get_default_store
 from immigration_compliance.services.storage_binding import bind_storage
 
@@ -202,6 +203,7 @@ rfe_response = RFEResponseService(case_workspace=case_workspace, intake_engine=i
 support_letter = SupportLetterService(case_workspace=case_workspace, intake_engine=intake_engine, document_intake=document_intake)
 completeness_scorer = CompletenessScorerService(case_workspace=case_workspace, intake_engine=intake_engine, document_intake=document_intake)
 soc_code_service = SocCodeService()
+document_qa = DocumentQAService()
 
 # Persistent store — reads VEROM_DB_PATH env var (default: verom_state.db). Set
 # VEROM_DISABLE_PERSISTENCE=1 to fall back to in-memory only.
@@ -3272,3 +3274,64 @@ def recommend_soc_codes(req: SocRecommendRequest):
         prefer_research=req.prefer_research,
         limit=req.limit,
     )
+
+
+# =============================================
+# AI Document Q&A endpoints
+# =============================================
+
+class DocQAIngestRequest(BaseModel):
+    text: str
+    label: str = ""
+
+class DocQAAskRequest(BaseModel):
+    question: str
+
+@app.get("/api/document-qa/doc-types")
+def list_qa_doc_types():
+    return DocumentQAService.list_supported_doc_types()
+
+@app.get("/api/document-qa/intents")
+def list_qa_intents():
+    return DocumentQAService.list_supported_intents()
+
+@app.post("/api/document-qa/ingest", status_code=201)
+def ingest_qa_document(req: DocQAIngestRequest, user: UserOut = Depends(get_current_user)):
+    try:
+        return document_qa.ingest(text=req.text, label=req.label, uploader_id=user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/document-qa/documents")
+def list_qa_documents(user: UserOut = Depends(get_current_user)):
+    return document_qa.list_documents(uploader_id=user.id)
+
+@app.get("/api/document-qa/documents/{doc_id}")
+def get_qa_document(doc_id: str, user: UserOut = Depends(get_current_user)):
+    d = document_qa.get_document(doc_id)
+    if d is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if d.get("uploader_id") and d["uploader_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return d
+
+@app.post("/api/document-qa/documents/{doc_id}/ask")
+def ask_qa_document(doc_id: str, req: DocQAAskRequest, user: UserOut = Depends(get_current_user)):
+    d = document_qa.get_document(doc_id)
+    if d is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if d.get("uploader_id") and d["uploader_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    try:
+        return document_qa.ask(doc_id, req.question)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/document-qa/documents/{doc_id}/history")
+def get_qa_history(doc_id: str, limit: int = 100, user: UserOut = Depends(get_current_user)):
+    d = document_qa.get_document(doc_id)
+    if d is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if d.get("uploader_id") and d["uploader_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return document_qa.get_history(doc_id, limit=limit)
