@@ -119,6 +119,7 @@ from immigration_compliance.services.document_qa_service import DocumentQAServic
 from immigration_compliance.services.translation_service import TranslationService
 from immigration_compliance.services.time_tracking_service import TimeTrackingService
 from immigration_compliance.services.trust_accounting_service import TrustAccountingService
+from immigration_compliance.services.efiling_proxy_service import EFilingProxyService
 from immigration_compliance.services.persistent_store_service import PersistentStore, get_default_store
 from immigration_compliance.services.storage_binding import bind_storage
 
@@ -210,6 +211,7 @@ document_qa = DocumentQAService()
 translation_service = TranslationService()
 time_tracking = TimeTrackingService(case_workspace=case_workspace)
 trust_accounting = TrustAccountingService()
+efiling_proxy = EFilingProxyService(case_workspace=case_workspace, form_population=form_population)
 
 # Persistent store — reads VEROM_DB_PATH env var (default: verom_state.db). Set
 # VEROM_DISABLE_PERSISTENCE=1 to fall back to in-memory only.
@@ -3645,3 +3647,87 @@ def get_client_statement(account_id: str, client_id: str, since: str | None = No
         return trust_accounting.get_client_statement(account_id, client_id, since=since)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+# =============================================
+# E-Filing Proxy endpoints
+# =============================================
+
+class EFilingCreateRequest(BaseModel):
+    portal: str
+    form_id: str
+    workspace_id: str | None = None
+    form_record_id: str | None = None
+    attachments: list[dict] | None = None
+    signed: bool = False
+
+class EFilingAcknowledgeRequest(BaseModel):
+    portal_acknowledgment: dict
+
+@app.get("/api/efiling/portals")
+def list_efiling_portals():
+    return EFilingProxyService.list_portals()
+
+@app.get("/api/efiling/portals/{portal}")
+def get_efiling_portal(portal: str):
+    spec = EFilingProxyService.get_portal(portal)
+    if spec is None:
+        raise HTTPException(status_code=404, detail="Portal not found")
+    return spec
+
+@app.get("/api/efiling/forms/{form_id}/portal")
+def find_portal_for_form(form_id: str):
+    portal = EFilingProxyService.find_portal_for_form(form_id)
+    if portal is None:
+        raise HTTPException(status_code=404, detail="No portal supports this form")
+    return {"form_id": form_id, "portal": portal}
+
+@app.post("/api/efiling/submissions", status_code=201)
+def create_efiling_submission(req: EFilingCreateRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return efiling_proxy.create_submission(
+            portal=req.portal, form_id=req.form_id,
+            workspace_id=req.workspace_id, form_record_id=req.form_record_id,
+            attachments=req.attachments, attorney_id=user.id, signed=req.signed,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/efiling/submissions/{submission_id}/validate")
+def validate_efiling_submission(submission_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return efiling_proxy.validate_submission(submission_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/efiling/submissions/{submission_id}/submit")
+def submit_efiling(submission_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return efiling_proxy.submit(submission_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/efiling/submissions/{submission_id}/acknowledge")
+def acknowledge_efiling(submission_id: str, req: EFilingAcknowledgeRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return efiling_proxy.acknowledge(submission_id, req.portal_acknowledgment)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.get("/api/efiling/submissions")
+def list_efiling_submissions(
+    portal: str | None = None, workspace_id: str | None = None,
+    state: str | None = None, user: UserOut = Depends(require_role(UserRole.ATTORNEY)),
+):
+    return efiling_proxy.list_submissions(
+        portal=portal, workspace_id=workspace_id, attorney_id=user.id, state=state,
+    )
+
+@app.get("/api/efiling/submissions/{submission_id}")
+def get_efiling_submission(submission_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    s = efiling_proxy.get_submission(submission_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    if s.get("attorney_id") and s["attorney_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return s

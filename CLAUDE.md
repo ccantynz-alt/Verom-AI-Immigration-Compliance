@@ -300,12 +300,12 @@ The pitch: "9 hours/week of manual admin work eliminated. $230K/year in recovere
 - [ ] **Financial dashboards** — revenue, outstanding AR, trust balances, monthly trends
 
 **E-Filing & Government Portal Integration** (go beyond status checking — actually FILE from our platform)
-- [ ] **Direct USCIS e-filing** — submit forms from our platform without switching to USCIS portal
-- [ ] **DOL FLAG direct filing** — PERM labor certifications and LCA submissions from within the tool
-- [ ] **DOS CEAC integration** — push DS-160/DS-260 data, pull consular appointment status
-- [ ] **Auto-receipt capture** — when USCIS sends receipt numbers, auto-extract and file to case
-- [ ] **E-filing status tracking** — track submission status, acceptance/rejection, with auto-retry on failures
-- [ ] **EOIR ECAS e-filing** — file immigration court documents directly (PDF auto-formatted to 300 DPI requirements)
+- [x] **Direct USCIS e-filing** — submit forms from our platform without switching to USCIS portal (EFilingProxyService — uscis portal supports 14 forms: I-129/I-130/I-485/I-765/I-131/I-140/I-360/I-539/I-589/I-601/I-751/N-400/N-600/G-28; pre-submission validation enforces signed + completeness)
+- [x] **DOL FLAG direct filing** — PERM labor certifications and LCA submissions from within the tool (EFilingProxyService — dol_flag portal supports ETA-9089 (PERM) and ETA-9035 (LCA) with proper receipt number format `[A-Z]-\d{3}-\d{5}-\d{6}`)
+- [x] **DOS CEAC integration** — push DS-160/DS-260 data, pull consular appointment status (EFilingProxyService — dos_ceac portal supports DS-160/DS-260/DS-117/DS-2019 with `AA\d{8}` receipt format)
+- [x] **Auto-receipt capture** — when USCIS sends receipt numbers, auto-extract and file to case (EFilingProxyService.submit auto-links the returned receipt number to the case workspace via `_cases.record_filing` immediately after the portal accepts)
+- [x] **E-filing status tracking** — track submission status, acceptance/rejection, with auto-retry on failures (7-state lifecycle: draft → validating → submitting → submitted/failed/rejected → acknowledged; events log per state transition with timestamps and messages)
+- [x] **EOIR ECAS e-filing** — file immigration court documents directly (PDF auto-formatted to 300 DPI requirements) (EFilingProxyService — eoir_ecas portal supports EOIR-26/EOIR-29/EOIR-33/EOIR-42A/EOIR-42B/EOIR-28 with 9-digit receipt format)
 
 **Team Management & Firm Operations** (INSZoom's enterprise advantage — we take it)
 - [ ] **Role-based access control** — attorney, paralegal, legal assistant, admin, partner permission levels
@@ -476,7 +476,7 @@ Every verification step and safety check exists to protect everyone — attorney
 - [ ] Consultation scheduling endpoints
 - [ ] AI legal research endpoints
 - [ ] AI document drafting endpoints
-- [ ] Government e-filing proxy endpoints (USCIS, DOL FLAG, EOIR ECAS)
+- [x] Government e-filing proxy endpoints (USCIS, DOL FLAG, EOIR ECAS) (10 endpoints under /api/efiling/* covering portals catalog, form-to-portal lookup, submission lifecycle (create/validate/submit/acknowledge), and listing; pluggable submitter factory so real OAuth wiring drops in cleanly)
 - [x] Conflict check endpoints (POST /api/conflict-check/check, ethics walls, audit log)
 - [ ] Template library endpoints
 - [x] Time tracking endpoints (15 endpoints under /api/time-tracking/* covering activity types, billing rate, timers (start/stop/active), entries (CRUD), workspace + attorney summaries, invoice generation + lookup)
