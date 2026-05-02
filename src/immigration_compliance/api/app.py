@@ -142,6 +142,11 @@ from immigration_compliance.services.local_payments_service import LocalPayments
 from immigration_compliance.services.soc2_audit_service import Soc2AuditService
 from immigration_compliance.services.bar_endorsement_service import BarEndorsementService
 from immigration_compliance.services.malpractice_partner_service import MalpracticePartnerService
+from immigration_compliance.services.filing_fee_calculator_service import FilingFeeCalculatorService
+from immigration_compliance.services.case_dependency_service import CaseDependencyService
+from immigration_compliance.services.priority_date_forecaster_service import (
+    PriorityDateForecasterService,
+)
 from immigration_compliance.services.persistent_store_service import PersistentStore, get_default_store
 from immigration_compliance.services.storage_binding import bind_storage
 
@@ -279,6 +284,12 @@ malpractice_partner = MalpracticePartnerService(
     team_management_service=team_management, approval_index_service=approval_index,
     cadence_tracker_service=cadence_tracker, sla_tracker_service=sla_tracker,
 )
+filing_fee_calculator = FilingFeeCalculatorService()
+case_dependency = CaseDependencyService(
+    case_workspace_service=case_workspace,
+    notification_service=notifications,
+)
+priority_date_forecaster = PriorityDateForecasterService()
 
 # Persistent store — reads VEROM_DB_PATH env var (default: verom_state.db). Set
 # VEROM_DISABLE_PERSISTENCE=1 to fall back to in-memory only.
@@ -5554,3 +5565,183 @@ def generate_malpractice_verification_letter(partner_id: str,
 @app.get("/api/malpractice/enrollments")
 def list_my_malpractice_enrollments(user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
     return malpractice_partner.list_enrollments(attorney_id=user.id)
+
+
+# =============================================
+# Filing Fee Calculator endpoints
+# =============================================
+
+class FilingFeeCalculationRequest(BaseModel):
+    form: str
+    category: str | None = None
+    employer_size: str = "standard"
+    filed_online: bool = False
+    with_premium_processing: bool = False
+    filed_with_i485: bool = False
+    applicant_age: int | None = None
+    as_of: str | None = None
+    fee_waiver_eligible: bool = False
+
+class FilingFeeBundleRequest(BaseModel):
+    forms: list[dict]
+    as_of: str | None = None
+
+@app.get("/api/filing-fees/forms")
+def list_fee_forms(agency: str | None = None):
+    return {"forms": filing_fee_calculator.list_forms(agency=agency)}
+
+@app.get("/api/filing-fees/agencies")
+def list_fee_agencies():
+    return {"agencies": filing_fee_calculator.list_agencies()}
+
+@app.get("/api/filing-fees/schedule/{form}")
+def lookup_fee_schedule(form: str, category: str | None = None, as_of: str | None = None):
+    s = filing_fee_calculator.lookup_schedule(form=form, category=category, as_of=as_of)
+    if s is None:
+        raise HTTPException(status_code=404, detail=f"No schedule for form={form}")
+    return s
+
+@app.post("/api/filing-fees/calculate")
+def calculate_filing_fee(req: FilingFeeCalculationRequest):
+    try:
+        return filing_fee_calculator.calculate(**req.model_dump())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/filing-fees/calculate-bundle")
+def calculate_filing_fee_bundle(req: FilingFeeBundleRequest):
+    try:
+        return filing_fee_calculator.calculate_bundle(forms=req.forms, as_of=req.as_of)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+# =============================================
+# Case Dependency endpoints
+# =============================================
+
+class DependencyEdgeRequest(BaseModel):
+    workspace_id: str
+    predecessor_form: str
+    dependent_form: str
+    kind: str
+    predecessor_workspace_id: str | None = None
+    notes: str = ""
+
+class DependencyTemplateRequest(BaseModel):
+    workspace_id: str
+    template_name: str
+
+class DependencyResolveRequest(BaseModel):
+    workspace_id: str
+    predecessor_form: str
+    reason: str = ""
+    priority_date_current: bool | None = None
+
+@app.get("/api/case-dependencies/kinds")
+def list_dependency_kinds():
+    return {"kinds": CaseDependencyService.list_dependency_kinds()}
+
+@app.get("/api/case-dependencies/templates")
+def list_dependency_templates():
+    return {"templates": CaseDependencyService.list_templates()}
+
+@app.get("/api/case-dependencies/templates/{template_name}")
+def get_dependency_template(template_name: str):
+    t = CaseDependencyService.get_template(template_name)
+    if t is None:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return {"template_name": template_name, "edges": t}
+
+@app.post("/api/case-dependencies/edges", status_code=201)
+def add_dependency_edge(req: DependencyEdgeRequest,
+                        user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return case_dependency.add_edge(**req.model_dump())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/case-dependencies/apply-template", status_code=201)
+def apply_dependency_template(req: DependencyTemplateRequest,
+                              user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return {"edges": case_dependency.apply_template(
+            workspace_id=req.workspace_id, template_name=req.template_name,
+        )}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.delete("/api/case-dependencies/edges/{edge_id}")
+def remove_dependency_edge(edge_id: str,
+                           user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    if not case_dependency.remove_edge(edge_id):
+        raise HTTPException(status_code=404, detail="Edge not found")
+    return {"removed": True}
+
+@app.get("/api/case-dependencies/workspace/{workspace_id}")
+def list_dependency_edges(workspace_id: str,
+                          user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return {"edges": case_dependency.list_edges_for_workspace(workspace_id)}
+
+@app.post("/api/case-dependencies/resolve")
+def resolve_dependency(req: DependencyResolveRequest,
+                       user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return {"unblocked": case_dependency.mark_predecessor_satisfied(**req.model_dump())}
+
+@app.get("/api/case-dependencies/workspace/{workspace_id}/ready")
+def get_ready_to_file(workspace_id: str,
+                       user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return case_dependency.ready_to_file(workspace_id)
+
+
+# =============================================
+# Priority Date Forecaster endpoints
+# =============================================
+
+class PriorityDateForecastRequest(BaseModel):
+    category: str
+    chargeability: str
+    priority_date: str
+    as_of: str | None = None
+    lookback_months: int = 12
+
+class BulletinMonthRequest(BaseModel):
+    bulletin_month: str
+    category: str
+    chargeability: str
+    final_action_date: str | None
+
+@app.get("/api/priority-date/categories")
+def list_pd_categories():
+    return {
+        "categories": PriorityDateForecasterService.list_categories(),
+        "chargeabilities": PriorityDateForecasterService.list_chargeabilities(),
+    }
+
+@app.get("/api/priority-date/history")
+def list_pd_history(category: str | None = None, chargeability: str | None = None):
+    return {"history": priority_date_forecaster.list_history(
+        category=category, chargeability=chargeability,
+    )}
+
+@app.get("/api/priority-date/velocity")
+def get_pd_velocity(category: str, chargeability: str, lookback_months: int = 12):
+    return priority_date_forecaster.compute_velocity(
+        category=category, chargeability=chargeability,
+        lookback_months=lookback_months,
+    )
+
+@app.post("/api/priority-date/forecast")
+def forecast_priority_date(req: PriorityDateForecastRequest):
+    try:
+        return priority_date_forecaster.forecast(**req.model_dump())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/priority-date/bulletin-month", status_code=201)
+def record_bulletin_month(req: BulletinMonthRequest,
+                          user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return priority_date_forecaster.record_bulletin_month(**req.model_dump())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
