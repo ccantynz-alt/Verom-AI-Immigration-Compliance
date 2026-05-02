@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar Sync — Verom</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--blue-600:#2563eb;--violet-600:#7c3aed;--slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;--slate-500:#64748b;--slate-700:#334155;--slate-800:#1e293b;--slate-900:#0f172a;--green-50:#f0fdf4;--green-700:#15803d}
+body{font-family:'Inter',sans-serif;color:var(--slate-800);background:var(--slate-50);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+.shell{max-width:1000px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.brand-text{font-size:18px;font-weight:800}
+h1{font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-0.02em}
+.lead{font-size:13px;color:var(--slate-500);margin-bottom:18px}
+.panel{background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:18px;margin-bottom:14px}
+.panel h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);margin-bottom:10px}
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 2px 6px rgba(37,99,235,0.25)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+.sub-row{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border:1px solid var(--slate-200);border-radius:9px;margin-bottom:6px;font-size:13px}
+.sub-row .feed-url{font-family:'Courier New',monospace;font-size:11px;color:var(--slate-500);word-break:break-all;display:block;margin-top:3px}
+.fld{margin-bottom:10px}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--slate-700);margin-bottom:4px}
+.fld input,.fld select{width:100%;padding:8px 10px;border:1.5px solid var(--slate-200);border-radius:8px;font-size:13px;font-family:inherit}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:flex-end}
+@media(max-width:700px){.row{grid-template-columns:1fr}}
+.tip{background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1px solid #dbeafe;border-radius:10px;padding:11px 13px;font-size:12px;color:var(--slate-700);margin-bottom:14px}
+.provider-pill{font-size:10px;padding:3px 8px;border-radius:99px;background:var(--slate-100);color:var(--slate-700);text-transform:uppercase;letter-spacing:0.04em;margin-right:4px}
+</style>
+</head>
+<body>
+<div class="shell">
+<a class="brand" href="/workbench"><div class="brand-mark">V</div><div class="brand-text">Verom<span style="color:var(--blue-600)">.ai</span></div></a>
+<h1>Calendar sync</h1>
+<p class="lead">Subscribe your calendar to a live ICS feed of every deadline across your cases. Universal — works in Google, Outlook, Apple Calendar.</p>
+
+<div class="tip">Subscription tokens are opaque. Rotate or revoke any time. The feed includes every filing receipt and deadline with 1-day and 7-day reminders.</div>
+
+<div class="panel">
+    <h3>Create subscription</h3>
+    <div class="row">
+        <div class="fld"><label>Scope</label><select id="scope"><option value="applicant">All my cases (applicant)</option><option value="attorney">All cases (attorney)</option><option value="workspace">Single case</option></select></div>
+        <div class="fld" id="wsField" style="display:none"><label>Workspace</label><select id="ws"></select></div>
+        <div class="fld"><label>Label</label><input id="label" placeholder="phone, work mac…"></div>
+        <button class="btn btn-primary" onclick="createSub()">Create</button>
+    </div>
+</div>
+
+<div class="panel">
+    <h3>My subscriptions <span style="text-transform:none;font-weight:500;color:var(--slate-500)" id="subCount"></span></h3>
+    <div id="subList"></div>
+</div>
+
+<div class="panel">
+    <h3>OAuth providers <span style="text-transform:none;font-weight:500;color:var(--slate-500)">direct push (stubbed)</span></h3>
+    <div id="providers"></div>
+</div>
+</div>
+
+<script>
+function api(p,o){o=o||{};o.headers=o.headers||{};o.headers['Content-Type']='application/json';var t=localStorage.getItem('verom_token');if(t)o.headers['Authorization']='Bearer '+t;return fetch(p,o).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||'HTTP '+r.status)});return r.status===204?null:r.json()})}
+function loadWorkspaces(){
+    api('/api/case-workspaces').then(function(ws){
+        document.getElementById('ws').innerHTML = ws.map(function(w){return '<option value="'+w.id+'">'+(w.label||w.visa_type)+'</option>';}).join('') || '<option>No cases</option>';
+    });
+}
+function loadSubs(){
+    api('/api/calendar/subscriptions').then(function(subs){
+        document.getElementById('subCount').textContent = subs.length + ' active';
+        var c = document.getElementById('subList');
+        if (!subs.length){c.innerHTML='<div style="color:var(--slate-400);font-size:12px;padding:8px">No subscriptions yet</div>';return;}
+        var html = '';
+        subs.forEach(function(s){
+            var fullUrl = window.location.origin + s.feed_url;
+            html += '<div class="sub-row"><div><div><strong>'+s.label+'</strong> <span class="provider-pill">'+s.scope+'</span></div>';
+            html += '<div class="feed-url" onclick="navigator.clipboard.writeText(\''+fullUrl+'\');this.style.color=\'#15803d\';setTimeout(()=>this.style.color=\'\',1500)">'+fullUrl+' (click to copy)</div></div>';
+            html += '<div><button class="btn btn-outline" style="padding:5px 11px;font-size:11px;margin-right:4px" onclick="rotate(\''+s.token+'\')">Rotate</button>';
+            html += '<button class="btn btn-outline" style="padding:5px 11px;font-size:11px" onclick="revoke(\''+s.token+'\')">Revoke</button></div></div>';
+        });
+        c.innerHTML = html;
+    });
+}
+function loadProviders(){
+    api('/api/calendar/providers').then(function(ps){
+        var html = '';
+        ps.forEach(function(p){
+            html += '<div class="sub-row"><div><strong>'+p.name+'</strong> <span class="feed-url">'+p.auth+'</span></div></div>';
+        });
+        document.getElementById('providers').innerHTML = html;
+    });
+}
+function createSub(){
+    var scope = document.getElementById('scope').value;
+    var ws_id = scope === 'workspace' ? document.getElementById('ws').value : null;
+    var label = document.getElementById('label').value;
+    api('/api/calendar/subscriptions',{method:'POST',body:JSON.stringify({scope:scope,workspace_id:ws_id,label:label})}).then(function(){
+        document.getElementById('label').value = '';
+        loadSubs();
+    }).catch(function(e){alert('Create failed: '+e.message)});
+}
+function rotate(token){
+    api('/api/calendar/subscriptions/'+token+'/rotate',{method:'POST'}).then(loadSubs);
+}
+function revoke(token){
+    if (!confirm('Revoke this subscription? Calendar clients will lose access.')) return;
+    api('/api/calendar/subscriptions/'+token,{method:'DELETE'}).then(loadSubs);
+}
+document.getElementById('scope').addEventListener('change', function(){
+    document.getElementById('wsField').style.display = this.value === 'workspace' ? 'block' : 'none';
+});
+loadWorkspaces();loadSubs();loadProviders();
+</script>
+</body>
+</html>

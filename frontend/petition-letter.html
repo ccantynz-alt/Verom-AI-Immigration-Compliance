@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petition Letter — Verom</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--blue-600:#2563eb;--violet-600:#7c3aed;--slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;--slate-500:#64748b;--slate-700:#334155;--slate-800:#1e293b;--slate-900:#0f172a;--green-500:#22c55e;--amber-500:#f59e0b;--red-500:#ef4444}
+body{font-family:'Inter',-apple-system,sans-serif;color:var(--slate-800);background:var(--slate-50);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+.shell{max-width:1100px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px}
+.brand-text{font-size:18px;font-weight:800}
+h1{font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-0.02em}
+.lead{font-size:13px;color:var(--slate-500);margin-bottom:18px}
+.panel{background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:18px;margin-bottom:14px}
+.panel h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);margin-bottom:10px}
+.row{display:grid;gap:10px}
+.row.two{grid-template-columns:1fr 1fr}
+.fld{margin-bottom:10px}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--slate-700);margin-bottom:4px}
+.fld input,.fld select{width:100%;padding:8px 10px;border:1.5px solid var(--slate-200);border-radius:8px;font-size:13px;font-family:inherit}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--blue-600)}
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 2px 6px rgba(37,99,235,0.25)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+.preview{font-family:'Courier New',monospace;font-size:12px;color:var(--slate-700);white-space:pre-wrap;background:#fff;border:1px solid var(--slate-200);border-radius:9px;padding:18px;max-height:600px;overflow-y:auto}
+.stats{display:flex;gap:14px;font-size:11px;color:var(--slate-500);margin-bottom:10px;flex-wrap:wrap}
+.stats span strong{color:var(--slate-900)}
+.section-pill{font-size:10px;padding:2px 7px;border-radius:99px;background:var(--slate-100);color:var(--slate-700)}
+.section-pill.OK{background:#dcfce7;color:#15803d}
+.section-pill.INSUFFICIENT_EVIDENCE,.section-pill.PENDING_DOCS{background:#fef3c7;color:#d97706}
+</style>
+</head>
+<body>
+<div class="shell">
+<a class="brand" href="/workbench"><div class="brand-mark">V</div><div class="brand-text">Verom<span style="color:var(--blue-600)">.ai</span></div></a>
+<h1>Petition letter generator</h1>
+<p class="lead">Section-by-section assembly with [VERIFIED] / [PENDING] / [CITATION_NEEDED] markers. The O-1 / EB-1 / EB-2 NIW closer.</p>
+
+<div class="panel">
+    <h3>Generate</h3>
+    <div class="row two">
+        <div class="fld"><label>Workspace</label><select id="ws"></select></div>
+        <div class="fld"><label>Petition kind</label><select id="kind"><option>O-1A</option><option>EB-1A</option><option>EB-2-NIW</option><option>H-1B</option><option>L-1A</option></select></div>
+    </div>
+    <div class="row two">
+        <div class="fld"><label>Attorney name</label><input id="atty_name" placeholder="Jennifer Park"></div>
+        <div class="fld"><label>Bar number</label><input id="atty_bar" placeholder="NY-2013-58293"></div>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px"><button class="btn btn-primary" onclick="generate()">Generate draft</button>
+        <label style="font-size:12px;color:var(--slate-600);display:flex;align-items:center;gap:5px"><input type="checkbox" id="force_weak"> Include weak sections</label>
+    </div>
+</div>
+
+<div class="panel" id="result" style="display:none">
+    <h3>Draft <span id="draftMeta" style="text-transform:none;font-weight:500"></span></h3>
+    <div class="stats" id="stats"></div>
+    <div style="margin-bottom:10px"><button class="btn btn-outline" onclick="toggleReview()">Toggle review mode</button></div>
+    <div class="preview" id="preview"></div>
+</div>
+</div>
+<script>
+function api(p,o){o=o||{};o.headers=o.headers||{};o.headers['Content-Type']='application/json';var t=localStorage.getItem('verom_token');if(t)o.headers['Authorization']='Bearer '+t;return fetch(p,o).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||'HTTP '+r.status)});return r.headers.get('content-type')&&r.headers.get('content-type').indexOf('json')>=0?r.json():r.text()})}
+var currentDraft = null;
+var reviewMode = false;
+function loadWorkspaces(){
+    api('/api/case-workspaces').then(function(ws){
+        var sel = document.getElementById('ws');
+        sel.innerHTML = ws.map(function(w){return '<option value="'+w.id+'">'+(w.label||w.visa_type)+'</option>';}).join('');
+    }).catch(function(){
+        document.getElementById('ws').innerHTML = '<option>Sign in to load cases</option>';
+    });
+}
+function generate(){
+    var ws = document.getElementById('ws').value;
+    var kind = document.getElementById('kind').value;
+    var force = document.getElementById('force_weak').checked;
+    var atty = {name: document.getElementById('atty_name').value, bar_number: document.getElementById('atty_bar').value};
+    if (!ws){ alert('Pick a workspace'); return; }
+    api('/api/petition-letter/generate', {method:'POST',body:JSON.stringify({workspace_id:ws,petition_kind:kind,attorney_profile:atty,force_include_weak_sections:force})}).then(function(d){
+        currentDraft = d;
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('draftMeta').textContent = '· ' + d.petition_name;
+        document.getElementById('stats').innerHTML =
+            '<span><strong>'+d.stats.section_count+'</strong> sections</span>'+
+            '<span><strong>'+d.stats.total_word_count+'</strong> words</span>'+
+            '<span><strong>'+d.stats.verified_cites+'</strong> ✓ verified</span>'+
+            '<span><strong>'+d.stats.pending_cites+'</strong> ⏳ pending</span>'+
+            '<span><strong>'+d.stats.needed_cites+'</strong> ✗ needed</span>'+
+            (d.stats.weak_sections>0?'<span><strong>'+d.stats.weak_sections+'</strong> weak</span>':'');
+        renderPreview();
+    }).catch(function(e){alert('Generate failed: '+e.message)});
+}
+function toggleReview(){ reviewMode = !reviewMode; renderPreview(); }
+function renderPreview(){
+    if (!currentDraft) return;
+    var url = reviewMode ? '/api/petition-letter/drafts/'+currentDraft.id+'/review' : '/api/petition-letter/drafts/'+currentDraft.id+'/text';
+    api(url).then(function(t){ document.getElementById('preview').textContent = t; });
+}
+loadWorkspaces();
+</script>
+</body>
+</html>

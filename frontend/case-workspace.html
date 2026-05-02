@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Workspace — Verom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--blue-600:#2563eb;--blue-700:#1d4ed8;
+    --violet-50:#f5f3ff;--violet-500:#8b5cf6;--violet-600:#7c3aed;
+    --slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;
+    --slate-400:#94a3b8;--slate-500:#64748b;--slate-600:#475569;--slate-700:#334155;
+    --slate-800:#1e293b;--slate-900:#0f172a;
+    --green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--green-700:#15803d;
+    --red-50:#fef2f2;--red-100:#fee2e2;--red-500:#ef4444;--red-600:#dc2626;
+    --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-500:#f59e0b;--amber-600:#d97706;
+    --shadow-sm:0 1px 2px rgba(0,0,0,0.05);
+    --shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -2px rgba(0,0,0,0.05);
+}
+body{font-family:'Inter',-apple-system,sans-serif;color:var(--slate-800);background:var(--slate-50);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+.shell{max-width:1320px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
+.brand-text{font-size:20px;font-weight:800}
+.brand-text .ai{color:var(--blue-600)}
+
+.case-header{background:#fff;border:1px solid var(--slate-200);border-radius:14px;padding:20px 24px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.case-header h1{font-size:22px;font-weight:800;color:var(--slate-900);letter-spacing:-0.02em;margin-bottom:4px}
+.case-header .meta{font-size:13px;color:var(--slate-500)}
+.case-header .actions{display:flex;gap:8px;flex-wrap:wrap}
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em}
+.status-intake{background:var(--slate-100);color:var(--slate-700)}
+.status-documents{background:var(--blue-50);color:var(--blue-700)}
+.status-review{background:var(--violet-50);color:var(--violet-600)}
+.status-filed{background:var(--green-50);color:var(--green-700)}
+.status-rfe{background:var(--amber-50);color:var(--amber-600)}
+.status-decision_pending{background:var(--blue-50);color:var(--blue-700)}
+.status-approved{background:var(--green-100);color:var(--green-700)}
+.status-denied{background:var(--red-50);color:var(--red-600)}
+.status-withdrawn{background:var(--slate-100);color:var(--slate-500)}
+
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.metric-card{background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:14px 16px}
+.metric-card .lab{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--slate-500)}
+.metric-card .val{font-size:24px;font-weight:800;color:var(--slate-900);line-height:1.1;margin:4px 0}
+.metric-card .meta{font-size:12px;color:var(--slate-500)}
+.metric-bar{height:5px;background:var(--slate-200);border-radius:99px;overflow:hidden;margin-top:6px}
+.metric-fill{height:100%;border-radius:99px;transition:width 600ms cubic-bezier(0.4,0,0.2,1);width:0%}
+.metric-fill.blue{background:linear-gradient(90deg,var(--blue-600),var(--violet-600))}
+.metric-fill.green{background:var(--green-500)}
+.metric-fill.amber{background:var(--amber-500)}
+.metric-fill.red{background:var(--red-500)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:1100px){.grid{grid-template-columns:1.6fr 1fr}}
+
+.col{display:flex;flex-direction:column;gap:16px}
+
+.panel{background:#fff;border:1px solid var(--slate-200);border-radius:14px;padding:20px}
+.panel h3{font-size:14px;font-weight:700;color:var(--slate-900);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.panel h3 .right{font-size:12px;font-weight:600;color:var(--slate-500)}
+
+.next-action{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;background:var(--slate-50);margin-bottom:6px}
+.next-action.blocking{background:var(--red-50);border-left:3px solid var(--red-500)}
+.next-action.high{background:var(--amber-50);border-left:3px solid var(--amber-500)}
+.next-action.medium{background:var(--blue-50);border-left:3px solid var(--blue-500)}
+.next-action.low{background:var(--slate-50)}
+.next-action .pri{font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:99px;flex-shrink:0;margin-top:1px}
+.next-action.blocking .pri{background:var(--red-100);color:var(--red-600)}
+.next-action.high .pri{background:var(--amber-100);color:var(--amber-600)}
+.next-action.medium .pri{background:var(--blue-100);color:var(--blue-700)}
+.next-action.low .pri{background:var(--slate-200);color:var(--slate-600)}
+
+.flag-row{padding:10px 12px;border-radius:10px;border-left:3px solid var(--slate-300);background:var(--slate-50);margin-bottom:6px;font-size:13px}
+.flag-row.high,.flag-row.blocking{border-color:var(--red-500);background:var(--red-50)}
+.flag-row.medium{border-color:var(--amber-500);background:var(--amber-50)}
+.flag-row.low{border-color:var(--blue-500);background:var(--blue-50)}
+.flag-row .ttl{font-weight:600;color:var(--slate-900);margin-bottom:2px}
+.flag-row .desc{font-size:12px;color:var(--slate-600)}
+
+.timeline{display:flex;flex-direction:column;gap:0;position:relative;padding-left:18px}
+.timeline::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--slate-200)}
+.tl-item{position:relative;padding:8px 0;font-size:13px}
+.tl-item::before{content:'';position:absolute;left:-18px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--blue-500);border:2px solid #fff}
+.tl-item.case_filed::before,.tl-item.case_created::before{background:var(--green-500)}
+.tl-item.rfe_received::before,.tl-item.deadline_added::before{background:var(--amber-500)}
+.tl-item .msg{color:var(--slate-800);font-weight:500}
+.tl-item .when{font-size:11px;color:var(--slate-400)}
+
+.deadline-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;background:var(--slate-50);margin-bottom:6px;font-size:13px}
+.deadline-row.urgent{background:var(--red-50);border:1px solid var(--red-100)}
+.deadline-row.soon{background:var(--amber-50);border:1px solid var(--amber-100)}
+.deadline-row .lbl{font-weight:600;color:var(--slate-900)}
+.deadline-row .due{font-size:12px;color:var(--slate-500)}
+.deadline-row .days{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--slate-200);color:var(--slate-700)}
+.deadline-row.urgent .days{background:var(--red-100);color:var(--red-600)}
+.deadline-row.soon .days{background:var(--amber-100);color:var(--amber-600)}
+
+.match-card{padding:12px 14px;border:1px solid var(--slate-200);border-radius:11px;margin-bottom:8px;display:flex;gap:12px;align-items:center}
+.match-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.match-info{flex:1;min-width:0}
+.match-info .nm{font-size:13px;font-weight:700;color:var(--slate-900)}
+.match-info .meta{font-size:11px;color:var(--slate-500)}
+.match-score{font-size:11px;font-weight:700;color:var(--green-700);background:var(--green-100);padding:3px 8px;border-radius:99px}
+
+.note-row{padding:11px 13px;border-left:3px solid var(--blue-200,var(--blue-100));background:var(--slate-50);border-radius:0 8px 8px 0;margin-bottom:8px;font-size:13px}
+.note-row.client_visible{border-color:var(--green-500)}
+.note-row .body{color:var(--slate-700)}
+.note-row .meta{font-size:11px;color:var(--slate-400);margin-top:4px}
+
+.note-input{display:flex;gap:8px;margin-top:10px}
+.note-input textarea{flex:1;padding:9px 11px;border:1.5px solid var(--slate-200);border-radius:9px;font-size:13px;font-family:inherit;resize:vertical;min-height:40px}
+.note-input textarea:focus{outline:none;border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+
+.btn{padding:8px 14px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 2px 8px rgba(37,99,235,0.25)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+.btn-outline:hover{border-color:var(--slate-400)}
+.btn-ghost{background:transparent;color:var(--slate-600)}
+.btn-ghost:hover{background:var(--slate-100)}
+.btn-sm{padding:6px 11px;font-size:12px}
+.btn-link{background:none;border:none;color:var(--blue-600);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline}
+
+.empty{font-size:13px;color:var(--slate-400);text-align:center;padding:18px 12px}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--slate-900);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;z-index:1000;opacity:0;pointer-events:none;transition:opacity 200ms}
+.toast.show{opacity:1}
+
+/* Chatbot widget */
+.chat-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 8px 22px rgba(37,99,235,0.4);z-index:99;border:none}
+.chat-fab:hover{transform:scale(1.05)}
+.chat-window{position:fixed;bottom:90px;right:24px;width:360px;max-height:520px;background:#fff;border:1px solid var(--slate-200);border-radius:14px;box-shadow:0 20px 40px rgba(0,0,0,0.15);z-index:98;display:none;flex-direction:column;overflow:hidden}
+.chat-window.open{display:flex}
+.chat-head{padding:14px 16px;border-bottom:1px solid var(--slate-200);background:linear-gradient(135deg,var(--blue-50),var(--violet-50))}
+.chat-head h4{font-size:13px;font-weight:700;color:var(--slate-900)}
+.chat-head .sub{font-size:11px;color:var(--slate-500);margin-top:1px}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:85%;padding:8px 12px;border-radius:12px;font-size:12.5px;line-height:1.4;white-space:pre-wrap}
+.msg.bot{background:var(--slate-100);color:var(--slate-800);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.user{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.msg.system,.msg.attorney{background:var(--amber-50);color:var(--slate-800);align-self:center;font-size:11px;font-style:italic;border-radius:8px}
+.msg .grounded{font-size:10px;color:var(--slate-500);margin-top:3px;font-style:italic}
+.chat-input{display:flex;padding:10px;gap:6px;border-top:1px solid var(--slate-200)}
+.chat-input input{flex:1;padding:8px 11px;border:1px solid var(--slate-200);border-radius:9px;font-size:12px;font-family:inherit}
+.chat-input input:focus{outline:none;border-color:var(--blue-600)}
+.chat-input button{padding:8px 13px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer}
+
+.input-modal-bg{position:fixed;inset:0;background:rgba(15,23,42,0.5);display:none;align-items:center;justify-content:center;z-index:100}
+.input-modal-bg.show{display:flex}
+.input-modal{background:#fff;border-radius:14px;padding:24px;max-width:420px;width:90%;box-shadow:0 30px 80px rgba(0,0,0,0.3)}
+.input-modal h3{font-size:16px;font-weight:700;margin-bottom:14px}
+.input-modal .fld{margin-bottom:12px}
+.input-modal .fld label{display:block;font-size:12px;font-weight:600;color:var(--slate-700);margin-bottom:5px}
+.input-modal input{width:100%;padding:9px 11px;border:1.5px solid var(--slate-200);border-radius:9px;font-size:14px;font-family:inherit}
+.input-modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+.workspace-picker{background:#fff;border:1px solid var(--slate-200);border-radius:14px;padding:24px;max-width:520px;margin:60px auto;text-align:center}
+.workspace-picker h2{font-size:18px;font-weight:700;margin-bottom:8px}
+.workspace-picker p{font-size:13px;color:var(--slate-500);margin-bottom:18px}
+.workspace-picker .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.workspace-picker input,.workspace-picker select{padding:9px 11px;border:1.5px solid var(--slate-200);border-radius:9px;font-size:13px;font-family:inherit;width:100%}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<a class="brand" href="/applicant">
+    <div class="brand-mark">V</div>
+    <div class="brand-text">Verom<span class="ai">.ai</span></div>
+</a>
+
+<div id="root">
+    <div class="empty">Loading workspace…</div>
+</div>
+
+</div>
+
+<div class="input-modal-bg" id="modalBg">
+    <div class="input-modal">
+        <h3 id="modalTitle">Add</h3>
+        <div id="modalFields"></div>
+        <div class="actions">
+            <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary btn-sm" id="modalSubmit">Save</button>
+        </div>
+    </div>
+</div>
+
+<button class="chat-fab" id="chatFab" title="Ask the case assistant">💬</button>
+<div class="chat-window" id="chatWindow">
+    <div class="chat-head">
+        <h4>Case assistant</h4>
+        <div class="sub">Ask anything about your case</div>
+    </div>
+    <div class="chat-msgs" id="chatMsgs"></div>
+    <form class="chat-input" id="chatForm" onsubmit="sendChat(event)">
+        <input id="chatInput" placeholder="e.g. when is my deadline?" autocomplete="off">
+        <button type="submit">Send</button>
+    </form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+var state = {
+    wsId: null,
+    snapshot: null,
+};
+
+function api(path, opts){
+    opts = opts || {};
+    opts.headers = opts.headers || {};
+    opts.headers['Content-Type'] = 'application/json';
+    var token = localStorage.getItem('verom_token');
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(path, opts).then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error(t || ('HTTP ' + r.status)); });
+        return r.status === 204 ? null : r.json();
+    });
+}
+
+function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
+
+function loadFromQuery(){
+    var p = new URLSearchParams(window.location.search);
+    state.wsId = p.get('id') || localStorage.getItem('verom_active_workspace');
+}
+
+function refresh(){
+    if (!state.wsId){
+        renderPicker();
+        return;
+    }
+    api('/api/case-workspaces/' + state.wsId + '/snapshot')
+        .then(function(snap){
+            state.snapshot = snap;
+            try { localStorage.setItem('verom_active_workspace', state.wsId); } catch(e){}
+            render();
+        })
+        .catch(function(e){
+            document.getElementById('root').innerHTML = '<div class="panel"><div class="empty">Could not load workspace: ' + e.message + '<br><br><a class="btn-link" onclick="window.location.href=\'/case\'">Pick a different workspace</a></div></div>';
+        });
+}
+
+function renderPicker(){
+    api('/api/case-workspaces').then(function(list){
+        var html = '<div class="workspace-picker">';
+        html += '<h2>Open a case workspace</h2>';
+        html += '<p>Select an existing case or create a new one.</p>';
+        if (list && list.length){
+            html += '<div style="text-align:left;margin-bottom:18px">';
+            list.forEach(function(w){
+                html += '<button class="btn btn-outline" style="display:flex;justify-content:space-between;width:100%;margin-bottom:6px;padding:10px 14px" onclick="window.location.href=\'/case?id=' + w.id + '\'">';
+                html += '<span style="font-weight:600">' + (w.label || w.visa_type) + '</span>';
+                html += '<span class="status-pill status-' + w.status + '">' + w.status + '</span>';
+                html += '</button>';
+            });
+            html += '</div>';
+        }
+        html += '<div style="border-top:1px solid var(--slate-200);padding-top:18px">';
+        html += '<h3 style="font-size:14px;margin-bottom:10px;text-align:left">Or create a new workspace</h3>';
+        html += '<div class="form-row"><input id="pickVisa" placeholder="Visa type (e.g. H-1B)" value="H-1B"><select id="pickCountry"><option>US</option><option>UK</option><option>CA</option><option>AU</option><option>DE</option><option>NZ</option></select></div>';
+        html += '<input id="pickLabel" placeholder="Optional label">';
+        html += '<button class="btn btn-primary" style="margin-top:10px;width:100%" onclick="createWorkspace()">Create workspace</button>';
+        html += '</div></div>';
+        document.getElementById('root').innerHTML = html;
+    }).catch(function(e){
+        document.getElementById('root').innerHTML = '<div class="workspace-picker"><h2>Sign in required</h2><p>You need to sign in before opening a case workspace.</p><a href="/login" class="btn btn-primary">Sign in →</a></div>';
+    });
+}
+
+window.createWorkspace = function(){
+    var visa = document.getElementById('pickVisa').value;
+    var country = document.getElementById('pickCountry').value;
+    var label = document.getElementById('pickLabel').value || null;
+    var sessionId = localStorage.getItem('verom_intake_session') || null;
+    api('/api/case-workspaces', {
+        method: 'POST',
+        body: JSON.stringify({ visa_type: visa, country: country, case_label: label, intake_session_id: sessionId })
+    }).then(function(w){
+        state.wsId = w.id;
+        history.replaceState(null, '', '/case?id=' + w.id);
+        refresh();
+    }).catch(function(e){ toast('Create failed: ' + e.message); });
+};
+
+function render(){
+    var snap = state.snapshot;
+    var ws = snap.workspace;
+    var c = snap.completeness || {};
+    var html = '';
+
+    // Header
+    html += '<div class="case-header">';
+    html += '<div><h1>' + (ws.label || ws.visa_type) + '</h1>';
+    html += '<div class="meta">' + ws.visa_type + ' · ' + ws.country + ' · created ' + ws.created_at.slice(0,10) + '</div></div>';
+    html += '<div class="actions">';
+    html += '<span class="status-pill status-' + ws.status + '">' + ws.status.replace(/_/g,' ') + '</span>';
+    if (ws.filing_receipt_number){
+        html += '<span class="status-pill status-filed">' + ws.filing_receipt_number + '</span>';
+    } else {
+        html += '<button class="btn btn-outline btn-sm" onclick="recordFiling()">Record filing</button>';
+    }
+    html += '<button class="btn btn-outline btn-sm" onclick="recordRFE()">RFE received</button>';
+    html += '<a class="btn btn-ghost btn-sm" href="/case">Switch case</a>';
+    html += '</div></div>';
+
+    // Metrics
+    html += '<div class="metrics">';
+    html += metric('Overall', (c.overall_pct || 0) + '%', (c.ready_to_file ? 'Ready to file' : 'In progress'), c.overall_pct, 'blue');
+    html += metric('Intake', (c.intake_pct || 0) + '%', snap.intake ? snap.intake.strength.tier : '—', c.intake_pct, c.intake_pct === 100 ? 'green' : 'amber');
+    html += metric('Documents', (c.documents_pct || 0) + '%', snap.documents ? (snap.documents.total_complete + '/' + snap.documents.total_required) : '—', c.documents_pct, c.documents_pct === 100 ? 'green' : 'amber');
+    html += metric('Forms', (c.forms_pct || 0) + '%', snap.forms ? (snap.forms.records.length + ' forms') : '—', c.forms_pct, c.forms_pct === 100 ? 'green' : 'amber');
+    if (snap.rfe_risk){
+        var riskColor = snap.rfe_risk.risk_score >= 70 ? 'red' : snap.rfe_risk.risk_score >= 50 ? 'amber' : snap.rfe_risk.risk_score >= 30 ? 'amber' : 'green';
+        html += metric('RFE risk', snap.rfe_risk.risk_score + '%', snap.rfe_risk.risk_tier.replace('_',' '), snap.rfe_risk.risk_score, riskColor);
+    }
+    html += '</div>';
+
+    // Two-col layout
+    html += '<div class="grid"><div class="col">';
+
+    // Next actions
+    html += '<div class="panel"><h3>What needs your attention</h3>';
+    if (!snap.next_actions.length){
+        html += '<div class="empty">All clear — nothing blocking right now.</div>';
+    } else {
+        snap.next_actions.forEach(function(a){
+            html += '<div class="next-action ' + a.priority + '"><span class="pri">' + a.priority + '</span><span>' + a.label + '</span></div>';
+        });
+    }
+    html += '</div>';
+
+    // Intake panel
+    if (snap.intake){
+        var i = snap.intake;
+        html += '<div class="panel"><h3>Intake & strength <span class="right">' + i.strength.tier.toUpperCase() + ' · ' + i.strength.score + '/100</span></h3>';
+        if (i.validation && !i.validation.ok){
+            i.validation.blocking_issues.slice(0,3).forEach(function(b){
+                html += '<div class="flag-row blocking"><div class="ttl">⛔ Blocker</div><div class="desc">' + (b.issue || b.message) + '</div></div>';
+            });
+        }
+        var topStrengths = (i.strength.strengths || []).slice(0, 4);
+        if (topStrengths.length){
+            html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">';
+            topStrengths.forEach(function(s){
+                html += '<span style="font-size:12px;padding:4px 10px;border-radius:99px;background:var(--green-50);color:var(--green-700)">+' + s.weight + ' ' + s.description + '</span>';
+            });
+            html += '</div>';
+        }
+        if ((i.red_flags || []).length){
+            html += '<div style="margin-top:12px"><strong style="font-size:12px;color:var(--slate-500);text-transform:uppercase;letter-spacing:0.05em">Red flags</strong>';
+            i.red_flags.slice(0, 3).forEach(function(f){
+                html += '<div class="flag-row ' + f.severity + '" style="margin-top:6px"><div class="ttl">' + f.issue + '</div><div class="desc">' + f.recommendation + '</div></div>';
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+    }
+
+    // Documents panel
+    if (snap.documents){
+        html += '<div class="panel"><h3>Documents <span class="right">' + snap.documents.total_complete + '/' + snap.documents.total_required + ' required · <a class="btn-link" href="/intake/documents">Open uploader</a></span></h3>';
+        var missing = (snap.documents.items || []).filter(function(it){ return it.status === 'missing' && it.required; });
+        if (missing.length === 0){
+            html += '<div class="empty">All required documents uploaded ✓</div>';
+        } else {
+            missing.slice(0, 6).forEach(function(it){
+                html += '<div class="next-action high"><span class="pri">missing</span><span>' + it.label + '</span></div>';
+            });
+        }
+        if ((snap.documents.data_conflicts || []).length){
+            html += '<div style="margin-top:8px"><strong style="font-size:12px;color:var(--red-600);text-transform:uppercase;letter-spacing:0.05em">Conflicts detected</strong>';
+            snap.documents.data_conflicts.forEach(function(c){
+                html += '<div class="flag-row high" style="margin-top:6px"><div class="ttl">' + c.code.replace(/_/g,' ') + '</div><div class="desc">' + c.explanation + '</div></div>';
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+    }
+
+    // Forms panel
+    if (snap.forms){
+        html += '<div class="panel"><h3>Forms <span class="right">' + snap.forms.records.length + ' forms · <a class="btn-link" href="/forms">Open workspace</a></span></h3>';
+        snap.forms.records.forEach(function(r){
+            var pctClass = r.completeness_pct === 100 ? 'green' : r.completeness_pct >= 50 ? 'amber' : 'red';
+            html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--slate-100);font-size:13px">';
+            html += '<span><strong>' + r.form_id + '</strong> <span style="color:var(--slate-500)">— ' + r.required_filled + '/' + r.required_total + ' filled</span></span>';
+            html += '<span class="metric-fill ' + pctClass + '" style="display:inline-block;width:60px;height:5px;border-radius:99px;background:var(--slate-200);position:relative;overflow:hidden"><span style="position:absolute;left:0;top:0;height:100%;background:' + (pctClass === 'green' ? 'var(--green-500)' : pctClass === 'amber' ? 'var(--amber-500)' : 'var(--red-500)') + ';width:' + r.completeness_pct + '%"></span></span>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+
+    // RFE risk panel
+    if (snap.rfe_risk && snap.rfe_risk.risk_score > 0){
+        var rfe = snap.rfe_risk;
+        html += '<div class="panel"><h3>RFE risk forecast <span class="right">' + rfe.risk_score + '% · post-mitigation ' + rfe.post_mitigation_risk_pct + '%</span></h3>';
+        rfe.fired_triggers.slice(0, 4).forEach(function(t){
+            html += '<div class="flag-row ' + t.severity + '"><div class="ttl">' + t.title + '</div><div class="desc">' + t.explanation + '</div></div>';
+        });
+        html += '</div>';
+    }
+
+    html += '</div><div class="col">';
+
+    // Deadlines
+    html += '<div class="panel"><h3>Deadlines <span class="right"><button class="btn-link" onclick="showAddDeadline()">+ Add</button></span></h3>';
+    if (!snap.deadlines.length){
+        html += '<div class="empty">No deadlines tracked</div>';
+    } else {
+        var now = Date.now();
+        snap.deadlines.forEach(function(d){
+            var due = new Date(d.due_date).getTime();
+            var days = Math.round((due - now) / (1000 * 60 * 60 * 24));
+            var cls = days < 7 ? 'urgent' : days < 30 ? 'soon' : '';
+            html += '<div class="deadline-row ' + cls + '"><div><div class="lbl">' + d.label + '</div><div class="due">' + d.due_date + '</div></div>';
+            html += '<div class="days">' + (days < 0 ? Math.abs(days) + 'd overdue' : days + 'd') + '</div></div>';
+        });
+    }
+    html += '</div>';
+
+    // Attorney match
+    if (snap.match && snap.match.results && snap.match.results.length){
+        html += '<div class="panel"><h3>Top attorney matches</h3>';
+        snap.match.results.slice(0, 3).forEach(function(a){
+            var initials = a.name.split(' ').map(function(s){ return s[0]; }).join('');
+            html += '<div class="match-card"><div class="match-avatar">' + initials + '</div>';
+            html += '<div class="match-info"><div class="nm">' + a.name + '</div>';
+            html += '<div class="meta">' + a.years_experience + ' yrs · ' + Math.round(a.approval_rate*100) + '% approval</div></div>';
+            html += '<div class="match-score">' + a.match_score + '/100</div></div>';
+        });
+        html += '</div>';
+    }
+
+    // Conflict-check
+    if (snap.conflicts){
+        html += '<div class="panel"><h3>Conflict check</h3>';
+        html += '<div style="font-size:13px;color:var(--slate-700)">Decision: <strong>' + snap.conflicts.decision.replace(/_/g,' ') + '</strong> · ' + snap.conflicts.total_conflicts + ' conflict' + (snap.conflicts.total_conflicts === 1 ? '' : 's') + ' detected</div>';
+        html += '</div>';
+    }
+
+    // Notes
+    html += '<div class="panel"><h3>Case notes</h3>';
+    if (!snap.notes.length){
+        html += '<div class="empty">No notes yet</div>';
+    } else {
+        snap.notes.slice(0, 6).forEach(function(n){
+            html += '<div class="note-row ' + n.visibility + '"><div class="body">' + escapeHtml(n.body) + '</div>';
+            html += '<div class="meta">' + n.author_id + ' · ' + n.at.slice(0,16).replace('T',' ') + ' · ' + n.visibility + '</div></div>';
+        });
+    }
+    html += '<div class="note-input"><textarea id="newNote" placeholder="Add a note (internal)…"></textarea><button class="btn btn-primary btn-sm" onclick="addNote()">Add</button></div>';
+    html += '</div>';
+
+    // Timeline
+    html += '<div class="panel"><h3>Timeline</h3><div class="timeline">';
+    if (!snap.timeline.length){
+        html += '<div class="empty">No events yet</div>';
+    } else {
+        snap.timeline.slice(0, 12).forEach(function(e){
+            html += '<div class="tl-item ' + e.kind + '"><div class="msg">' + escapeHtml(e.message) + '</div><div class="when">' + e.kind + ' · ' + e.at.slice(0,16).replace('T',' ') + '</div></div>';
+        });
+    }
+    html += '</div></div>';
+
+    html += '</div></div>';
+
+    document.getElementById('root').innerHTML = html;
+}
+
+function metric(label, value, meta, pct, color){
+    var html = '<div class="metric-card"><div class="lab">' + label + '</div>';
+    html += '<div class="val">' + value + '</div>';
+    html += '<div class="meta">' + (meta || '') + '</div>';
+    if (pct !== undefined && pct !== null){
+        html += '<div class="metric-bar"><div class="metric-fill ' + (color || 'blue') + '" style="width:' + Math.min(100, pct) + '%"></div></div>';
+    }
+    html += '</div>';
+    return html;
+}
+
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+window.addNote = function(){
+    var body = document.getElementById('newNote').value.trim();
+    if (!body) return;
+    api('/api/case-workspaces/' + state.wsId + '/notes', {
+        method: 'POST',
+        body: JSON.stringify({ body: body, visibility: 'internal' })
+    }).then(function(){ document.getElementById('newNote').value = ''; refresh(); toast('Note added'); })
+      .catch(function(e){ toast('Save failed: ' + e.message); });
+};
+
+window.showAddDeadline = function(){
+    showModal('Add deadline', [
+        {id: 'dl_label', label: 'What', placeholder: 'e.g. RFE response due'},
+        {id: 'dl_date', label: 'Due date', type: 'date'}
+    ], function(){
+        var label = document.getElementById('dl_label').value;
+        var date = document.getElementById('dl_date').value;
+        if (!label || !date){ toast('Fill both fields'); return; }
+        api('/api/case-workspaces/' + state.wsId + '/deadlines', {
+            method: 'POST',
+            body: JSON.stringify({ label: label, due_date: date, kind: 'general' })
+        }).then(function(){ closeModal(); refresh(); toast('Deadline added'); })
+          .catch(function(e){ toast('Save failed: ' + e.message); });
+    });
+};
+
+window.recordFiling = function(){
+    showModal('Record filing', [
+        {id: 'rec_num', label: 'Receipt number', placeholder: 'e.g. WAC2612345678'},
+        {id: 'filed_date', label: 'Filed date', type: 'date'},
+        {id: 'form_type', label: 'Form filed', placeholder: 'e.g. I-129'}
+    ], function(){
+        var rn = document.getElementById('rec_num').value;
+        var fd = document.getElementById('filed_date').value;
+        var ft = document.getElementById('form_type').value;
+        if (!rn){ toast('Receipt number required'); return; }
+        api('/api/case-workspaces/' + state.wsId + '/filing', {
+            method: 'POST',
+            body: JSON.stringify({ receipt_number: rn, filed_date: fd, form_type: ft, auto_compute_deadlines: true })
+        }).then(function(){ closeModal(); refresh(); toast('Filing recorded'); })
+          .catch(function(e){ toast('Save failed: ' + e.message); });
+    });
+};
+
+window.recordRFE = function(){
+    showModal('Record RFE received', [
+        {id: 'rfe_date', label: 'Date received', type: 'date'},
+        {id: 'rfe_window', label: 'Response window (days)', type: 'number', placeholder: '87'}
+    ], function(){
+        var rd = document.getElementById('rfe_date').value;
+        var rw = parseInt(document.getElementById('rfe_window').value || '87');
+        if (!rd){ toast('Date required'); return; }
+        api('/api/case-workspaces/' + state.wsId + '/rfe-received', {
+            method: 'POST',
+            body: JSON.stringify({ rfe_received_date: rd, response_window_days: rw })
+        }).then(function(){ closeModal(); refresh(); toast('RFE recorded'); })
+          .catch(function(e){ toast('Save failed: ' + e.message); });
+    });
+};
+
+window.showModal = function(title, fields, onSubmit){
+    document.getElementById('modalTitle').textContent = title;
+    var fhtml = '';
+    fields.forEach(function(f){
+        fhtml += '<div class="fld"><label>' + f.label + '</label>';
+        fhtml += '<input id="' + f.id + '" type="' + (f.type || 'text') + '" placeholder="' + (f.placeholder || '') + '">';
+        fhtml += '</div>';
+    });
+    document.getElementById('modalFields').innerHTML = fhtml;
+    document.getElementById('modalSubmit').onclick = onSubmit;
+    document.getElementById('modalBg').classList.add('show');
+};
+window.closeModal = function(){ document.getElementById('modalBg').classList.remove('show'); };
+
+loadFromQuery();
+refresh();
+
+// ----- Chatbot widget -----
+var chatConvoId = null;
+function ensureChatConvo(){
+    if (chatConvoId || !state.wsId) return Promise.resolve(null);
+    return api('/api/chatbot/conversations', {
+        method: 'POST',
+        body: JSON.stringify({ workspace_id: state.wsId })
+    }).then(function(c){
+        chatConvoId = c.id;
+        return api('/api/chatbot/conversations/' + c.id + '/messages').then(function(msgs){
+            renderChatMessages(msgs);
+        });
+    }).catch(function(){});
+}
+function renderChatMessages(msgs){
+    var c = document.getElementById('chatMsgs');
+    c.innerHTML = '';
+    (msgs || []).forEach(function(m){
+        var div = document.createElement('div');
+        div.className = 'msg ' + m.sender;
+        div.textContent = m.body;
+        if (m.grounded_in && m.grounded_in.length){
+            var g = document.createElement('div');
+            g.className = 'grounded';
+            g.textContent = '↳ from: ' + m.grounded_in.slice(0, 3).join(', ');
+            div.appendChild(g);
+        }
+        c.appendChild(div);
+    });
+    c.scrollTop = c.scrollHeight;
+}
+window.sendChat = function(e){
+    e.preventDefault();
+    var inp = document.getElementById('chatInput');
+    var body = inp.value.trim();
+    if (!body || !chatConvoId) return;
+    inp.value = '';
+    api('/api/chatbot/conversations/' + chatConvoId + '/ask', {
+        method: 'POST',
+        body: JSON.stringify({ body: body })
+    }).then(function(){
+        api('/api/chatbot/conversations/' + chatConvoId + '/messages').then(renderChatMessages);
+    }).catch(function(err){ toast('Chat error: ' + err.message); });
+};
+document.getElementById('chatFab').addEventListener('click', function(){
+    var w = document.getElementById('chatWindow');
+    if (w.classList.contains('open')){
+        w.classList.remove('open');
+    } else {
+        w.classList.add('open');
+        ensureChatConvo();
+    }
+});
+})();
+</script>
+</body>
+</html>

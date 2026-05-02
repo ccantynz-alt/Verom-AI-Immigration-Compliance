@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Bundle — Verom</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--blue-600:#2563eb;--violet-600:#7c3aed;--slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;--slate-500:#64748b;--slate-700:#334155;--slate-800:#1e293b;--slate-900:#0f172a;--green-50:#f0fdf4;--green-700:#15803d;--amber-50:#fffbeb;--amber-600:#d97706}
+body{font-family:'Inter',sans-serif;color:var(--slate-800);background:var(--slate-50);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+.shell{max-width:1100px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.brand-text{font-size:18px;font-weight:800}
+h1{font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-0.02em}
+.lead{font-size:13px;color:var(--slate-500);margin-bottom:18px}
+.panel{background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:18px;margin-bottom:14px}
+.panel h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);margin-bottom:10px}
+.row{display:grid;gap:10px}
+.row.three{grid-template-columns:1fr 1fr 1fr}@media(max-width:700px){.row.three{grid-template-columns:1fr}}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--slate-700);margin-bottom:4px}
+.fld input,.fld select{width:100%;padding:8px 10px;border:1.5px solid var(--slate-200);border-radius:8px;font-size:13px;font-family:inherit}
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 2px 6px rgba(37,99,235,0.25)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+.member-row{padding:11px 13px;border:1px solid var(--slate-200);border-radius:9px;margin-bottom:6px;display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;font-size:13px}
+.rel-pill{font-size:10px;padding:3px 8px;border-radius:99px;background:var(--violet-600);color:#fff;text-transform:uppercase;letter-spacing:0.04em}
+.warn-pill{font-size:10px;padding:3px 8px;border-radius:99px;background:var(--amber-50);color:var(--amber-600);font-weight:600}
+.combo-table{width:100%;border-collapse:collapse;font-size:12px}
+.combo-table th{text-align:left;padding:6px 10px;background:var(--slate-50);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);border-bottom:1px solid var(--slate-200)}
+.combo-table td{padding:7px 10px;border-bottom:1px solid var(--slate-100)}
+</style>
+</head>
+<body>
+<div class="shell">
+<a class="brand" href="/workbench"><div class="brand-mark">V</div><div class="brand-text">Verom<span style="color:var(--blue-600)">.ai</span></div></a>
+<h1>Family bundle engine</h1>
+<p class="lead">One intake → linked workspaces for spouse + children with derivative visa types and EAD/AP eligibility.</p>
+
+<div class="panel">
+    <h3>Create or open a bundle</h3>
+    <div class="row three" style="margin-bottom:8px">
+        <div class="fld"><label>Principal workspace</label><select id="principal"></select></div>
+        <div class="fld"><label>Bundle label</label><input id="label" placeholder="Chen family"></div>
+        <div class="fld" style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="createBundle()" style="width:100%">Create bundle</button></div>
+    </div>
+    <div id="bundleList"></div>
+</div>
+
+<div class="panel" id="memberPanel" style="display:none">
+    <h3>Add dependent <span style="text-transform:none;font-weight:500;color:var(--slate-500)" id="bundleName"></span></h3>
+    <div class="row three">
+        <div class="fld"><label>Relationship</label><select id="rel"><option>spouse</option><option>child</option><option>parent</option></select></div>
+        <div class="fld"><label>First name</label><input id="fn"></div>
+        <div class="fld"><label>Last name</label><input id="ln"></div>
+    </div>
+    <div class="row three">
+        <div class="fld"><label>Date of birth</label><input type="date" id="dob"></div>
+        <div class="fld"><label>Country</label><input id="country"></div>
+        <div class="fld" style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="addDependent()" style="width:100%">Add dependent</button></div>
+    </div>
+    <h3 style="margin-top:18px">Bundle members</h3>
+    <div id="members"></div>
+</div>
+
+<div class="panel">
+    <h3>Supported combinations</h3>
+    <div id="combos"></div>
+</div>
+</div>
+
+<script>
+function api(p,o){o=o||{};o.headers=o.headers||{};o.headers['Content-Type']='application/json';var t=localStorage.getItem('verom_token');if(t)o.headers['Authorization']='Bearer '+t;return fetch(p,o).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||'HTTP '+r.status)});return r.status===204?null:r.json()})}
+var currentBundle = null;
+function loadWorkspaces(){
+    api('/api/case-workspaces').then(function(ws){
+        document.getElementById('principal').innerHTML = ws.map(function(w){return '<option value="'+w.id+'" data-visa="'+w.visa_type+'">'+(w.label||w.visa_type)+'</option>';}).join('') || '<option>No cases</option>';
+    });
+}
+function loadBundles(){
+    api('/api/family-bundles').then(function(bs){
+        var c = document.getElementById('bundleList');
+        if (!bs.length){c.innerHTML='<div style="color:var(--slate-400);font-size:12px;padding:8px">No bundles yet</div>';return;}
+        var html = '';
+        bs.forEach(function(b){
+            html += '<div style="padding:9px 12px;border:1px solid var(--slate-200);border-radius:8px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;font-size:13px">';
+            html += '<div><strong>'+b.label+'</strong> <span style="color:var(--slate-500);font-size:11px">— '+b.principal_visa_type+', '+b.members.length+' member'+(b.members.length===1?'':'s')+'</span></div>';
+            html += '<button class="btn btn-outline" style="padding:5px 11px;font-size:11px" onclick="openBundle(\''+b.id+'\')">Open</button></div>';
+        });
+        c.innerHTML = html;
+    });
+}
+function loadCombos(){
+    api('/api/family-bundles/combinations').then(function(cs){
+        var html = '<table class="combo-table"><thead><tr><th>Primary</th><th>Relationship</th><th>Derivative</th><th>Filing</th><th>EAD</th><th>Age cap</th></tr></thead><tbody>';
+        cs.forEach(function(c){
+            html += '<tr><td><strong>'+c.primary_visa+'</strong></td><td>'+c.relationship+'</td><td>'+c.derivative_visa+'</td><td>'+(c.filing_with||'-')+'</td><td>'+(c.ead_eligible?'Yes':'-')+'</td><td>'+(c.age_cap||'-')+'</td></tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('combos').innerHTML = html;
+    });
+}
+function createBundle(){
+    var sel = document.getElementById('principal');
+    var pid = sel.value;
+    var visa = sel.options[sel.selectedIndex].getAttribute('data-visa');
+    var label = document.getElementById('label').value;
+    if (!pid){alert('Pick a principal workspace');return;}
+    api('/api/family-bundles',{method:'POST',body:JSON.stringify({principal_workspace_id:pid,principal_visa_type:visa,label:label})}).then(function(b){
+        currentBundle = b; loadBundles(); openBundle(b.id);
+    }).catch(function(e){alert('Create failed: '+e.message)});
+}
+function openBundle(id){
+    api('/api/family-bundles/'+id).then(function(b){
+        currentBundle = b;
+        document.getElementById('memberPanel').style.display = 'block';
+        document.getElementById('bundleName').textContent = '· ' + b.label;
+        renderMembers();
+    });
+}
+function renderMembers(){
+    var c = document.getElementById('members');
+    if (!currentBundle.members.length){c.innerHTML='<div style="color:var(--slate-400);font-size:12px;padding:8px">No dependents added yet</div>';return;}
+    var html = '';
+    currentBundle.members.forEach(function(m){
+        html += '<div class="member-row"><span class="rel-pill">'+m.relationship+'</span>';
+        html += '<div><strong>'+m.profile.first_name+' '+m.profile.last_name+'</strong>';
+        html += ' <span style="color:var(--slate-500);font-size:11px">— '+m.derivative_visa+' via '+(m.filing_with||'-')+(m.ead_eligible?' + EAD':'')+(m.advance_parole_eligible?' + AP':'')+'</span>';
+        html += '</div>';
+        html += m.age_warning ? '<span class="warn-pill">Age cap</span>' : '<span></span>';
+        html += m.derivative_workspace_id ? '<a class="btn btn-outline" style="padding:5px 11px;font-size:11px" href="/case?id='+m.derivative_workspace_id+'">Open</a>' : '<span></span>';
+        html += '</div>';
+    });
+    c.innerHTML = html;
+}
+function addDependent(){
+    if (!currentBundle){alert('Open a bundle first');return;}
+    var rel = document.getElementById('rel').value;
+    var fn = document.getElementById('fn').value;
+    var ln = document.getElementById('ln').value;
+    var dob = document.getElementById('dob').value;
+    var country = document.getElementById('country').value;
+    if (!fn || !ln || !dob){alert('First name, last name, DOB required');return;}
+    api('/api/family-bundles/'+currentBundle.id+'/dependents',{method:'POST',body:JSON.stringify({relationship:rel,first_name:fn,last_name:ln,dob:dob,country:country})}).then(function(){
+        document.getElementById('fn').value='';document.getElementById('ln').value='';document.getElementById('dob').value='';
+        openBundle(currentBundle.id);
+    }).catch(function(e){alert('Add failed: '+e.message)});
+}
+loadWorkspaces();loadBundles();loadCombos();
+</script>
+</body>
+</html>

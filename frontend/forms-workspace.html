@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forms Workspace — Verom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--blue-600:#2563eb;--blue-700:#1d4ed8;
+    --violet-50:#f5f3ff;--violet-500:#8b5cf6;--violet-600:#7c3aed;
+    --slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;
+    --slate-400:#94a3b8;--slate-500:#64748b;--slate-600:#475569;--slate-700:#334155;
+    --slate-800:#1e293b;--slate-900:#0f172a;
+    --green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--green-700:#15803d;
+    --red-50:#fef2f2;--red-100:#fee2e2;--red-500:#ef4444;--red-600:#dc2626;
+    --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-500:#f59e0b;--amber-600:#d97706;
+    --shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -2px rgba(0,0,0,0.05);
+}
+body{font-family:'Inter',-apple-system,sans-serif;color:var(--slate-800);background:var(--slate-50);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+.shell{max-width:1280px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
+.brand-text{font-size:20px;font-weight:800}
+.brand-text .ai{color:var(--blue-600)}
+
+.head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:20px}
+.head h1{font-size:26px;font-weight:800;letter-spacing:-0.02em;color:var(--slate-900);margin-bottom:4px}
+.head p{color:var(--slate-500);font-size:14px}
+
+.bundle-card{background:#fff;border:1px solid var(--slate-200);border-radius:14px;padding:18px 22px;display:flex;flex-direction:column;gap:6px;min-width:260px}
+.bundle-card .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--slate-500)}
+.bundle-card .pct{font-size:30px;font-weight:800;color:var(--slate-900)}
+.bundle-card .meta{font-size:13px;color:var(--slate-500)}
+.bundle-bar{height:6px;background:var(--slate-200);border-radius:99px;overflow:hidden;margin-top:6px}
+.bundle-fill{height:100%;background:linear-gradient(90deg,var(--blue-600),var(--violet-600));transition:width 600ms cubic-bezier(0.4,0,0.2,1);width:0%}
+
+.layout{display:grid;grid-template-columns:1fr;gap:18px}
+@media(min-width:1000px){.layout{grid-template-columns:280px 1fr}}
+
+.form-list{background:#fff;border:1px solid var(--slate-200);border-radius:14px;padding:14px;height:fit-content;position:sticky;top:24px}
+.form-list h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--slate-500);margin-bottom:10px;padding:0 6px}
+.form-tab{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--slate-700);transition:all 150ms;margin-bottom:4px;border:none;background:none;width:100%;font-family:inherit;text-align:left}
+.form-tab:hover{background:var(--slate-100)}
+.form-tab.active{background:var(--blue-50);color:var(--blue-700);font-weight:600}
+.form-tab .id{font-weight:700}
+.form-tab .pct-pill{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--slate-100);color:var(--slate-600)}
+.form-tab.active .pct-pill{background:var(--blue-100);color:var(--blue-700)}
+.form-tab .pct-pill.full{background:var(--green-100);color:var(--green-700)}
+.form-tab .pct-pill.partial{background:var(--amber-100);color:var(--amber-600)}
+
+.form-detail{background:#fff;border:1px solid var(--slate-200);border-radius:14px;padding:24px}
+.form-detail h2{font-size:18px;font-weight:800;color:var(--slate-900);margin-bottom:4px}
+.form-detail .agency{font-size:13px;color:var(--slate-500);margin-bottom:18px}
+.form-meta-row{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--slate-500);margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--slate-200)}
+.form-meta-row span{display:flex;align-items:center;gap:6px}
+.form-meta-row strong{color:var(--slate-800);font-weight:700}
+
+.section-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--slate-500);margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--slate-100)}
+.field-row{display:grid;grid-template-columns:1fr 2fr 1fr;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--slate-100)}
+.field-row:last-child{border-bottom:none}
+.field-label{font-size:13px;color:var(--slate-700);font-weight:500}
+.field-label .req{color:var(--red-500);margin-left:3px}
+.field-input{width:100%;padding:8px 10px;border:1.5px solid var(--slate-200);border-radius:8px;font-size:13px;font-family:inherit;color:var(--slate-900);background:#fff;transition:all 150ms}
+.field-input:focus{outline:none;border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.field-input.empty{background:var(--slate-50);color:var(--slate-400);font-style:italic}
+.field-input.overridden{border-color:var(--violet-500);background:#fdfaff}
+.field-source{font-size:11px;color:var(--slate-400);text-align:right}
+.field-source .src-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:99px;font-weight:600}
+.field-source .src-extracted{background:var(--blue-50);color:var(--blue-700)}
+.field-source .src-intake{background:var(--green-50);color:var(--green-700)}
+.field-source .src-manual{background:var(--violet-50);color:var(--violet-600)}
+.field-source .src-empty{background:var(--slate-100);color:var(--slate-500)}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--slate-400);font-size:14px}
+
+.session-bar{background:#fff;border:1px solid var(--slate-200);border-radius:11px;padding:12px 16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--slate-600);flex-wrap:wrap;gap:10px}
+.session-bar .lbl{font-weight:600;color:var(--slate-900)}
+.session-bar .actions{display:flex;gap:8px}
+
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 2px 8px rgba(37,99,235,0.25)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+.btn-outline:hover{border-color:var(--slate-400)}
+.btn-ghost{background:transparent;color:var(--slate-600)}
+.btn-ghost:hover{background:var(--slate-100)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--slate-900);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;z-index:1000;opacity:0;pointer-events:none;transition:opacity 200ms}
+.toast.show{opacity:1}
+
+.tip{background:linear-gradient(135deg,var(--blue-50),var(--violet-50));border:1px solid var(--blue-100);border-radius:11px;padding:11px 14px;font-size:12px;color:var(--slate-700);display:flex;gap:10px;align-items:flex-start;margin-bottom:18px}
+.tip .ico{font-size:16px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<a class="brand" href="/applicant">
+    <div class="brand-mark">V</div>
+    <div class="brand-text">Verom<span class="ai">.ai</span></div>
+</a>
+
+<div class="head">
+    <div>
+        <h1>Forms workspace</h1>
+        <p>Single intake → all USCIS forms populated automatically. Every field shows its source. Edit anything; we track the change.</p>
+    </div>
+    <div class="bundle-card">
+        <div class="lbl">Bundle Completeness</div>
+        <div class="pct" id="bundlePct">—</div>
+        <div class="meta" id="bundleMeta">No bundle yet</div>
+        <div class="bundle-bar"><div class="bundle-fill" id="bundleFill"></div></div>
+    </div>
+</div>
+
+<div class="session-bar">
+    <span><span class="lbl">Visa:</span> <span id="visaName">—</span></span>
+    <span><span class="lbl">Session:</span> <span id="sessionShort">—</span></span>
+    <div class="actions">
+        <button class="btn btn-primary" id="generateBtn">Generate forms</button>
+        <a class="btn btn-outline" href="/intake/documents">Documents</a>
+    </div>
+</div>
+
+<div class="tip">
+    <span class="ico">💡</span>
+    <span><strong>Field-level provenance:</strong> every value carries its source. Blue = extracted from a document, green = intake answer, purple = manual edit. Empty required fields auto-fill with "N/A" per USCIS guidance, but you should still review them.</span>
+</div>
+
+<div class="layout">
+    <div class="form-list" id="formList">
+        <h3>Forms in this bundle</h3>
+        <div class="empty-state" style="padding:24px 12px">Click "Generate forms" to populate your bundle.</div>
+    </div>
+    <div class="form-detail" id="formDetail">
+        <div class="empty-state">Select a form on the left to view and edit it.</div>
+    </div>
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+var state = {
+    sessionId: null,
+    visaType: null,
+    visaName: null,
+    bundle: null,
+    selectedRecordId: null,
+};
+
+function api(path, opts){
+    opts = opts || {};
+    opts.headers = opts.headers || {};
+    opts.headers['Content-Type'] = 'application/json';
+    var token = localStorage.getItem('verom_token');
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(path, opts).then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error(t || ('HTTP ' + r.status)); });
+        return r.status === 204 ? null : r.json();
+    });
+}
+
+function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
+
+function loadFromQuery(){
+    var p = new URLSearchParams(window.location.search);
+    state.sessionId = p.get('session') || localStorage.getItem('verom_intake_session');
+    state.visaType = p.get('visa_type') || localStorage.getItem('verom_intake_visa') || 'H-1B';
+    state.visaName = p.get('visa_name') || localStorage.getItem('verom_intake_visa_name') || state.visaType;
+    document.getElementById('visaName').textContent = state.visaName;
+    document.getElementById('sessionShort').textContent = state.sessionId ? state.sessionId.slice(0,8)+'…' : 'no session';
+}
+
+function generate(){
+    if (!state.visaType){ toast('No visa type selected'); return; }
+    api('/api/forms/populate-bundle', {
+        method: 'POST',
+        body: JSON.stringify({
+            visa_type: state.visaType,
+            session_id: state.sessionId,
+        })
+    }).then(function(b){
+        state.bundle = b;
+        if (b.forms && b.forms.length){
+            state.selectedRecordId = b.forms[0].id;
+        }
+        renderBundle();
+        renderFormList();
+        renderDetail();
+    }).catch(function(e){
+        toast('Could not generate: ' + e.message);
+    });
+}
+
+function renderBundle(){
+    var b = state.bundle;
+    if (!b){ return; }
+    document.getElementById('bundlePct').textContent = b.bundle_completeness_pct + '%';
+    document.getElementById('bundleMeta').textContent = b.total_filled_fields + ' of ' + b.total_required_fields + ' required across ' + b.forms.length + ' forms';
+    document.getElementById('bundleFill').style.width = b.bundle_completeness_pct + '%';
+}
+
+function renderFormList(){
+    var c = document.getElementById('formList');
+    var b = state.bundle;
+    if (!b || !b.forms.length){
+        c.innerHTML = '<h3>Forms in this bundle</h3><div class="empty-state" style="padding:24px 12px">No forms — try generate again</div>';
+        return;
+    }
+    var html = '<h3>Forms in this bundle</h3>';
+    b.forms.forEach(function(r){
+        var pct = r.completeness_pct;
+        var pctClass = pct === 100 ? 'full' : pct >= 50 ? 'partial' : '';
+        html += '<button class="form-tab ' + (r.id === state.selectedRecordId ? 'active' : '') + '" data-rec="' + r.id + '">';
+        html += '<span class="id">' + r.form_id + '</span>';
+        html += '<span class="pct-pill ' + pctClass + '">' + pct + '%</span>';
+        html += '</button>';
+    });
+    c.innerHTML = html;
+    Array.prototype.forEach.call(c.querySelectorAll('[data-rec]'), function(b){
+        b.addEventListener('click', function(){
+            state.selectedRecordId = b.getAttribute('data-rec');
+            renderFormList();
+            renderDetail();
+        });
+    });
+}
+
+function renderDetail(){
+    var c = document.getElementById('formDetail');
+    var b = state.bundle;
+    if (!b){ return; }
+    var rec = (b.forms || []).find(function(r){ return r.id === state.selectedRecordId; });
+    if (!rec){ c.innerHTML = '<div class="empty-state">No form selected</div>'; return; }
+
+    var html = '<h2>' + rec.form_name + '</h2>';
+    html += '<div class="agency">' + rec.agency + ' · Edition ' + rec.edition + '</div>';
+    html += '<div class="form-meta-row">';
+    html += '<span><strong>Required:</strong> ' + rec.required_filled + '/' + rec.required_total + ' filled</span>';
+    html += '<span><strong>Completeness:</strong> ' + rec.completeness_pct + '%</span>';
+    html += '<span><strong>Ready to file:</strong> ' + (rec.ready_to_file ? 'Yes' : 'No') + '</span>';
+    html += '</div>';
+
+    // Group fields by section
+    var sections = {};
+    rec.fields.forEach(function(f){
+        if (!sections[f.section]) sections[f.section] = [];
+        sections[f.section].push(f);
+    });
+    rec.sections.forEach(function(secName){
+        if (!sections[secName]) return;
+        html += '<div class="section-head">' + secName + '</div>';
+        sections[secName].forEach(function(f){
+            var srcClass = 'src-empty';
+            var srcLabel = 'auto-fill';
+            if (f.source){
+                if (f.source.indexOf('extracted.') === 0){ srcClass = 'src-extracted'; srcLabel = 'doc'; }
+                else if (f.source.indexOf('intake.') === 0){ srcClass = 'src-intake'; srcLabel = 'intake'; }
+                else if (f.source.indexOf('manual.') === 0){ srcClass = 'src-manual'; srcLabel = 'edited'; }
+                else if (f.source.indexOf('applicant.') === 0){ srcClass = 'src-intake'; srcLabel = 'profile'; }
+                else if (f.source.indexOf('computed.') === 0){ srcClass = 'src-intake'; srcLabel = 'computed'; }
+            }
+            var inputClasses = 'field-input';
+            if (!f.filled) inputClasses += ' empty';
+            if (f.manually_overridden) inputClasses += ' overridden';
+            var inputType = f.type === 'date' ? 'date' : (f.type === 'number' ? 'number' : 'text');
+            html += '<div class="field-row" data-field="' + f.field_id + '">';
+            html += '<div class="field-label">' + f.label + (f.required ? '<span class="req">*</span>' : '') + '</div>';
+            if (f.type === 'boolean'){
+                var val = String(f.value);
+                html += '<select class="' + inputClasses + '" data-input="' + f.field_id + '">';
+                html += '<option value="true"' + (val === 'true' ? ' selected' : '') + '>Yes</option>';
+                html += '<option value="false"' + (val === 'false' ? ' selected' : '') + '>No</option>';
+                html += '<option value="N/A"' + (val === 'N/A' ? ' selected' : '') + '>N/A</option>';
+                html += '</select>';
+            } else {
+                html += '<input type="' + inputType + '" class="' + inputClasses + '" data-input="' + f.field_id + '" value="' + escapeHtml(String(f.value || '')) + '">';
+            }
+            html += '<div class="field-source"><span class="src-badge ' + srcClass + '">' + srcLabel + '</span></div>';
+            html += '</div>';
+        });
+    });
+    c.innerHTML = html;
+
+    Array.prototype.forEach.call(c.querySelectorAll('[data-input]'), function(inp){
+        inp.addEventListener('change', function(){
+            var fid = inp.getAttribute('data-input');
+            saveField(rec.id, fid, inp.value);
+        });
+    });
+}
+
+function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function saveField(recordId, fieldId, value){
+    api('/api/forms/records/' + recordId + '/fields', {
+        method: 'PATCH',
+        body: JSON.stringify({ field_id: fieldId, new_value: value, edited_by: 'applicant' })
+    }).then(function(updated){
+        // Replace in bundle
+        var idx = state.bundle.forms.findIndex(function(r){ return r.id === recordId; });
+        if (idx >= 0) state.bundle.forms[idx] = updated;
+        // Recompute bundle totals
+        state.bundle.total_filled_fields = state.bundle.forms.reduce(function(s,r){ return s + r.required_filled; }, 0);
+        state.bundle.total_required_fields = state.bundle.forms.reduce(function(s,r){ return s + r.required_total; }, 0);
+        state.bundle.bundle_completeness_pct = state.bundle.total_required_fields
+            ? Math.round((state.bundle.total_filled_fields / state.bundle.total_required_fields) * 100)
+            : 100;
+        renderBundle();
+        renderFormList();
+        renderDetail();
+        toast('Saved');
+    }).catch(function(e){ toast('Save failed: ' + e.message); });
+}
+
+document.getElementById('generateBtn').addEventListener('click', generate);
+loadFromQuery();
+})();
+</script>
+</body>
+</html>

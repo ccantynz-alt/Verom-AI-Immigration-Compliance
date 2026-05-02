@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RFE Response Drafter — Verom</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--blue-600:#2563eb;--violet-600:#7c3aed;--slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;--slate-500:#64748b;--slate-700:#334155;--slate-800:#1e293b;--slate-900:#0f172a;--green-500:#22c55e;--amber-500:#f59e0b;--red-500:#ef4444}
+body{font-family:'Inter',sans-serif;color:var(--slate-800);background:var(--slate-50);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+.shell{max-width:1200px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.brand-text{font-size:18px;font-weight:800}
+h1{font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-0.02em}
+.lead{font-size:13px;color:var(--slate-500);margin-bottom:18px}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.panel{background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:18px}
+.panel h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);margin-bottom:10px}
+.fld{margin-bottom:10px}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--slate-700);margin-bottom:4px}
+.fld input,.fld select,.fld textarea{width:100%;padding:8px 10px;border:1.5px solid var(--slate-200);border-radius:8px;font-size:13px;font-family:inherit}
+.fld textarea{font-family:'Courier New',monospace;font-size:12px;min-height:200px}
+.fld input:focus,.fld textarea:focus,.fld select:focus{outline:none;border-color:var(--blue-600)}
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 2px 6px rgba(37,99,235,0.25)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+.preview{font-family:'Courier New',monospace;font-size:11px;color:var(--slate-700);white-space:pre-wrap;background:#fff;border:1px solid var(--slate-200);border-radius:9px;padding:14px;max-height:600px;overflow-y:auto}
+.cat-pill{display:inline-block;font-size:10px;padding:3px 8px;border-radius:99px;background:#dcfce7;color:#15803d;margin:2px}
+.stats{display:flex;gap:14px;font-size:11px;color:var(--slate-500);margin-bottom:8px;flex-wrap:wrap}
+.stats span strong{color:var(--slate-900)}
+</style>
+</head>
+<body>
+<div class="shell">
+<a class="brand" href="/workbench"><div class="brand-mark">V</div><div class="brand-text">Verom<span style="color:var(--blue-600)">.ai</span></div></a>
+<h1>RFE response drafter</h1>
+<p class="lead">Paste the RFE notice. We detect the issues, match your evidence, and draft a structured response.</p>
+
+<div class="layout">
+    <div>
+        <div class="panel">
+            <h3>Input</h3>
+            <div class="fld"><label>Workspace</label><select id="ws"></select></div>
+            <div class="fld"><label>RFE notice text (paste here)</label><textarea id="notice" placeholder="USCIS REQUEST FOR EVIDENCE&#10;&#10;The position is not a specialty occupation..."></textarea></div>
+            <div class="fld"><label>RFE received date</label><input type="date" id="rfe_date"></div>
+            <button class="btn btn-outline" onclick="parseOnly()" style="margin-right:6px">Parse only</button>
+            <button class="btn btn-primary" onclick="draft()">Draft full response</button>
+            <div id="parseResult" style="margin-top:14px"></div>
+        </div>
+    </div>
+    <div>
+        <div class="panel" id="preview-panel" style="display:none">
+            <h3>Draft</h3>
+            <div class="stats" id="stats"></div>
+            <div style="margin-bottom:10px;display:flex;gap:6px">
+                <button class="btn btn-outline" onclick="toggleReview()">Toggle review mode</button>
+                <a class="btn btn-outline" id="dl_text" target="_blank">Download text</a>
+            </div>
+            <div class="preview" id="preview"></div>
+        </div>
+        <div class="panel" id="empty" style="text-align:center;padding:50px;color:var(--slate-400);font-size:12px">
+            Submit a notice to see the draft here.
+        </div>
+    </div>
+</div>
+</div>
+<script>
+function api(p,o){o=o||{};o.headers=o.headers||{};o.headers['Content-Type']='application/json';var t=localStorage.getItem('verom_token');if(t)o.headers['Authorization']='Bearer '+t;return fetch(p,o).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||'HTTP '+r.status)});var ct=r.headers.get('content-type')||'';return ct.indexOf('json')>=0?r.json():r.text()})}
+var currentDraft=null,reviewMode=false;
+function loadWorkspaces(){
+    api('/api/case-workspaces').then(function(ws){
+        document.getElementById('ws').innerHTML = ws.map(function(w){return '<option value="'+w.id+'">'+(w.label||w.visa_type)+'</option>';}).join('') || '<option>No cases</option>';
+    }).catch(function(){
+        document.getElementById('ws').innerHTML = '<option>Sign in to load cases</option>';
+    });
+}
+function parseOnly(){
+    var notice = document.getElementById('notice').value;
+    if (!notice.trim()){alert('Paste the RFE notice text first');return;}
+    api('/api/rfe-response/parse',{method:'POST',body:JSON.stringify({notice_text:notice})}).then(function(r){
+        var html = '<div style="font-size:12px;color:var(--slate-700);font-weight:600;margin-bottom:6px">Categories detected:</div>';
+        if (!r.detected.length) html += '<div style="font-size:12px;color:var(--slate-500)">No standard issue patterns found. Manual review required.</div>';
+        else r.detected.forEach(function(d){html += '<span class="cat-pill">'+d.title+'</span>';});
+        document.getElementById('parseResult').innerHTML = html;
+    });
+}
+function draft(){
+    var ws = document.getElementById('ws').value;
+    var notice = document.getElementById('notice').value;
+    var rfe_date = document.getElementById('rfe_date').value || null;
+    if (!ws || !notice.trim()){alert('Pick a workspace and paste the notice');return;}
+    api('/api/rfe-response/draft',{method:'POST',body:JSON.stringify({workspace_id:ws,notice_text:notice,rfe_received_date:rfe_date})}).then(function(d){
+        currentDraft = d;
+        document.getElementById('empty').style.display='none';
+        document.getElementById('preview-panel').style.display='block';
+        document.getElementById('stats').innerHTML =
+            '<span><strong>'+d.stats.category_count+'</strong> categories</span>'+
+            '<span><strong>'+d.stats.section_count+'</strong> sections</span>'+
+            '<span><strong>'+d.stats.total_word_count+'</strong> words</span>'+
+            '<span><strong>'+d.stats.verified_cites+'</strong> ✓</span>'+
+            '<span><strong>'+d.stats.pending_cites+'</strong> ⏳</span>'+
+            '<span><strong>'+d.stats.needed_cites+'</strong> ✗</span>'+
+            (d.rfe_response_due_date?'<span>Due <strong>'+d.rfe_response_due_date+'</strong></span>':'');
+        document.getElementById('dl_text').href = '/api/rfe-response/drafts/'+d.id+'/text';
+        renderPreview();
+    }).catch(function(e){alert('Draft failed: '+e.message)});
+}
+function toggleReview(){ reviewMode = !reviewMode; renderPreview(); }
+function renderPreview(){
+    if (!currentDraft) return;
+    var url = reviewMode ? '/api/rfe-response/drafts/'+currentDraft.id+'/review' : '/api/rfe-response/drafts/'+currentDraft.id+'/text';
+    api(url).then(function(t){ document.getElementById('preview').textContent = t; });
+}
+loadWorkspaces();
+</script>
+</body>
+</html>

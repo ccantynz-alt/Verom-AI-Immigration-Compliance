@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Migration — Verom</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--blue-600:#2563eb;--violet-600:#7c3aed;--slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;--slate-500:#64748b;--slate-700:#334155;--slate-800:#1e293b;--slate-900:#0f172a;--green-50:#f0fdf4;--green-700:#15803d;--amber-50:#fffbeb;--amber-600:#d97706}
+body{font-family:'Inter',sans-serif;color:var(--slate-800);background:var(--slate-50);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+.shell{max-width:1100px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.brand-text{font-size:18px;font-weight:800}
+h1{font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-0.02em}
+.lead{font-size:13px;color:var(--slate-500);margin-bottom:18px}
+.panel{background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:18px;margin-bottom:14px}
+.panel h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);margin-bottom:10px}
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 2px 6px rgba(37,99,235,0.25)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+.fld{margin-bottom:10px}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--slate-700);margin-bottom:4px}
+.fld input,.fld select,.fld textarea{width:100%;padding:8px 10px;border:1.5px solid var(--slate-200);border-radius:8px;font-size:13px;font-family:inherit}
+.fld textarea{font-family:'Courier New',monospace;font-size:12px;min-height:160px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:14px}
+.profile-card{padding:11px 13px;border:1.5px solid var(--slate-200);border-radius:9px;cursor:pointer;font-size:12px}
+.profile-card:hover{border-color:var(--blue-600)}
+.profile-card.selected{border-color:var(--blue-600);background:#eff6ff}
+.profile-card strong{display:block;font-size:13px;color:var(--slate-900);margin-bottom:2px}
+.profile-card span{color:var(--slate-500)}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.summary-card{padding:9px 12px;background:var(--slate-50);border-radius:8px;font-size:11px}
+.summary-card .lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500)}
+.summary-card .val{font-size:18px;font-weight:800;color:var(--slate-900);line-height:1.1;margin-top:2px}
+.preview-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}
+.preview-table th{text-align:left;padding:6px 9px;background:var(--slate-50);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);border-bottom:1px solid var(--slate-200)}
+.preview-table td{padding:6px 9px;border-bottom:1px solid var(--slate-100)}
+.preview-table .ok{color:var(--green-700)}
+.preview-table .skip{color:var(--amber-600)}
+</style>
+</head>
+<body>
+<div class="shell">
+<a class="brand" href="/workbench"><div class="brand-mark">V</div><div class="brand-text">Verom<span style="color:var(--blue-600)">.ai</span></div></a>
+<h1>Migrate from another platform</h1>
+<p class="lead">Bulk import case data from Docketwise, INSZoom, LollyLaw, Clio Manage, or eImmigration. Auto-detects the source platform from your CSV headers.</p>
+
+<div class="panel">
+    <h3>Step 1 — Source platform</h3>
+    <div class="profile-grid" id="profileGrid"></div>
+    <p style="font-size:11px;color:var(--slate-500)">Or leave unselected — we'll auto-detect from your CSV headers.</p>
+</div>
+
+<div class="panel">
+    <h3>Step 2 — Paste CSV export</h3>
+    <div class="fld"><textarea id="csv" placeholder="Paste the entire CSV export here, including the header row…"></textarea></div>
+    <button class="btn btn-outline" onclick="preview()" style="margin-right:6px">Preview only</button>
+    <button class="btn btn-primary" onclick="runImport(false)">Import</button>
+    <button class="btn btn-outline" onclick="runImport(true)" style="margin-left:6px">Dry run</button>
+</div>
+
+<div class="panel" id="result" style="display:none">
+    <h3>Result</h3>
+    <div class="summary-grid" id="summary"></div>
+    <div id="rowsPreview"></div>
+</div>
+</div>
+
+<script>
+function api(p,o){o=o||{};o.headers=o.headers||{};o.headers['Content-Type']='application/json';var t=localStorage.getItem('verom_token');if(t)o.headers['Authorization']='Bearer '+t;return fetch(p,o).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||'HTTP '+r.status)});return r.status===204?null:r.json()})}
+var selectedProfile = null;
+function loadProfiles(){
+    api('/api/migration-importer/profiles').then(function(ps){
+        var html = '';
+        ps.forEach(function(p){
+            html += '<div class="profile-card" data-profile="'+p.id+'"><strong>'+p.name+'</strong><span>'+p.field_map_size+' field mappings</span></div>';
+        });
+        document.getElementById('profileGrid').innerHTML = html;
+        document.querySelectorAll('[data-profile]').forEach(function(el){
+            el.addEventListener('click', function(){
+                document.querySelectorAll('[data-profile]').forEach(function(o){o.classList.remove('selected')});
+                if (selectedProfile === el.getAttribute('data-profile')){selectedProfile = null;}
+                else {el.classList.add('selected'); selectedProfile = el.getAttribute('data-profile');}
+            });
+        });
+    });
+}
+function preview(){
+    var csv = document.getElementById('csv').value;
+    if (!csv.trim()){alert('Paste CSV first');return;}
+    api('/api/migration-importer/preview',{method:'POST',body:JSON.stringify({csv_text:csv,profile_id:selectedProfile})}).then(showResult);
+}
+function runImport(dry){
+    var csv = document.getElementById('csv').value;
+    if (!csv.trim()){alert('Paste CSV first');return;}
+    api('/api/migration-importer/import',{method:'POST',body:JSON.stringify({csv_text:csv,profile_id:selectedProfile,dry_run:dry})}).then(showResult).catch(function(e){alert('Import failed: '+e.message)});
+}
+function showResult(r){
+    document.getElementById('result').style.display = 'block';
+    var s = r.summary || {};
+    var imported = r.imported_count || 0;
+    var html = '';
+    html += '<div class="summary-card"><div class="lab">Detected profile</div><div class="val" style="font-size:13px">'+(s.detected_profile||r.profile_name||'-')+'</div></div>';
+    html += '<div class="summary-card"><div class="lab">Total rows</div><div class="val">'+(s.total||0)+'</div></div>';
+    html += '<div class="summary-card"><div class="lab">Valid</div><div class="val" style="color:var(--green-700)">'+(s.valid||0)+'</div></div>';
+    html += '<div class="summary-card"><div class="lab">Invalid</div><div class="val" style="color:var(--amber-600)">'+(s.invalid||0)+'</div></div>';
+    html += '<div class="summary-card"><div class="lab">Duplicates</div><div class="val">'+(s.duplicates||0)+'</div></div>';
+    html += '<div class="summary-card"><div class="lab">Imported</div><div class="val" style="color:var(--blue-600)">'+imported+'</div></div>';
+    document.getElementById('summary').innerHTML = html;
+
+    var rowsHtml = '';
+    if (r.error){
+        rowsHtml = '<div style="margin-top:10px;color:var(--amber-600);font-size:12px">'+r.error+'</div>';
+    } else if (r.rows){
+        rowsHtml = '<table class="preview-table"><thead><tr><th>#</th><th>Name</th><th>Visa</th><th>Status</th><th>Issues</th></tr></thead><tbody>';
+        r.rows.slice(0,20).forEach(function(row){
+            var cls = row.duplicate ? 'skip' : (row.issues.length ? 'skip' : 'ok');
+            rowsHtml += '<tr><td>'+row.row_number+'</td><td>'+(row.mapped.applicant_first_name||'')+' '+(row.mapped.applicant_last_name||'')+'</td><td>'+(row.mapped.visa_type||'-')+'</td><td>'+(row.mapped.case_status||'-')+'</td><td class="'+cls+'">'+(row.duplicate?'DUPLICATE':row.issues.join(', ')||'OK')+'</td></tr>';
+        });
+        rowsHtml += '</tbody></table>';
+    } else if (r.skipped && r.skipped.length){
+        rowsHtml = '<div style="margin-top:10px;color:var(--slate-500);font-size:12px">'+r.skipped.length+' rows skipped: ' + r.skipped.map(function(s){return s.reason}).join('; ') + '</div>';
+    }
+    document.getElementById('rowsPreview').innerHTML = rowsHtml;
+}
+loadProfiles();
+</script>
+</body>
+</html>
