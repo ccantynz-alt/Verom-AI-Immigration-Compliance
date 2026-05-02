@@ -126,6 +126,22 @@ from immigration_compliance.services.lead_management_service import LeadManageme
 from immigration_compliance.services.consultation_booking_service import ConsultationBookingService
 from immigration_compliance.services.legal_research_service import LegalResearchService
 from immigration_compliance.services.document_management_service import DocumentManagementService
+from immigration_compliance.services.approval_index_service import ApprovalIndexService
+from immigration_compliance.services.outcome_telemetry_service import OutcomeTelemetryService
+from immigration_compliance.services.embassy_intel_service import EmbassyIntelService
+from immigration_compliance.services.government_status_polling_service import GovernmentStatusPollingService
+from immigration_compliance.services.eligibility_checker_service import EligibilityCheckerService
+from immigration_compliance.services.lead_marketplace_service import LeadMarketplaceService
+from immigration_compliance.services.outcome_review_service import OutcomeReviewService
+from immigration_compliance.services.cadence_tracker_service import CadenceTrackerService
+from immigration_compliance.services.sla_tracker_service import SlaTrackerService
+from immigration_compliance.services.whatsapp_channel_service import WhatsAppChannelService
+from immigration_compliance.services.peer_network_service import PeerNetworkService
+from immigration_compliance.services.benchmark_report_service import BenchmarkReportService as IndustryBenchmarkReportService
+from immigration_compliance.services.local_payments_service import LocalPaymentsService
+from immigration_compliance.services.soc2_audit_service import Soc2AuditService
+from immigration_compliance.services.bar_endorsement_service import BarEndorsementService
+from immigration_compliance.services.malpractice_partner_service import MalpracticePartnerService
 from immigration_compliance.services.persistent_store_service import PersistentStore, get_default_store
 from immigration_compliance.services.storage_binding import bind_storage
 
@@ -225,6 +241,45 @@ consultation_booking = ConsultationBookingService(case_workspace=case_workspace,
 legal_research = LegalResearchService()
 doc_management = DocumentManagementService(document_intake=document_intake)
 
+# ----- Strategic moat services (data + workflow + trust + international) -----
+approval_index = ApprovalIndexService(case_workspace=case_workspace)
+outcome_telemetry = OutcomeTelemetryService(approval_index_service=approval_index)
+embassy_intel = EmbassyIntelService()
+government_polling = GovernmentStatusPollingService(
+    notification_service=notifications, case_workspace=case_workspace,
+)
+eligibility_checker = EligibilityCheckerService()
+lead_marketplace = LeadMarketplaceService(
+    case_workspace=case_workspace, intake_engine=intake_engine,
+    attorney_match_service=attorney_match, notification_service=notifications,
+)
+outcome_reviews = OutcomeReviewService(
+    approval_index_service=approval_index, lead_marketplace_service=lead_marketplace,
+)
+cadence_tracker = CadenceTrackerService(
+    case_workspace=case_workspace, notification_service=notifications,
+)
+sla_tracker = SlaTrackerService(
+    notification_service=notifications, attorney_match_service=attorney_match,
+)
+whatsapp_channel = WhatsAppChannelService(
+    notification_service=notifications, client_chatbot_service=client_chatbot,
+)
+peer_network = PeerNetworkService(
+    legal_research_service=legal_research, team_management_service=team_management,
+)
+benchmark_report = IndustryBenchmarkReportService(
+    approval_index_service=approval_index, outcome_telemetry_service=outcome_telemetry,
+    embassy_intel_service=embassy_intel, lead_management_service=lead_management,
+    cadence_tracker_service=cadence_tracker, sla_tracker_service=sla_tracker,
+)
+local_payments = LocalPaymentsService()
+bar_endorsement = BarEndorsementService()
+malpractice_partner = MalpracticePartnerService(
+    team_management_service=team_management, approval_index_service=approval_index,
+    cadence_tracker_service=cadence_tracker, sla_tracker_service=sla_tracker,
+)
+
 # Persistent store — reads VEROM_DB_PATH env var (default: verom_state.db). Set
 # VEROM_DISABLE_PERSISTENCE=1 to fall back to in-memory only.
 import os as _os  # noqa: E402
@@ -234,6 +289,13 @@ if _os.environ.get("VEROM_DISABLE_PERSISTENCE") not in ("1", "true", "yes"):
         persistent_store = get_default_store()
     except Exception:
         persistent_store = None
+
+soc2_audit = Soc2AuditService(
+    persistent_store=persistent_store, team_management_service=team_management,
+    conflict_check_service=conflict_check, trust_accounting_service=trust_accounting,
+    sla_tracker_service=sla_tracker, cadence_tracker_service=cadence_tracker,
+    notification_service=notifications,
+)
 
 # Bind the persistent store to every service so their state survives restarts.
 # Each call: loads previously-saved state then wraps mutating methods with
@@ -4589,3 +4651,906 @@ def restore_doc_entry(entry_id: str, user: UserOut = Depends(get_current_user)):
         return doc_management.restore_entry(entry_id, actor_id=user.id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+# =============================================
+# Approval Index endpoints
+# =============================================
+
+class ApprovalIndexOutcomeRequest(BaseModel):
+    workspace_id: str
+    visa_type: str
+    country: str
+    outcome: str
+    decision_date: str
+    attorney_id: str | None = None
+    service_center: str | None = None
+    rfe_count: int = 0
+    time_to_decision_days: int | None = None
+    government_fee_usd: float | None = None
+    attorney_fee_usd: float | None = None
+    applicant_country_of_birth: str | None = None
+
+@app.post("/api/approval-index/outcomes", status_code=201)
+def record_outcome(req: ApprovalIndexOutcomeRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return approval_index.record_outcome(**req.model_dump())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/approval-index/slice")
+def compute_approval_slice(
+    visa_type: str | None = None, country: str | None = None,
+    service_center: str | None = None, attorney_id: str | None = None,
+    since: str | None = None,
+):
+    return approval_index.compute_slice(
+        visa_type=visa_type, country=country,
+        service_center=service_center, attorney_id=attorney_id, since=since,
+    )
+
+@app.post("/api/approval-index/snapshots")
+def publish_approval_snapshot(label: str = "", since_months: int | None = None,
+                                user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return approval_index.publish_snapshot(label=label, since_months=since_months)
+
+@app.get("/api/approval-index/snapshots")
+def list_approval_snapshots(limit: int = 20):
+    return approval_index.list_snapshots(limit=limit)
+
+@app.get("/api/approval-index/snapshots/latest")
+def get_latest_approval_snapshot():
+    return approval_index.get_latest_snapshot() or {"snapshot": None}
+
+@app.get("/api/approval-index/attorneys/{attorney_id}/scorecard")
+def attorney_approval_scorecard(attorney_id: str, since_months: int = 24):
+    return approval_index.attorney_scorecard(attorney_id, since_months=since_months)
+
+
+# =============================================
+# Outcome Telemetry endpoints
+# =============================================
+
+@app.get("/api/outcome-telemetry/pricing/{visa_type}")
+def get_pricing_for_visa(visa_type: str, country: str = "US",
+                          country_of_birth: str | None = None, since_months: int = 24):
+    return outcome_telemetry.compute_pricing_for_slice(
+        visa_type, country, since_months=since_months, country_of_birth=country_of_birth,
+    )
+
+@app.get("/api/outcome-telemetry/applicant-estimate/{visa_type}")
+def get_applicant_pricing_estimate(visa_type: str, country: str = "US",
+                                     country_of_birth: str | None = None):
+    return outcome_telemetry.applicant_pricing_estimate(visa_type, country, country_of_birth=country_of_birth)
+
+@app.post("/api/outcome-telemetry/index", status_code=201)
+def publish_telemetry_index(since_months: int = 24, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return outcome_telemetry.publish_pricing_index(since_months=since_months)
+
+
+# =============================================
+# Embassy Intel endpoints
+# =============================================
+
+class EmbassyReportRequest(BaseModel):
+    post_id: str
+    kind: str
+    body: str
+    category_visa: str | None = None
+    reporter_role: str = "applicant"
+    observed_at: str | None = None
+    metadata: dict | None = None
+
+class EmbassyWaitTimeRequest(BaseModel):
+    post_id: str
+    days_to_appointment: int
+    category_visa: str
+    reporter_role: str = "applicant"
+
+@app.get("/api/embassy-intel/posts")
+def list_embassy_posts(operates_for: str | None = None, country_iso: str | None = None,
+                        category: str | None = None):
+    return embassy_intel.list_posts(operates_for=operates_for, country_iso=country_iso, category=category)
+
+@app.get("/api/embassy-intel/posts/{post_id}")
+def get_embassy_post(post_id: str):
+    p = embassy_intel.get_post(post_id)
+    if p is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return p
+
+@app.get("/api/embassy-intel/posts/{post_id}/summary")
+def get_embassy_post_summary(post_id: str, category_visa: str | None = None):
+    try:
+        return embassy_intel.post_summary(post_id, category_visa=category_visa)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/embassy-intel/reports", status_code=201)
+def submit_embassy_report(req: EmbassyReportRequest, user: UserOut = Depends(get_current_user)):
+    role = "verified_attorney" if user.role == UserRole.ATTORNEY else "applicant"
+    try:
+        return embassy_intel.submit_report(
+            post_id=req.post_id, kind=req.kind, body=req.body,
+            category_visa=req.category_visa, reporter_id=user.id,
+            reporter_role=role, observed_at=req.observed_at, metadata=req.metadata,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/embassy-intel/reports")
+def list_embassy_reports(post_id: str | None = None, kind: str | None = None,
+                          category_visa: str | None = None, since: str | None = None,
+                          verified_only: bool = False):
+    return embassy_intel.list_reports(post_id=post_id, kind=kind, category_visa=category_visa,
+                                        since=since, verified_only=verified_only)
+
+@app.post("/api/embassy-intel/wait-times", status_code=201)
+def submit_wait_time(req: EmbassyWaitTimeRequest, user: UserOut = Depends(get_current_user)):
+    role = "verified_attorney" if user.role == UserRole.ATTORNEY else "applicant"
+    try:
+        return embassy_intel.submit_wait_time(
+            post_id=req.post_id, days_to_appointment=req.days_to_appointment,
+            category_visa=req.category_visa, reporter_role=role,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/embassy-intel/posts/{post_id}/wait-times")
+def get_wait_time_stats(post_id: str, category_visa: str | None = None, recent_days: int = 90):
+    return embassy_intel.get_wait_time_stats(post_id, category_visa=category_visa, recent_days=recent_days)
+
+
+# =============================================
+# Government Status Polling endpoints
+# =============================================
+
+class PollingSubscribeRequest(BaseModel):
+    receipt_number: str
+    agency: str
+    workspace_id: str | None = None
+    applicant_id: str | None = None
+    priority: str = "normal"
+    attorney_lead_minutes: int = 30
+
+@app.post("/api/government-polling/subscriptions", status_code=201)
+def subscribe_polling(req: PollingSubscribeRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return government_polling.subscribe(
+            receipt_number=req.receipt_number, agency=req.agency,
+            workspace_id=req.workspace_id, attorney_id=user.id,
+            applicant_id=req.applicant_id, priority=req.priority,
+            attorney_lead_minutes=req.attorney_lead_minutes,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.delete("/api/government-polling/subscriptions/{subscription_id}", status_code=204)
+def unsubscribe_polling(subscription_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    if not government_polling.unsubscribe(subscription_id):
+        raise HTTPException(status_code=404, detail="Subscription not found")
+
+@app.get("/api/government-polling/subscriptions")
+def list_polling_subscriptions(agency: str | None = None, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return government_polling.list_subscriptions(agency=agency, attorney_id=user.id)
+
+@app.post("/api/government-polling/subscriptions/{subscription_id}/poll")
+def manual_poll(subscription_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return government_polling.poll_subscription(subscription_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.get("/api/government-polling/agencies")
+def list_polling_agencies():
+    return GovernmentStatusPollingService.list_supported_agencies()
+
+
+# =============================================
+# Eligibility Checker endpoints (public — no auth)
+# =============================================
+
+class EligibilityEvalRequest(BaseModel):
+    pathway_id: str
+    answers: dict
+    applicant_email: str | None = None
+
+class EligibilityCountryEvalRequest(BaseModel):
+    country: str
+    answers: dict
+
+@app.get("/api/eligibility/pathways")
+def list_eligibility_pathways(country: str | None = None):
+    return EligibilityCheckerService.list_pathways(country=country)
+
+@app.get("/api/eligibility/pathways/{pathway_id}")
+def get_eligibility_pathway(pathway_id: str):
+    p = EligibilityCheckerService.get_pathway(pathway_id)
+    if p is None:
+        raise HTTPException(status_code=404, detail="Pathway not found")
+    return p
+
+@app.post("/api/eligibility/evaluate")
+def evaluate_eligibility(req: EligibilityEvalRequest):
+    try:
+        return eligibility_checker.evaluate(req.pathway_id, req.answers, applicant_email=req.applicant_email)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/eligibility/evaluate-country")
+def evaluate_country_eligibility(req: EligibilityCountryEvalRequest):
+    return eligibility_checker.evaluate_all_for_country(req.country, req.answers)
+
+
+# =============================================
+# Lead Marketplace endpoints
+# =============================================
+
+class MarketplaceBriefRequest(BaseModel):
+    intake_session_id: str
+    applicant_languages: list[str] | None = None
+    offer_to_top_n_attorneys: int = 5
+    attorney_response_window_hours: int = 48
+    revoke_window_days: int = 7
+
+class MarketplaceClaimRequest(BaseModel):
+    attorney_fee_quoted_usd: float
+
+@app.post("/api/marketplace/briefs", status_code=201)
+def prepare_brief(req: MarketplaceBriefRequest, user: UserOut = Depends(get_current_user)):
+    try:
+        return lead_marketplace.prepare_brief(
+            applicant_id=user.id, intake_session_id=req.intake_session_id,
+            applicant_languages=req.applicant_languages,
+            offer_to_top_n_attorneys=req.offer_to_top_n_attorneys,
+            attorney_response_window_hours=req.attorney_response_window_hours,
+            revoke_window_days=req.revoke_window_days,
+        )
+    except (ValueError, RuntimeError) as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/marketplace/briefs")
+def list_marketplace_briefs(status: str | None = None, user: UserOut = Depends(get_current_user)):
+    if user.role == UserRole.ATTORNEY:
+        return lead_marketplace.list_briefs(offered_to_attorney_id=user.id, status=status)
+    return lead_marketplace.list_briefs(applicant_id=user.id, status=status)
+
+@app.get("/api/marketplace/briefs/{brief_id}")
+def get_marketplace_brief(brief_id: str, user: UserOut = Depends(get_current_user)):
+    b = lead_marketplace.get_brief(brief_id)
+    if b is None:
+        raise HTTPException(status_code=404, detail="Brief not found")
+    return b
+
+@app.post("/api/marketplace/briefs/{brief_id}/claim")
+def claim_brief(brief_id: str, req: MarketplaceClaimRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return lead_marketplace.claim_brief(brief_id, user.id, req.attorney_fee_quoted_usd)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/marketplace/briefs/{brief_id}/decline")
+def decline_brief(brief_id: str, reason: str = "", user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return lead_marketplace.decline_brief(brief_id, user.id, reason=reason)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/marketplace/claims/{claim_id}/accept")
+def accept_marketplace_claim(claim_id: str, user: UserOut = Depends(get_current_user)):
+    try:
+        return lead_marketplace.accept_claim(claim_id, user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/marketplace/briefs/{brief_id}/withdraw")
+def withdraw_marketplace_brief(brief_id: str, reason: str = "", user: UserOut = Depends(get_current_user)):
+    try:
+        return lead_marketplace.withdraw_brief(brief_id, user.id, reason=reason)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/marketplace/engagements")
+def list_marketplace_engagements(user: UserOut = Depends(get_current_user)):
+    if user.role == UserRole.ATTORNEY:
+        return lead_marketplace.list_engagements(attorney_id=user.id)
+    return lead_marketplace.list_engagements(applicant_id=user.id)
+
+
+# =============================================
+# Outcome Reviews endpoints
+# =============================================
+
+class ReviewSubmitRequest(BaseModel):
+    attorney_id: str
+    receipt_number: str
+    ratings: dict
+    body: str = ""
+    title: str = ""
+    engagement_id: str | None = None
+
+class ReviewResponseRequest(BaseModel):
+    body: str
+
+@app.post("/api/reviews", status_code=201)
+def submit_review(req: ReviewSubmitRequest, user: UserOut = Depends(get_current_user)):
+    try:
+        return outcome_reviews.submit_review(
+            applicant_id=user.id, attorney_id=req.attorney_id,
+            receipt_number=req.receipt_number, ratings=req.ratings,
+            body=req.body, title=req.title, engagement_id=req.engagement_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/reviews")
+def list_reviews(attorney_id: str | None = None, applicant_id: str | None = None,
+                 verified_only: bool = False, min_rating: float | None = None):
+    return outcome_reviews.list_reviews(
+        attorney_id=attorney_id, applicant_id=applicant_id,
+        verified_only=verified_only, min_rating=min_rating,
+    )
+
+@app.get("/api/reviews/{review_id}")
+def get_review(review_id: str):
+    r = outcome_reviews.get_review(review_id)
+    if r is None:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return r
+
+@app.post("/api/reviews/{review_id}/respond")
+def respond_to_review(review_id: str, req: ReviewResponseRequest,
+                       user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return outcome_reviews.respond(review_id, user.id, req.body)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/reviews/attorney/{attorney_id}/profile")
+def get_attorney_review_profile(attorney_id: str):
+    return outcome_reviews.attorney_profile(attorney_id)
+
+
+# =============================================
+# Cadence Tracker endpoints
+# =============================================
+
+class CadenceEnrollRequest(BaseModel):
+    workspace_id: str
+    cadence_days: int = 14
+    applicant_id: str | None = None
+    partner_id: str | None = None
+
+class CadenceUpdateRequest(BaseModel):
+    workspace_id: str
+    kind: str = "status_update"
+    body: str = ""
+
+@app.post("/api/cadence-tracker/enroll", status_code=201)
+def cadence_enroll(req: CadenceEnrollRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return cadence_tracker.enroll(
+            workspace_id=req.workspace_id, cadence_days=req.cadence_days,
+            attorney_id=user.id, applicant_id=req.applicant_id, partner_id=req.partner_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/cadence-tracker/updates", status_code=201)
+def record_cadence_update(req: CadenceUpdateRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return cadence_tracker.record_update(req.workspace_id, actor_id=user.id, kind=req.kind, body=req.body)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/cadence-tracker/tick")
+def cadence_tick(user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return cadence_tracker.tick()
+
+@app.get("/api/cadence-tracker/trackers")
+def list_cadence_trackers(status: str | None = None,
+                            user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return cadence_tracker.list_trackers(status=status, attorney_id=user.id)
+
+@app.get("/api/cadence-tracker/health/{attorney_id}")
+def attorney_response_health(attorney_id: str):
+    return cadence_tracker.attorney_response_health(attorney_id)
+
+
+# =============================================
+# SLA Tracker endpoints
+# =============================================
+
+class SlaStartRequest(BaseModel):
+    kind: str
+    related_workspace_id: str | None = None
+    related_brief_id: str | None = None
+    applicant_id: str | None = None
+    firm_id: str | None = None
+    custom_window_hours: int | None = None
+
+@app.get("/api/sla/kinds")
+def list_sla_kinds():
+    return SlaTrackerService.list_sla_kinds()
+
+@app.post("/api/sla/entries", status_code=201)
+def start_sla(req: SlaStartRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return sla_tracker.start(
+            kind=req.kind, responsible_user_id=user.id,
+            related_workspace_id=req.related_workspace_id,
+            related_brief_id=req.related_brief_id, applicant_id=req.applicant_id,
+            firm_id=req.firm_id, custom_window_hours=req.custom_window_hours,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/sla/entries/{entry_id}/complete")
+def complete_sla(entry_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return sla_tracker.complete(entry_id, completed_by_user_id=user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/sla/tick")
+def sla_tick(user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return sla_tracker.tick()
+
+@app.get("/api/sla/entries")
+def list_sla_entries(kind: str | None = None, status: str | None = None,
+                       user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return sla_tracker.list_entries(responsible_user_id=user.id, kind=kind, status=status)
+
+@app.get("/api/sla/health/{attorney_id}")
+def attorney_sla_health(attorney_id: str):
+    return sla_tracker.attorney_sla_health(attorney_id)
+
+
+# =============================================
+# WhatsApp Channel endpoints
+# =============================================
+
+class WhatsAppConvoRequest(BaseModel):
+    applicant_user_id: str
+    phone_e164: str
+    workspace_id: str | None = None
+
+class WhatsAppTemplateRequest(BaseModel):
+    template_kind: str
+    variables: dict
+
+class WhatsAppFreeFormRequest(BaseModel):
+    body: str
+
+class WhatsAppInboundRequest(BaseModel):
+    phone_e164: str
+    body: str
+    provider_message_id: str | None = None
+    applicant_user_id: str | None = None
+    workspace_id: str | None = None
+    attachments: list[dict] | None = None
+
+@app.get("/api/whatsapp/templates")
+def list_whatsapp_templates():
+    return WhatsAppChannelService.list_templates()
+
+@app.post("/api/whatsapp/conversations", status_code=201)
+def get_or_create_whatsapp_conversation(req: WhatsAppConvoRequest,
+                                          user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return whatsapp_channel.get_or_create_conversation(
+            applicant_user_id=req.applicant_user_id,
+            phone_e164=req.phone_e164, workspace_id=req.workspace_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/whatsapp/conversations/{convo_id}/template", status_code=201)
+def send_whatsapp_template(convo_id: str, req: WhatsAppTemplateRequest,
+                             user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return whatsapp_channel.send_template(
+            convo_id, req.template_kind, req.variables, actor_user_id=user.id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/whatsapp/conversations/{convo_id}/freeform", status_code=201)
+def send_whatsapp_freeform(convo_id: str, req: WhatsAppFreeFormRequest,
+                              user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return whatsapp_channel.send_freeform_message(convo_id, req.body, actor_user_id=user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/whatsapp/inbound", status_code=201)
+def receive_whatsapp_inbound(req: WhatsAppInboundRequest):
+    """Webhook receiver for inbound WhatsApp messages — public per WhatsApp's
+    Business Cloud API contract."""
+    try:
+        return whatsapp_channel.receive_inbound(
+            phone_e164=req.phone_e164, body=req.body,
+            provider_message_id=req.provider_message_id,
+            applicant_user_id=req.applicant_user_id,
+            workspace_id=req.workspace_id, attachments=req.attachments,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/whatsapp/conversations/{convo_id}/messages")
+def list_whatsapp_messages(convo_id: str, limit: int = 200,
+                              user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return whatsapp_channel.list_messages(convo_id=convo_id, limit=limit)
+
+
+# =============================================
+# Peer Network + CLE endpoints
+# =============================================
+
+class PeerThreadRequest(BaseModel):
+    title: str
+    body: str
+    kind: str = "case_strategy"
+    tags: list[str] | None = None
+    anonymous: bool = False
+    related_visa_type: str | None = None
+
+class PeerCommentRequest(BaseModel):
+    body: str
+    anonymous: bool = False
+    cited_authority_ids: list[str] | None = None
+    time_spent_minutes: int = 0
+
+@app.get("/api/peer-network/threads")
+def list_peer_threads(kind: str | None = None, tag: str | None = None,
+                       related_visa_type: str | None = None, limit: int = 50,
+                       user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return peer_network.list_threads(kind=kind, tag=tag, related_visa_type=related_visa_type, limit=limit)
+
+@app.post("/api/peer-network/threads", status_code=201)
+def create_peer_thread(req: PeerThreadRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return peer_network.create_thread(
+            author_user_id=user.id, title=req.title, body=req.body,
+            kind=req.kind, tags=req.tags, anonymous=req.anonymous,
+            related_visa_type=req.related_visa_type,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/peer-network/threads/{thread_id}")
+def get_peer_thread(thread_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    t = peer_network.get_thread(thread_id, viewer_user_id=user.id)
+    if t is None:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    return t
+
+@app.post("/api/peer-network/threads/{thread_id}/comments", status_code=201)
+def post_peer_comment(thread_id: str, req: PeerCommentRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return peer_network.post_comment(
+            thread_id, author_user_id=user.id, body=req.body,
+            anonymous=req.anonymous, cited_authority_ids=req.cited_authority_ids,
+            time_spent_minutes=req.time_spent_minutes,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/peer-network/threads/{thread_id}/comments")
+def list_peer_comments(thread_id: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return peer_network.list_comments(thread_id)
+
+@app.get("/api/cle/jurisdictions")
+def list_cle_jurisdictions():
+    return PeerNetworkService.list_jurisdictions()
+
+@app.get("/api/cle/summary/{jurisdiction}")
+def get_cle_summary(jurisdiction: str, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return peer_network.attorney_cle_summary(user.id, jurisdiction=jurisdiction)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+# =============================================
+# Benchmark Report endpoints
+# =============================================
+
+class BenchmarkReportRequest(BaseModel):
+    kind: str = "annual"
+    title: str = ""
+    period_label: str = ""
+    cover_summary: str = ""
+
+@app.post("/api/benchmark-reports", status_code=201)
+def generate_benchmark_report(req: BenchmarkReportRequest,
+                                user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return benchmark_report.generate(
+            kind=req.kind, title=req.title,
+            period_label=req.period_label, cover_summary=req.cover_summary,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/benchmark-reports")
+def list_benchmark_reports(kind: str | None = None, limit: int = 20):
+    return benchmark_report.list_reports(kind=kind, limit=limit)
+
+@app.get("/api/benchmark-reports/{report_id}")
+def get_benchmark_report(report_id: str):
+    r = benchmark_report.get_report(report_id)
+    if r is None:
+        raise HTTPException(status_code=404, detail="Report not found")
+    return r
+
+@app.get("/api/benchmark-reports/{report_id}/text", response_class=PlainTextResponse)
+def get_benchmark_report_text(report_id: str):
+    r = benchmark_report.get_report(report_id)
+    if r is None:
+        raise HTTPException(status_code=404, detail="Report not found")
+    return PlainTextResponse(content=IndustryBenchmarkReportService.render_text(r))
+
+
+# =============================================
+# Local Payments endpoints
+# =============================================
+
+class LocalPaymentSessionRequest(BaseModel):
+    method_id: str
+    amount_minor_units: int
+    currency: str
+    intent: str
+    attorney_id: str | None = None
+    workspace_id: str | None = None
+    return_url: str | None = None
+    cancel_url: str | None = None
+    metadata: dict | None = None
+
+@app.get("/api/local-payments/methods")
+def list_local_payment_methods(country: str | None = None, currency: str | None = None,
+                                 iolta_compatible: bool | None = None):
+    return LocalPaymentsService.list_methods(country=country, currency=currency,
+                                              iolta_compatible=iolta_compatible)
+
+@app.get("/api/local-payments/methods/{method_id}")
+def get_local_payment_method(method_id: str):
+    m = LocalPaymentsService.get_method(method_id)
+    if m is None:
+        raise HTTPException(status_code=404, detail="Method not found")
+    return m
+
+@app.post("/api/local-payments/sessions", status_code=201)
+def create_local_payment_session(req: LocalPaymentSessionRequest, user: UserOut = Depends(get_current_user)):
+    try:
+        return local_payments.create_checkout_session(
+            method_id=req.method_id, amount_minor_units=req.amount_minor_units,
+            currency=req.currency, intent=req.intent,
+            applicant_user_id=user.id, attorney_id=req.attorney_id,
+            workspace_id=req.workspace_id, return_url=req.return_url,
+            cancel_url=req.cancel_url, metadata=req.metadata,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/local-payments/sessions/{session_id}/confirm")
+def confirm_local_payment(session_id: str, provider_payload: dict,
+                           user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return local_payments.confirm_payment(session_id, provider_payload)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/local-payments/sessions/{session_id}/refund")
+def refund_local_payment(session_id: str, reason: str = "",
+                          user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return local_payments.refund(session_id, reason=reason)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+# =============================================
+# SOC 2 Audit endpoints
+# =============================================
+
+class IncidentRequest(BaseModel):
+    incident_type: str
+    severity: str
+    description: str
+    affected_user_ids: list[str] | None = None
+
+class EvidencePackRequest(BaseModel):
+    period_start: str
+    period_end: str
+    firm_id: str | None = None
+    kind: str = "evidence_pack"
+
+@app.get("/api/soc2/controls")
+def list_soc2_controls(criterion: str | None = None):
+    return Soc2AuditService.list_controls(criterion=criterion)
+
+@app.post("/api/soc2/incidents", status_code=201)
+def log_soc2_incident(req: IncidentRequest, user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return soc2_audit.log_incident(
+            incident_type=req.incident_type, severity=req.severity,
+            description=req.description, affected_user_ids=req.affected_user_ids,
+            actor_user_id=user.id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/soc2/incidents/{incident_id}/resolve")
+def resolve_soc2_incident(incident_id: str, resolution_notes: str = "",
+                            user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return soc2_audit.resolve_incident(incident_id, resolution_notes=resolution_notes)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.get("/api/soc2/incidents")
+def list_soc2_incidents(severity: str | None = None, status: str | None = None,
+                          user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return soc2_audit.list_incidents(severity=severity, status=status)
+
+@app.post("/api/soc2/evidence-pack", status_code=201)
+def generate_evidence_pack(req: EvidencePackRequest,
+                              user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return soc2_audit.generate_evidence_pack(
+            period_start=req.period_start, period_end=req.period_end,
+            firm_id=req.firm_id, kind=req.kind,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/soc2/reports")
+def list_soc2_reports(kind: str | None = None,
+                       user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return soc2_audit.list_reports(kind=kind)
+
+
+# =============================================
+# Bar Endorsement endpoints
+# =============================================
+
+class BarEndorsementRequest(BaseModel):
+    bar_jurisdiction: str
+    bar_full_name: str
+    endorsement_type: str
+    issued_date: str
+    scope: list[str]
+    public_url: str = ""
+    expires_date: str | None = None
+    internal_contact: dict | None = None
+    notes: str = ""
+
+class BarApplicationRequest(BaseModel):
+    bar_jurisdiction: str
+    bar_full_name: str
+    endorsement_type_target: str
+    scope_target: list[str]
+
+@app.post("/api/bar-endorsements", status_code=201)
+def record_bar_endorsement(req: BarEndorsementRequest,
+                              user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return bar_endorsement.record_endorsement(
+            bar_jurisdiction=req.bar_jurisdiction, bar_full_name=req.bar_full_name,
+            endorsement_type=req.endorsement_type, issued_date=req.issued_date,
+            scope=req.scope, public_url=req.public_url,
+            expires_date=req.expires_date, internal_contact=req.internal_contact,
+            notes=req.notes,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/bar-endorsements")
+def list_bar_endorsements(bar_jurisdiction: str | None = None,
+                            endorsement_type: str | None = None,
+                            scope: str | None = None):
+    return bar_endorsement.list_endorsements(
+        bar_jurisdiction=bar_jurisdiction, endorsement_type=endorsement_type,
+        scope=scope,
+    )
+
+@app.get("/api/bar-endorsements/coverage")
+def coverage_matrix():
+    return bar_endorsement.coverage_matrix()
+
+@app.get("/api/bar-endorsements/safe-harbor/{bar_jurisdiction}")
+def is_safe_harbor_covered(bar_jurisdiction: str, scope: str | None = None):
+    return bar_endorsement.is_attorney_safe_harbor_covered(bar_jurisdiction, scope=scope)
+
+@app.post("/api/bar-endorsements/applications", status_code=201)
+def open_bar_application(req: BarApplicationRequest,
+                            user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return bar_endorsement.open_application(
+            bar_jurisdiction=req.bar_jurisdiction, bar_full_name=req.bar_full_name,
+            endorsement_type_target=req.endorsement_type_target,
+            scope_target=req.scope_target, owner_user_id=user.id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/bar-endorsements/applications")
+def list_bar_applications(stage: str | None = None,
+                            bar_jurisdiction: str | None = None,
+                            user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return bar_endorsement.list_applications(stage=stage, bar_jurisdiction=bar_jurisdiction)
+
+
+# =============================================
+# Malpractice Partner endpoints
+# =============================================
+
+class MalpracticePartnerRequest(BaseModel):
+    carrier_name: str
+    contact_name: str
+    contact_email: str
+    discount_pct: float
+    eligibility_criteria: list[str]
+    coverage_scope: str
+    agreement_signed_date: str | None = None
+    agreement_renewal_date: str | None = None
+    notes: str = ""
+
+class MalpracticeEnrollmentRequest(BaseModel):
+    partner_id: str
+    current_carrier: str | None = None
+    current_premium_usd: float | None = None
+    policy_renewal_date: str | None = None
+
+@app.post("/api/malpractice/partners", status_code=201)
+def register_malpractice_partner(req: MalpracticePartnerRequest,
+                                    user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return malpractice_partner.register_partner(
+            carrier_name=req.carrier_name, contact_name=req.contact_name,
+            contact_email=req.contact_email, discount_pct=req.discount_pct,
+            eligibility_criteria=req.eligibility_criteria,
+            coverage_scope=req.coverage_scope,
+            agreement_signed_date=req.agreement_signed_date,
+            agreement_renewal_date=req.agreement_renewal_date,
+            notes=req.notes,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/malpractice/partners")
+def list_malpractice_partners(status: str | None = None):
+    return malpractice_partner.list_partners(status=status)
+
+@app.get("/api/malpractice/partners/{partner_id}/eligibility")
+def evaluate_my_malpractice_eligibility(partner_id: str,
+                                          user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return malpractice_partner.evaluate_attorney_eligibility(user.id, partner_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.post("/api/malpractice/enroll", status_code=201)
+def enroll_malpractice(req: MalpracticeEnrollmentRequest,
+                          user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return malpractice_partner.enroll_attorney(
+            user.id, req.partner_id, current_carrier=req.current_carrier,
+            current_premium_usd=req.current_premium_usd,
+            policy_renewal_date=req.policy_renewal_date,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.post("/api/malpractice/verification-letter/{partner_id}")
+def generate_malpractice_verification_letter(partner_id: str,
+                                                 user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    try:
+        return malpractice_partner.generate_verification_letter(user.id, partner_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+@app.get("/api/malpractice/enrollments")
+def list_my_malpractice_enrollments(user: UserOut = Depends(require_role(UserRole.ATTORNEY))):
+    return malpractice_partner.list_enrollments(attorney_id=user.id)
