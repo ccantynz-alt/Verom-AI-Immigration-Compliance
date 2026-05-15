@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome, Counselor — Verom Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--blue-600:#2563eb;--blue-700:#1d4ed8;
+    --violet-500:#8b5cf6;--violet-600:#7c3aed;
+    --slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;
+    --slate-400:#94a3b8;--slate-500:#64748b;--slate-600:#475569;--slate-700:#334155;
+    --slate-800:#1e293b;--slate-900:#0f172a;
+    --green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--green-700:#15803d;
+    --red-50:#fef2f2;--red-500:#ef4444;--red-600:#dc2626;
+    --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-500:#f59e0b;
+    --shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -2px rgba(0,0,0,0.05);
+}
+body{font-family:'Inter',-apple-system,sans-serif;color:var(--slate-800);background:linear-gradient(180deg,#fff 0%,var(--slate-50) 100%);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+.bg-orbs{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.3}
+.orb1{width:500px;height:500px;background:var(--blue-100);top:-100px;left:-100px}
+.orb2{width:400px;height:400px;background:#ede9fe;bottom:-100px;right:-100px}
+.shell{max-width:920px;margin:0 auto;padding:24px;position:relative;z-index:1}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:24px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
+.brand-text{font-size:20px;font-weight:800}
+.brand-text .ai{color:var(--blue-600)}
+
+.progress-bar{height:6px;background:var(--slate-200);border-radius:99px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue-600),var(--violet-600));border-radius:99px;transition:width 400ms cubic-bezier(0.4,0,0.2,1);width:0%}
+.progress-meta{display:flex;justify-content:space-between;font-size:13px;color:var(--slate-500);margin-bottom:24px}
+.progress-meta .step-name{font-weight:600;color:var(--slate-700)}
+
+.steps-strip{display:flex;gap:6px;margin-bottom:32px;flex-wrap:wrap}
+.step-pip{font-size:12px;font-weight:600;padding:6px 12px;border-radius:99px;background:var(--slate-100);color:var(--slate-500)}
+.step-pip.active{background:var(--blue-600);color:#fff}
+.step-pip.done{background:var(--green-500);color:#fff}
+
+.card{background:#fff;border-radius:20px;border:1px solid var(--slate-200);box-shadow:var(--shadow);padding:36px;margin-bottom:20px;animation:slideUp 360ms cubic-bezier(0.4,0,0.2,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.card h1{font-size:26px;font-weight:800;letter-spacing:-0.02em;margin-bottom:6px;color:var(--slate-900)}
+.card .lead{font-size:15px;color:var(--slate-500);margin-bottom:24px}
+
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+.fld{margin-bottom:16px}
+.fld label{display:block;font-size:13px;font-weight:600;color:var(--slate-700);margin-bottom:6px}
+.fld .hint{font-size:12px;color:var(--slate-500);margin-top:4px}
+.fld input,.fld select,.fld textarea{width:100%;padding:11px 13px;border:1.5px solid var(--slate-200);border-radius:10px;font-size:14px;font-family:inherit;color:var(--slate-800);background:#fff}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.fld textarea{resize:vertical;min-height:80px}
+
+.tag-grid{display:flex;flex-wrap:wrap;gap:8px}
+.tag{padding:8px 14px;border:1.5px solid var(--slate-200);border-radius:99px;background:#fff;font-size:13px;font-weight:600;color:var(--slate-700);cursor:pointer;transition:all 150ms;font-family:inherit}
+.tag:hover{border-color:var(--blue-500);color:var(--blue-700)}
+.tag.selected{background:var(--blue-600);border-color:var(--blue-600);color:#fff}
+
+.upload-card{padding:18px;border:1.5px dashed var(--slate-300);border-radius:12px;background:var(--slate-50);margin-bottom:12px}
+.upload-card.required{border-color:var(--blue-300,var(--blue-100));background:var(--blue-50)}
+.upload-card .lab{font-size:14px;font-weight:600;color:var(--slate-800);margin-bottom:4px}
+.upload-card .desc{font-size:13px;color:var(--slate-500);margin-bottom:8px}
+.upload-card input[type=file]{font-size:13px}
+
+.summary{background:var(--slate-50);border-radius:14px;padding:20px;border:1px solid var(--slate-200)}
+.summary h3{font-size:14px;font-weight:700;color:var(--slate-700);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px}
+.summary dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:14px}
+.summary dt{color:var(--slate-500);font-weight:500}
+.summary dd{color:var(--slate-900);font-weight:600}
+
+.btn-row{display:flex;gap:12px;margin-top:24px;justify-content:space-between}
+.btn{padding:11px 22px;border-radius:11px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all 180ms;font-family:inherit;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 4px 12px rgba(37,99,235,0.3)}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px rgba(37,99,235,0.4)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--slate-600)}
+.btn-ghost:hover{background:var(--slate-100)}
+
+.benefit-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.benefit{padding:14px;border-radius:12px;background:linear-gradient(135deg,var(--blue-50),#fff);border:1px solid var(--blue-100);font-size:13px}
+.benefit .ico{font-size:20px;margin-bottom:6px}
+.benefit strong{display:block;color:var(--slate-900);margin-bottom:2px;font-size:14px}
+.benefit span{color:var(--slate-600)}
+
+.note-box{padding:14px 16px;border-radius:12px;background:var(--amber-50);border:1px solid var(--amber-100);font-size:13px;color:var(--slate-700);margin-bottom:16px}
+.note-box strong{color:#92400e}
+
+.success-banner{padding:24px;border-radius:14px;background:linear-gradient(135deg,var(--green-50),#fff);border:1px solid var(--green-100);text-align:center;margin-bottom:20px}
+.success-banner .big{font-size:48px;margin-bottom:8px}
+.success-banner h2{font-size:22px;font-weight:800;color:var(--slate-900);margin-bottom:6px}
+.success-banner p{font-size:14px;color:var(--slate-600)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--slate-900);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;z-index:1000;opacity:0;pointer-events:none;transition:opacity 200ms}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+<div class="shell">
+
+<a class="brand" href="/">
+    <div class="brand-mark">V</div>
+    <div class="brand-text">Verom<span class="ai">.ai</span></div>
+</a>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="progress-meta">
+    <span class="step-name" id="stepName">Welcome</span>
+    <span id="stepCount">Step 1 of 7</span>
+</div>
+
+<div class="steps-strip" id="stepsStrip"></div>
+
+<div id="stage"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+var STEPS = [
+    { key: 'firm_info',        label: 'Firm' },
+    { key: 'credentials',      label: 'Credentials' },
+    { key: 'document_upload',  label: 'Documents' },
+    { key: 'capacity',         label: 'Capacity' },
+    { key: 'fee_structure',    label: 'Fees' },
+    { key: 'integration_setup',label: 'Integrations' },
+    { key: 'profile_review',   label: 'Review' },
+];
+
+var state = {
+    step: 0,
+    data: {
+        firm_info: {},
+        credentials: {},
+        document_upload: {},
+        capacity: {},
+        fee_structure: {},
+        integration_setup: {},
+        profile_review: {},
+    }
+};
+
+var stage = document.getElementById('stage');
+var progressFill = document.getElementById('progressFill');
+var stepName = document.getElementById('stepName');
+var stepCount = document.getElementById('stepCount');
+var stepsStrip = document.getElementById('stepsStrip');
+
+function updateProgress(){
+    var pct = Math.round((state.step / STEPS.length) * 100);
+    progressFill.style.width = pct + '%';
+    stepName.textContent = STEPS[state.step] ? STEPS[state.step].label : 'Done';
+    stepCount.textContent = 'Step ' + (state.step + 1) + ' of ' + STEPS.length;
+    stepsStrip.innerHTML = '';
+    STEPS.forEach(function(s, i){
+        var pip = document.createElement('div');
+        pip.className = 'step-pip' + (i === state.step ? ' active' : (i < state.step ? ' done' : ''));
+        pip.textContent = (i+1) + '. ' + s.label;
+        stepsStrip.appendChild(pip);
+    });
+}
+
+function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
+
+function api(path, opts){
+    opts = opts || {};
+    opts.headers = opts.headers || {};
+    opts.headers['Content-Type'] = 'application/json';
+    var token = localStorage.getItem('verom_token');
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(path, opts).then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error(t || ('HTTP ' + r.status)); });
+        return r.status === 204 ? null : r.json();
+    });
+}
+
+function next(){ state.step = Math.min(state.step + 1, STEPS.length); render(); }
+function back(){ state.step = Math.max(state.step - 1, 0); render(); }
+
+// ---- Step 1: Firm Info ----
+function renderFirm(){
+    var d = state.data.firm_info;
+    var html = '<div class="card">';
+    html += '<h1>Tell us about your practice</h1>';
+    html += '<p class="lead">This stays private. We use it to set up your firm workspace and route relevant features.</p>';
+    html += '<div class="benefit-strip">';
+    html += '<div class="benefit"><div class="ico">⚡</div><strong>9 hrs/week saved</strong><span>Eliminating manual admin from your existing caseload</span></div>';
+    html += '<div class="benefit"><div class="ico">🛡️</div><strong>Built-in compliance</strong><span>Conflict checks, audit trail, ethics walls — all automatic</span></div>';
+    html += '<div class="benefit"><div class="ico">🌐</div><strong>One dashboard</strong><span>USCIS, DOL, EOIR — never log into 5 portals again</span></div>';
+    html += '</div>';
+    html += '<div class="row"><div class="fld"><label>Firm Name</label><input id="firm_name" value="' + (d.firm_name || '') + '" placeholder="e.g. Verom Immigration Law"></div>';
+    html += '<div class="fld"><label>Firm Size</label><select id="firm_size"><option value="">Select…</option><option' + (d.firm_size==='solo'?' selected':'') + '>solo</option><option' + (d.firm_size==='2-5'?' selected':'') + '>2-5</option><option' + (d.firm_size==='6-20'?' selected':'') + '>6-20</option><option' + (d.firm_size==='21-50'?' selected':'') + '>21-50</option><option' + (d.firm_size==='50+'?' selected':'') + '>50+</option></select></div></div>';
+    html += '<div class="fld"><label>Practice Areas</label><div class="tag-grid" id="practice_areas">';
+    ['Employment-based','Family-based','Asylum','Removal Defense','Investor','Student','Naturalization','Removal/Deportation'].forEach(function(t){
+        var sel = (d.practice_areas || []).indexOf(t) >= 0;
+        html += '<button class="tag' + (sel ? ' selected' : '') + '" data-pa="' + t + '">' + t + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="row"><div class="fld"><label>Primary Country / Jurisdiction</label><select id="primary_country"><option>United States</option><option>United Kingdom</option><option>Canada</option><option>Australia</option><option>Germany</option><option>New Zealand</option></select></div>';
+    html += '<div class="fld"><label>State / Region of Bar Admission</label><input id="bar_state" value="' + (d.bar_state || '') + '" placeholder="e.g. New York"></div></div>';
+    html += '<div class="btn-row"><div></div><button class="btn btn-primary" id="next">Continue →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-pa]'), function(b){
+        b.addEventListener('click', function(){ b.classList.toggle('selected'); });
+    });
+    document.getElementById('next').addEventListener('click', function(){
+        d.firm_name = document.getElementById('firm_name').value;
+        d.firm_size = document.getElementById('firm_size').value;
+        d.primary_country = document.getElementById('primary_country').value;
+        d.bar_state = document.getElementById('bar_state').value;
+        d.practice_areas = Array.prototype.map.call(document.querySelectorAll('[data-pa].selected'), function(b){ return b.getAttribute('data-pa'); });
+        if (!d.firm_name){ toast('Firm name is required'); return; }
+        next();
+    });
+}
+
+// ---- Step 2: Credentials ----
+function renderCredentials(){
+    var d = state.data.credentials;
+    var html = '<div class="card">';
+    html += '<h1>Bar credentials & specializations</h1>';
+    html += '<p class="lead">Your bar number is verified against the relevant bar association. You stay restricted from client features until verified — this protects you and the platform’s integrity.</p>';
+    html += '<div class="row"><div class="fld"><label>Bar Number</label><input id="bar_number" value="' + (d.bar_number || '') + '" placeholder="e.g. NY-2015-28394"><span class="hint">We verify against state bar databases</span></div>';
+    html += '<div class="fld"><label>Year Admitted</label><input id="year_admitted" type="number" value="' + (d.year_admitted || '') + '" placeholder="e.g. 2015"></div></div>';
+    html += '<div class="fld"><label>Specializations</label><div class="tag-grid" id="specs">';
+    ['H-1B','L-1','O-1','EB-1','EB-2','EB-5','I-130','I-485','F-1','J-1','TN','EAD','Naturalization','Removal Defense','UK Skilled Worker','Canada Express Entry','AU 482','Asylum'].forEach(function(t){
+        var sel = (d.specializations || []).indexOf(t) >= 0;
+        html += '<button class="tag' + (sel ? ' selected' : '') + '" data-spec="' + t + '">' + t + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="fld"><label>Languages spoken (with clients)</label><div class="tag-grid" id="langs">';
+    ['English','Mandarin','Spanish','Hindi','Arabic','French','Portuguese','Korean','Japanese','Russian','German','Tagalog','Vietnamese'].forEach(function(t){
+        var sel = (d.languages || []).indexOf(t) >= 0 || t === 'English';
+        html += '<button class="tag' + (sel ? ' selected' : '') + '" data-lang="' + t + '">' + t + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="fld"><label>Bio (visible to clients)</label><textarea id="bio" placeholder="Brief professional bio…">' + (d.bio || '') + '</textarea></div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back">← Back</button><button class="btn btn-primary" id="next">Continue →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-spec]'), function(b){
+        b.addEventListener('click', function(){ b.classList.toggle('selected'); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-lang]'), function(b){
+        b.addEventListener('click', function(){ b.classList.toggle('selected'); });
+    });
+    document.getElementById('back').addEventListener('click', back);
+    document.getElementById('next').addEventListener('click', function(){
+        d.bar_number = document.getElementById('bar_number').value;
+        d.year_admitted = parseInt(document.getElementById('year_admitted').value || 0);
+        d.bio = document.getElementById('bio').value;
+        d.specializations = Array.prototype.map.call(document.querySelectorAll('[data-spec].selected'), function(b){ return b.getAttribute('data-spec'); });
+        d.languages = Array.prototype.map.call(document.querySelectorAll('[data-lang].selected'), function(b){ return b.getAttribute('data-lang'); });
+        if (!d.bar_number){ toast('Bar number required'); return; }
+        if (d.specializations.length === 0){ toast('Pick at least one specialization'); return; }
+        next();
+    });
+}
+
+// ---- Step 3: Document Upload ----
+function renderDocs(){
+    var html = '<div class="card">';
+    html += '<h1>Verification documents</h1>';
+    html += '<p class="lead">These get reviewed within 1 business day. Your account is read-only until approved — you can explore but not accept clients.</p>';
+    html += '<div class="note-box"><strong>Why:</strong> Fraudulent actors posing as attorneys damage public trust in the entire immigration bar. Verified attorneys get a trust badge, priority placement, and access to higher-quality pre-screened cases.</div>';
+    html += '<div class="upload-card required"><div class="lab">Bar Certificate / License *</div><div class="desc">PDF, JPG, or PNG of your bar admission certificate</div><input type="file" id="bar_cert" accept=".pdf,.jpg,.jpeg,.png"></div>';
+    html += '<div class="upload-card required"><div class="lab">Government-Issued ID *</div><div class="desc">Passport, driver’s license, or national ID</div><input type="file" id="gov_id" accept=".pdf,.jpg,.jpeg,.png"></div>';
+    html += '<div class="upload-card"><div class="lab">Malpractice Insurance Certificate</div><div class="desc">Optional but recommended — improves trust score and gives you a "Insured" badge on your profile</div><input type="file" id="malpractice" accept=".pdf,.jpg,.jpeg,.png"></div>';
+    html += '<div class="upload-card"><div class="lab">Professional Photo</div><div class="desc">Headshot for your public profile (optional)</div><input type="file" id="headshot" accept=".jpg,.jpeg,.png"></div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back">← Back</button><button class="btn btn-primary" id="next">Continue →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+
+    document.getElementById('back').addEventListener('click', back);
+    document.getElementById('next').addEventListener('click', function(){
+        var d = state.data.document_upload;
+        d.bar_cert_filename = (document.getElementById('bar_cert').files[0] || {}).name || '';
+        d.gov_id_filename = (document.getElementById('gov_id').files[0] || {}).name || '';
+        d.malpractice_filename = (document.getElementById('malpractice').files[0] || {}).name || '';
+        d.headshot_filename = (document.getElementById('headshot').files[0] || {}).name || '';
+        if (!d.bar_cert_filename || !d.gov_id_filename){ toast('Bar certificate and government ID are required'); return; }
+        next();
+    });
+}
+
+// ---- Step 4: Capacity ----
+function renderCapacity(){
+    var d = state.data.capacity;
+    var html = '<div class="card">';
+    html += '<h1>Set your capacity</h1>';
+    html += '<p class="lead">You stay in control. Tell us how many cases you can take and we will never overflow you.</p>';
+    html += '<div class="row"><div class="fld"><label>Maximum active cases at once</label><input type="number" id="max_active" value="' + (d.max_active || 15) + '"><span class="hint">You can change this anytime</span></div>';
+    html += '<div class="fld"><label>Accepting new cases?</label><select id="accepting"><option value="yes"' + (d.accepting==='yes'?' selected':'') + '>Yes</option><option value="limited"' + (d.accepting==='limited'?' selected':'') + '>Limited (paused for now)</option><option value="no"' + (d.accepting==='no'?' selected':'') + '>No (managing existing only)</option></select></div></div>';
+    html += '<div class="row three"><div class="fld"><label>Avg response time SLA</label><select id="sla"><option>4 hours</option><option>8 hours</option><option>24 hours</option><option>48 hours</option></select></div>';
+    html += '<div class="fld"><label>Time zone</label><select id="tz"><option>America/New_York</option><option>America/Chicago</option><option>America/Denver</option><option>America/Los_Angeles</option><option>Europe/London</option><option>Asia/Singapore</option></select></div>';
+    html += '<div class="fld"><label>Hours/week available</label><input type="number" id="hours" value="' + (d.hours || 40) + '"></div></div>';
+    html += '<div class="fld"><label>Marketplace participation</label><div class="tag-grid">';
+    ['Existing caseload only (free tools)', 'Opt in to marketplace (matched cases)'].forEach(function(t, i){
+        var sel = (d.marketplace || (i === 0)) === t || (i === 0 && !d.marketplace);
+        html += '<button class="tag' + (sel ? ' selected' : '') + '" data-mkt="' + t + '">' + t + '</button>';
+    });
+    html += '</div><span class="hint">You can change this anytime — marketplace requires verification approval</span></div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back">← Back</button><button class="btn btn-primary" id="next">Continue →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-mkt]'), function(b){
+        b.addEventListener('click', function(){
+            Array.prototype.forEach.call(document.querySelectorAll('[data-mkt]'), function(o){ o.classList.remove('selected'); });
+            b.classList.add('selected');
+        });
+    });
+    document.getElementById('back').addEventListener('click', back);
+    document.getElementById('next').addEventListener('click', function(){
+        d.max_active = parseInt(document.getElementById('max_active').value || 0);
+        d.accepting = document.getElementById('accepting').value;
+        d.sla = document.getElementById('sla').value;
+        d.tz = document.getElementById('tz').value;
+        d.hours = parseInt(document.getElementById('hours').value || 0);
+        var sel = document.querySelector('[data-mkt].selected');
+        d.marketplace = sel ? sel.getAttribute('data-mkt') : '';
+        next();
+    });
+}
+
+// ---- Step 5: Fee Structure ----
+function renderFees(){
+    var d = state.data.fee_structure;
+    var html = '<div class="card">';
+    html += '<h1>Fee model</h1>';
+    html += '<p class="lead">You always set your own fees — Verom never dictates pricing. Pick the models you offer.</p>';
+    html += '<div class="fld"><label>Pricing models you use</label><div class="tag-grid" id="fee_models">';
+    ['Hourly','Flat fee per case','Milestone-based','Subscription / retainer','Hybrid'].forEach(function(t){
+        var sel = (d.models || []).indexOf(t) >= 0;
+        html += '<button class="tag' + (sel ? ' selected' : '') + '" data-fee="' + t + '">' + t + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="row"><div class="fld"><label>Typical retainer range (USD)</label><input id="retainer" value="' + (d.retainer || '') + '" placeholder="e.g. 2,500 - 7,500"></div>';
+    html += '<div class="fld"><label>Hourly rate (if applicable)</label><input id="hourly" value="' + (d.hourly || '') + '" placeholder="e.g. 350"></div></div>';
+    html += '<div class="fld"><label>Payment processor preference</label><div class="tag-grid" id="payproc">';
+    ['LawPay','Stripe Connect','Both (recommended)','Configure later'].forEach(function(t){
+        html += '<button class="tag" data-pp="' + t + '">' + t + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="note-box"><strong>Trust account compliance:</strong> If you accept retainers held in trust, Verom integrates IOLTA-compliant escrow via LawPay or Stripe Connect. Three-way reconciliation is automatic.</div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back">← Back</button><button class="btn btn-primary" id="next">Continue →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fee]'), function(b){
+        b.addEventListener('click', function(){ b.classList.toggle('selected'); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-pp]'), function(b){
+        b.addEventListener('click', function(){
+            Array.prototype.forEach.call(document.querySelectorAll('[data-pp]'), function(o){ o.classList.remove('selected'); });
+            b.classList.add('selected');
+        });
+    });
+    document.getElementById('back').addEventListener('click', back);
+    document.getElementById('next').addEventListener('click', function(){
+        d.models = Array.prototype.map.call(document.querySelectorAll('[data-fee].selected'), function(b){ return b.getAttribute('data-fee'); });
+        d.retainer = document.getElementById('retainer').value;
+        d.hourly = document.getElementById('hourly').value;
+        var pp = document.querySelector('[data-pp].selected');
+        d.processor = pp ? pp.getAttribute('data-pp') : '';
+        next();
+    });
+}
+
+// ---- Step 6: Integrations ----
+function renderIntegrations(){
+    var d = state.data.integration_setup;
+    var html = '<div class="card">';
+    html += '<h1>Connect your tools</h1>';
+    html += '<p class="lead">Skip anything you don’t use — you can connect later from settings.</p>';
+    html += '<div class="fld"><label>Calendar</label><div class="tag-grid" id="cal">';
+    ['Google Calendar','Outlook','Apple Calendar','Skip'].forEach(function(t){
+        html += '<button class="tag" data-cal="' + t + '">' + t + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="fld"><label>Email</label><div class="tag-grid" id="email">';
+    ['Gmail','Outlook','Office 365','Skip'].forEach(function(t){
+        html += '<button class="tag" data-email="' + t + '">' + t + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="fld"><label>Document storage</label><div class="tag-grid" id="storage">';
+    ['Google Drive','OneDrive','Dropbox','Box','Skip'].forEach(function(t){
+        html += '<button class="tag" data-stor="' + t + '">' + t + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="fld"><label>E-signature</label><div class="tag-grid" id="esign">';
+    ['DocuSign','Adobe Sign','HelloSign','Skip'].forEach(function(t){
+        html += '<button class="tag" data-esign="' + t + '">' + t + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="fld"><label>Accounting</label><div class="tag-grid" id="accounting">';
+    ['QuickBooks','Xero','FreshBooks','Skip'].forEach(function(t){
+        html += '<button class="tag" data-acct="' + t + '">' + t + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back">← Back</button><button class="btn btn-primary" id="next">Continue →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+
+    function singleSelect(attr){
+        Array.prototype.forEach.call(document.querySelectorAll('[' + attr + ']'), function(b){
+            b.addEventListener('click', function(){
+                Array.prototype.forEach.call(document.querySelectorAll('[' + attr + ']'), function(o){ o.classList.remove('selected'); });
+                b.classList.add('selected');
+            });
+        });
+    }
+    singleSelect('data-cal');
+    singleSelect('data-email');
+    singleSelect('data-stor');
+    singleSelect('data-esign');
+    singleSelect('data-acct');
+    document.getElementById('back').addEventListener('click', back);
+    document.getElementById('next').addEventListener('click', function(){
+        d.calendar = (document.querySelector('[data-cal].selected') || {}).getAttribute && document.querySelector('[data-cal].selected').getAttribute('data-cal') || 'Skip';
+        d.email = (document.querySelector('[data-email].selected') || {}).getAttribute && document.querySelector('[data-email].selected').getAttribute('data-email') || 'Skip';
+        d.storage = (document.querySelector('[data-stor].selected') || {}).getAttribute && document.querySelector('[data-stor].selected').getAttribute('data-stor') || 'Skip';
+        d.esign = (document.querySelector('[data-esign].selected') || {}).getAttribute && document.querySelector('[data-esign].selected').getAttribute('data-esign') || 'Skip';
+        d.accounting = (document.querySelector('[data-acct].selected') || {}).getAttribute && document.querySelector('[data-acct].selected').getAttribute('data-acct') || 'Skip';
+        next();
+    });
+}
+
+// ---- Step 7: Review ----
+function renderReview(){
+    var d = state.data;
+    var html = '<div class="card">';
+    html += '<h1>Review & submit</h1>';
+    html += '<p class="lead">Verify everything looks right. After you submit, your verification documents are reviewed within 1 business day.</p>';
+    html += '<div class="summary"><h3>Firm</h3><dl>';
+    html += '<dt>Name</dt><dd>' + (d.firm_info.firm_name || '—') + '</dd>';
+    html += '<dt>Size</dt><dd>' + (d.firm_info.firm_size || '—') + '</dd>';
+    html += '<dt>Country</dt><dd>' + (d.firm_info.primary_country || '—') + '</dd>';
+    html += '<dt>Bar State</dt><dd>' + (d.firm_info.bar_state || '—') + '</dd>';
+    html += '<dt>Practice</dt><dd>' + (d.firm_info.practice_areas || []).join(', ') + '</dd>';
+    html += '</dl></div>';
+    html += '<div class="summary" style="margin-top:12px"><h3>Credentials</h3><dl>';
+    html += '<dt>Bar Number</dt><dd>' + (d.credentials.bar_number || '—') + '</dd>';
+    html += '<dt>Year Admitted</dt><dd>' + (d.credentials.year_admitted || '—') + '</dd>';
+    html += '<dt>Specializations</dt><dd>' + (d.credentials.specializations || []).join(', ') + '</dd>';
+    html += '<dt>Languages</dt><dd>' + (d.credentials.languages || []).join(', ') + '</dd>';
+    html += '</dl></div>';
+    html += '<div class="summary" style="margin-top:12px"><h3>Capacity & Fees</h3><dl>';
+    html += '<dt>Max active cases</dt><dd>' + (d.capacity.max_active || '—') + '</dd>';
+    html += '<dt>Accepting</dt><dd>' + (d.capacity.accepting || '—') + '</dd>';
+    html += '<dt>Marketplace</dt><dd>' + (d.capacity.marketplace || '—') + '</dd>';
+    html += '<dt>Fee models</dt><dd>' + (d.fee_structure.models || []).join(', ') + '</dd>';
+    html += '<dt>Payment processor</dt><dd>' + (d.fee_structure.processor || '—') + '</dd>';
+    html += '</dl></div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back">← Back</button><button class="btn btn-primary" id="submit">Submit for verification →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+
+    document.getElementById('back').addEventListener('click', back);
+    document.getElementById('submit').addEventListener('click', function(){
+        // Submit each step to backend if signed in
+        var token = localStorage.getItem('verom_token');
+        if (!token){ renderDone(); return; }
+        api('/api/onboarding/attorney/start', { method: 'POST' })
+            .then(function(s){
+                var sessionId = s.id;
+                var promises = [];
+                STEPS.forEach(function(step){
+                    promises.push(api('/api/onboarding/sessions/' + sessionId + '/steps', {
+                        method: 'POST',
+                        body: JSON.stringify({ step_name: step.key, data: state.data[step.key] || {} })
+                    }));
+                });
+                return Promise.all(promises);
+            })
+            .then(renderDone)
+            .catch(function(e){ toast('Could not save: ' + e.message); renderDone(); });
+    });
+}
+
+// ---- Done ----
+function renderDone(){
+    state.step = STEPS.length;
+    updateProgress();
+    var html = '<div class="card">';
+    html += '<div class="success-banner"><div class="big">✓</div>';
+    html += '<h2>Welcome to Verom</h2>';
+    html += '<p>Your verification is in queue. Most reviews complete within 1 business day. We will email you the moment you are approved.</p></div>';
+    html += '<p style="text-align:center;color:var(--slate-600);font-size:14px;margin:16px 0">In the meantime, you can explore the dashboard, add team members, and import your existing caseload.</p>';
+    html += '<div style="text-align:center"><a href="/attorney" class="btn btn-primary">Go to dashboard →</a></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+}
+
+// ---- Render router ----
+function render(){
+    updateProgress();
+    var key = STEPS[state.step] && STEPS[state.step].key;
+    if (key === 'firm_info') return renderFirm();
+    if (key === 'credentials') return renderCredentials();
+    if (key === 'document_upload') return renderDocs();
+    if (key === 'capacity') return renderCapacity();
+    if (key === 'fee_structure') return renderFees();
+    if (key === 'integration_setup') return renderIntegrations();
+    if (key === 'profile_review') return renderReview();
+    return renderDone();
+}
+
+render();
+})();
+</script>
+</body>
+</html>

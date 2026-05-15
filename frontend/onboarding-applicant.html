@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome to Verom — Magical Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--blue-600:#2563eb;--blue-700:#1d4ed8;
+    --violet-50:#f5f3ff;--violet-500:#8b5cf6;--violet-600:#7c3aed;
+    --slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;
+    --slate-400:#94a3b8;--slate-500:#64748b;--slate-600:#475569;--slate-700:#334155;
+    --slate-800:#1e293b;--slate-900:#0f172a;
+    --green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--green-700:#15803d;
+    --red-50:#fef2f2;--red-500:#ef4444;--red-600:#dc2626;
+    --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-500:#f59e0b;--amber-600:#d97706;
+    --shadow-sm:0 1px 2px rgba(0,0,0,0.05);
+    --shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -2px rgba(0,0,0,0.05);
+    --shadow-lg:0 20px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.05);
+}
+body{font-family:'Inter',-apple-system,sans-serif;color:var(--slate-800);background:linear-gradient(180deg,#fff 0%,var(--slate-50) 100%);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+.bg-orbs{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.35}
+.orb1{width:500px;height:500px;background:var(--blue-100);top:-100px;left:-100px}
+.orb2{width:400px;height:400px;background:var(--violet-50);bottom:-100px;right:-100px}
+.shell{max-width:920px;margin:0 auto;padding:24px;position:relative;z-index:1}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:24px;text-decoration:none;color:var(--slate-900)}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
+.brand-text{font-size:20px;font-weight:800}
+.brand-text .ai{color:var(--blue-600)}
+
+.progress-bar{height:6px;background:var(--slate-200);border-radius:99px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue-600),var(--violet-600));border-radius:99px;transition:width 400ms cubic-bezier(0.4,0,0.2,1);width:0%}
+.progress-meta{display:flex;justify-content:space-between;font-size:13px;color:var(--slate-500);margin-bottom:32px}
+.progress-meta .step-name{font-weight:600;color:var(--slate-700)}
+
+.card{background:#fff;border-radius:20px;border:1px solid var(--slate-200);box-shadow:var(--shadow);padding:36px;margin-bottom:20px;animation:slideUp 360ms cubic-bezier(0.4,0,0.2,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.card h1{font-size:28px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px;color:var(--slate-900)}
+.card .lead{font-size:16px;color:var(--slate-500);margin-bottom:28px;line-height:1.5}
+
+.option-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.option{padding:24px 20px;border-radius:16px;border:2px solid var(--slate-200);background:#fff;cursor:pointer;transition:all 180ms;text-align:left;display:flex;flex-direction:column;gap:6px;font-family:inherit}
+.option:hover{border-color:var(--blue-500);background:var(--blue-50);transform:translateY(-2px);box-shadow:var(--shadow)}
+.option.selected{border-color:var(--blue-600);background:var(--blue-50);box-shadow:0 0 0 4px rgba(37,99,235,0.1)}
+.option .icon{font-size:32px;margin-bottom:4px}
+.option .title{font-size:16px;font-weight:700;color:var(--slate-900)}
+.option .desc{font-size:13px;color:var(--slate-500)}
+
+.country-grid .option{text-align:center;align-items:center}
+.country-grid .icon{font-size:36px}
+
+.visa-list{display:flex;flex-direction:column;gap:12px}
+.visa-row{padding:18px 20px;border:2px solid var(--slate-200);border-radius:14px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all 180ms;background:#fff}
+.visa-row:hover{border-color:var(--blue-500);background:var(--blue-50)}
+.visa-row.selected{border-color:var(--blue-600);background:var(--blue-50);box-shadow:0 0 0 4px rgba(37,99,235,0.1)}
+.visa-rank{width:36px;height:36px;border-radius:10px;background:var(--blue-50);color:var(--blue-700);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+.visa-info{flex:1}
+.visa-info .name{font-size:16px;font-weight:700;color:var(--slate-900)}
+.visa-info .meta{font-size:13px;color:var(--slate-500);margin-top:2px}
+.visa-fit{font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--green-100);color:var(--green-700)}
+
+.q-list{display:flex;flex-direction:column;gap:18px}
+.q{padding:18px 20px;border:1px solid var(--slate-200);border-radius:14px;background:#fff}
+.q.answered{border-color:var(--blue-200,var(--blue-100));background:var(--blue-50)}
+.q .q-text{font-size:15px;font-weight:600;color:var(--slate-800);margin-bottom:12px}
+.q .q-text .req{color:var(--red-500);margin-left:4px}
+.q .options{display:flex;gap:8px;flex-wrap:wrap}
+.q .opt-btn{padding:8px 16px;border:1.5px solid var(--slate-200);border-radius:10px;background:#fff;font-size:14px;font-weight:600;color:var(--slate-700);cursor:pointer;transition:all 150ms;font-family:inherit}
+.q .opt-btn:hover{border-color:var(--blue-500);color:var(--blue-700)}
+.q .opt-btn.selected{background:var(--blue-600);border-color:var(--blue-600);color:#fff}
+.q .opt-btn.selected.no{background:var(--slate-700);border-color:var(--slate-700)}
+.q select,.q input[type=number],.q input[type=text]{width:100%;padding:10px 12px;border:1.5px solid var(--slate-200);border-radius:10px;font-size:14px;font-family:inherit;color:var(--slate-800)}
+.q select:focus,.q input:focus{outline:none;border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+
+.score-card{padding:32px;border-radius:18px;text-align:center;background:linear-gradient(135deg,#fff,var(--slate-50));border:1px solid var(--slate-200);margin-bottom:20px}
+.score-ring{position:relative;width:160px;height:160px;margin:0 auto 16px}
+.score-ring svg{transform:rotate(-90deg);width:100%;height:100%}
+.score-ring .ring-bg{stroke:var(--slate-200)}
+.score-ring .ring-fill{stroke-dasharray:440;stroke-dashoffset:440;stroke-linecap:round;transition:stroke-dashoffset 800ms cubic-bezier(0.4,0,0.2,1)}
+.score-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-num .n{font-size:44px;font-weight:800;line-height:1;color:var(--slate-900)}
+.score-num .label{font-size:13px;color:var(--slate-500);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px}
+.score-tier{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}
+.tier-excellent{background:var(--green-100);color:var(--green-700)}
+.tier-strong{background:var(--blue-100);color:var(--blue-700)}
+.tier-moderate{background:var(--amber-100);color:var(--amber-600)}
+.tier-weak{background:var(--red-50);color:var(--red-600)}
+
+.factors-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+.factor-block h4{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);margin-bottom:10px}
+.factor-list{display:flex;flex-direction:column;gap:8px}
+.factor-item{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--slate-700);padding:8px 12px;border-radius:8px;background:var(--slate-50)}
+.factor-item .pip{flex-shrink:0;width:8px;height:8px;border-radius:50%}
+.factor-item.has .pip{background:var(--green-500)}
+.factor-item.miss .pip{background:var(--slate-300)}
+.factor-item .w{margin-left:auto;font-size:12px;color:var(--slate-400);font-weight:600}
+
+.checklist{display:grid;grid-template-columns:1fr;gap:8px;margin-top:16px}
+@media(min-width:640px){.checklist{grid-template-columns:1fr 1fr}}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid var(--slate-200);border-radius:10px;background:#fff;font-size:14px}
+.check-item .cat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--slate-400);margin-top:4px;background:var(--slate-100);padding:2px 6px;border-radius:4px;flex-shrink:0}
+.check-item .lbl{flex:1;color:var(--slate-700);line-height:1.4}
+.check-item .req{font-size:11px;font-weight:700;color:var(--red-500);margin-left:auto}
+
+.flag-list{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.flag{padding:14px 16px;border-radius:12px;border-left:4px solid var(--slate-300);background:var(--slate-50)}
+.flag.high{border-color:var(--red-500);background:var(--red-50)}
+.flag.medium{border-color:var(--amber-500);background:var(--amber-50)}
+.flag.low{border-color:var(--blue-500);background:var(--blue-50)}
+.flag.blocking{border-color:var(--red-600);background:var(--red-50)}
+.flag .flag-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.flag .severity{font-size:11px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:99px}
+.flag.high .severity,.flag.blocking .severity{background:var(--red-100,#fee2e2);color:var(--red-600)}
+.flag.medium .severity{background:var(--amber-100);color:var(--amber-600)}
+.flag.low .severity{background:var(--blue-100);color:var(--blue-700)}
+.flag .issue{font-size:14px;font-weight:600;color:var(--slate-900)}
+.flag .rec{font-size:13px;color:var(--slate-600);margin-top:4px}
+
+.btn-row{display:flex;gap:12px;margin-top:28px;justify-content:space-between}
+.btn{padding:12px 24px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all 180ms;font-family:inherit;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;box-shadow:0 4px 12px rgba(37,99,235,0.3)}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px rgba(37,99,235,0.4)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--slate-600)}
+.btn-ghost:hover{background:var(--slate-100)}
+.btn-outline{background:#fff;border:1.5px solid var(--slate-300);color:var(--slate-700)}
+.btn-outline:hover{border-color:var(--slate-400);background:var(--slate-50)}
+
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 600ms linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.ai-think{display:flex;align-items:center;gap:10px;color:var(--violet-600);font-size:14px;font-weight:600;margin:12px 0}
+.ai-think .dot{width:6px;height:6px;border-radius:50%;background:var(--violet-600);animation:pulse 1400ms ease-in-out infinite}
+.ai-think .dot:nth-child(2){animation-delay:200ms}
+.ai-think .dot:nth-child(3){animation-delay:400ms}
+@keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+
+.attorney-card{padding:18px;border:1px solid var(--slate-200);border-radius:14px;background:#fff;display:flex;gap:16px;align-items:flex-start;margin-bottom:10px}
+.attorney-avatar{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--blue-600),var(--violet-600));color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.attorney-info{flex:1}
+.attorney-info .name{font-size:16px;font-weight:700;color:var(--slate-900)}
+.attorney-info .meta{font-size:13px;color:var(--slate-500);margin-top:2px}
+.attorney-info .reasons{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.attorney-info .pill{font-size:11px;padding:3px 8px;border-radius:99px;background:var(--slate-100);color:var(--slate-700);font-weight:600}
+.attorney-info .match{display:inline-block;font-size:12px;font-weight:700;color:var(--green-700);background:var(--green-100);padding:3px 8px;border-radius:99px;margin-top:4px}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--slate-900);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);z-index:1000;opacity:0;pointer-events:none;transition:opacity 200ms}
+.toast.show{opacity:1}
+
+.compliance-banner{background:linear-gradient(135deg,var(--blue-50),var(--violet-50));padding:14px 18px;border-radius:12px;font-size:13px;color:var(--slate-700);display:flex;align-items:center;gap:10px;margin-bottom:24px;border:1px solid var(--blue-100)}
+.compliance-banner .icon{font-size:18px}
+.compliance-banner strong{color:var(--blue-700)}
+
+.skip-link{font-size:13px;color:var(--slate-500);text-decoration:underline;margin-top:16px;display:inline-block;cursor:pointer}
+.skip-link:hover{color:var(--slate-700)}
+</style>
+</head>
+<body>
+<div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+<div class="shell">
+
+<a class="brand" href="/">
+    <div class="brand-mark">V</div>
+    <div class="brand-text">Verom<span class="ai">.ai</span></div>
+</a>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="progress-meta">
+    <span class="step-name" id="stepName">Welcome</span>
+    <span id="stepCount">Step 1 of 7</span>
+</div>
+
+<div class="compliance-banner">
+    <span class="icon">&#128274;</span>
+    <span>Verom is a <strong>technology platform</strong> — we organize information and help you connect with verified attorneys. Verom does not provide legal advice. <strong>Your data is encrypted</strong> and never shared without your consent.</span>
+</div>
+
+<div id="stage"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+// ----- State -----
+var state = {
+    step: 1,
+    family: null,
+    country: null,
+    visaType: null,
+    visaName: null,
+    questions: [],
+    answers: {},
+    score: null,
+    flags: [],
+    checklist: null,
+    sessionId: null,
+};
+
+var STEP_NAMES = ['Welcome','Visa Family','Destination','Recommended Visa','Eligibility','Strength + Issues','Documents','Match'];
+var TOTAL_STEPS = 7;
+
+var stage = document.getElementById('stage');
+var progressFill = document.getElementById('progressFill');
+var stepName = document.getElementById('stepName');
+var stepCount = document.getElementById('stepCount');
+
+function updateProgress(){
+    var pct = Math.round(((state.step - 1) / TOTAL_STEPS) * 100);
+    progressFill.style.width = pct + '%';
+    stepName.textContent = STEP_NAMES[state.step] || '';
+    stepCount.textContent = 'Step ' + state.step + ' of ' + TOTAL_STEPS;
+}
+
+function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
+
+function api(path, opts){
+    opts = opts || {};
+    opts.headers = opts.headers || {};
+    opts.headers['Content-Type'] = 'application/json';
+    var token = localStorage.getItem('verom_token');
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(path, opts).then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error(t || ('HTTP ' + r.status)); });
+        return r.status === 204 ? null : r.json();
+    });
+}
+
+// ----- Step 1: Visa Family -----
+function renderStep1(){
+    state.step = 1;
+    updateProgress();
+    var families = [
+        { id: 'student', icon: '\u{1F393}', title: 'Student', desc: 'Study at a university, college, or language school' },
+        { id: 'work', icon: '\u{1F4BC}', title: 'Work', desc: 'Employment, transfer, or specialty occupation' },
+        { id: 'family', icon: '\u{1F46A}', title: 'Family / Spouse', desc: 'Join family or marry abroad' },
+        { id: 'pr', icon: '\u{1F3E0}', title: 'Permanent Residency', desc: 'Green Card, ILR, PR, citizenship pathway' },
+        { id: 'investor', icon: '\u{1F4C8}', title: 'Investor / Entrepreneur', desc: 'Build a business or invest abroad' },
+    ];
+    var html = '<div class="card">';
+    html += '<h1>What’s your immigration goal?</h1>';
+    html += '<p class="lead">We’ll personalize the rest of this experience based on your goal. Your answers stay private.</p>';
+    html += '<div class="option-grid">';
+    families.forEach(function(f){
+        html += '<button class="option" data-family="' + f.id + '">';
+        html += '<div class="icon">' + f.icon + '</div>';
+        html += '<div class="title">' + f.title + '</div>';
+        html += '<div class="desc">' + f.desc + '</div>';
+        html += '</button>';
+    });
+    html += '</div></div>';
+    stage.innerHTML = html;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-family]'), function(btn){
+        btn.addEventListener('click', function(){
+            state.family = btn.getAttribute('data-family');
+            renderStep2();
+        });
+    });
+}
+
+// ----- Step 2: Destination Country -----
+function renderStep2(){
+    state.step = 2;
+    updateProgress();
+    var countries = [
+        { code: 'US', icon: '\u{1F1FA}\u{1F1F8}', name: 'United States' },
+        { code: 'UK', icon: '\u{1F1EC}\u{1F1E7}', name: 'United Kingdom' },
+        { code: 'CA', icon: '\u{1F1E8}\u{1F1E6}', name: 'Canada' },
+        { code: 'AU', icon: '\u{1F1E6}\u{1F1FA}', name: 'Australia' },
+        { code: 'DE', icon: '\u{1F1E9}\u{1F1EA}', name: 'Germany' },
+        { code: 'NZ', icon: '\u{1F1F3}\u{1F1FF}', name: 'New Zealand' },
+    ];
+    var html = '<div class="card">';
+    html += '<h1>Where are you headed?</h1>';
+    html += '<p class="lead">Pick your destination country. We support six major immigration corridors today.</p>';
+    html += '<div class="option-grid country-grid">';
+    countries.forEach(function(c){
+        html += '<button class="option" data-country="' + c.code + '">';
+        html += '<div class="icon">' + c.icon + '</div>';
+        html += '<div class="title">' + c.name + '</div>';
+        html += '</button>';
+    });
+    html += '</div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back2">← Back</button><div></div></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+    document.getElementById('back2').addEventListener('click', renderStep1);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-country]'), function(btn){
+        btn.addEventListener('click', function(){
+            state.country = btn.getAttribute('data-country');
+            renderStep3();
+        });
+    });
+}
+
+// ----- Step 3: Visa Type Recommendation -----
+function renderStep3(){
+    state.step = 3;
+    updateProgress();
+    var html = '<div class="card">';
+    html += '<h1>Recommended visa types</h1>';
+    html += '<p class="lead">Based on your goal and destination, here’s what fits. Select the one that matches your situation.</p>';
+    html += '<div class="ai-think"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>AI is matching visa types…</span></div>';
+    html += '<div id="visaList" class="visa-list"></div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back3">← Back</button><button class="btn btn-primary" id="next3" disabled>Continue →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+    document.getElementById('back3').addEventListener('click', renderStep2);
+
+    api('/api/intake/visa-types?country=' + encodeURIComponent(state.country) + '&family=' + encodeURIComponent(state.family))
+        .then(function(visas){
+            var list = document.getElementById('visaList');
+            var think = document.querySelector('.ai-think');
+            if (think) think.remove();
+            if (!visas.length){
+                list.innerHTML = '<p style="color:var(--slate-500);font-size:14px">No matching visa types yet for this combo. We’re expanding coverage — please contact support.</p>';
+                return;
+            }
+            // Rank: arbitrary order from API, mark first as best fit
+            visas.forEach(function(v, i){
+                var row = document.createElement('div');
+                row.className = 'visa-row';
+                row.setAttribute('data-visa', v.visa_type);
+                row.setAttribute('data-name', v.name);
+                row.innerHTML = '<div class="visa-rank">' + (i+1) + '</div>'
+                    + '<div class="visa-info"><div class="name">' + v.name + '</div>'
+                    + '<div class="meta">' + v.country + ' · ' + v.agency + '</div></div>'
+                    + (i === 0 ? '<div class="visa-fit">Best fit</div>' : '');
+                row.addEventListener('click', function(){
+                    Array.prototype.forEach.call(list.querySelectorAll('.visa-row'), function(r){ r.classList.remove('selected'); });
+                    row.classList.add('selected');
+                    state.visaType = v.visa_type;
+                    state.visaName = v.name;
+                    document.getElementById('next3').disabled = false;
+                });
+                list.appendChild(row);
+            });
+        })
+        .catch(function(e){ toast('Could not load visa types: ' + e.message); });
+
+    document.getElementById('next3').addEventListener('click', renderStep4);
+}
+
+// ----- Step 4: Eligibility Questionnaire -----
+function renderStep4(){
+    state.step = 4;
+    updateProgress();
+    var html = '<div class="card">';
+    html += '<h1>Eligibility check</h1>';
+    html += '<p class="lead">Quick yes/no questions for the <strong>' + state.visaName + '</strong>. We’ll surface any blockers immediately.</p>';
+    html += '<div id="qList" class="q-list"><div class="ai-think"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Loading questionnaire…</span></div></div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back4">← Back</button><button class="btn btn-primary" id="next4" disabled>Continue →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+    document.getElementById('back4').addEventListener('click', renderStep3);
+
+    api('/api/intake/visa-types/' + encodeURIComponent(state.visaType) + '/questionnaire')
+        .then(function(data){
+            state.questions = data.questions;
+            renderQuestions();
+        })
+        .catch(function(e){ toast('Could not load questionnaire: ' + e.message); });
+
+    document.getElementById('next4').addEventListener('click', renderStep5);
+}
+
+function renderQuestions(){
+    var list = document.getElementById('qList');
+    list.innerHTML = '';
+    state.questions.forEach(function(q){
+        var div = document.createElement('div');
+        div.className = 'q';
+        div.setAttribute('data-qid', q.id);
+        var html = '<div class="q-text">' + q.label + (q.required ? '<span class="req">*</span>' : '') + '</div>';
+        if (q.type === 'boolean'){
+            html += '<div class="options"><button class="opt-btn" data-val="true">Yes</button><button class="opt-btn no" data-val="false">No</button></div>';
+        } else if (q.type === 'select'){
+            html += '<select><option value="">Choose…</option>';
+            q.options.forEach(function(o){ html += '<option value="' + o + '">' + o + '</option>'; });
+            html += '</select>';
+        } else if (q.type === 'number'){
+            html += '<input type="number" placeholder="Enter a number" />';
+        } else {
+            html += '<input type="text" placeholder="Enter…" />';
+        }
+        div.innerHTML = html;
+        list.appendChild(div);
+
+        if (q.type === 'boolean'){
+            Array.prototype.forEach.call(div.querySelectorAll('.opt-btn'), function(btn){
+                btn.addEventListener('click', function(){
+                    Array.prototype.forEach.call(div.querySelectorAll('.opt-btn'), function(b){ b.classList.remove('selected'); });
+                    btn.classList.add('selected');
+                    state.answers[q.id] = btn.getAttribute('data-val') === 'true';
+                    div.classList.add('answered');
+                    checkComplete();
+                });
+            });
+        } else if (q.type === 'select'){
+            div.querySelector('select').addEventListener('change', function(e){
+                state.answers[q.id] = e.target.value;
+                if (e.target.value){ div.classList.add('answered'); }
+                checkComplete();
+            });
+        } else if (q.type === 'number'){
+            div.querySelector('input').addEventListener('input', function(e){
+                state.answers[q.id] = parseFloat(e.target.value);
+                if (e.target.value){ div.classList.add('answered'); }
+                checkComplete();
+            });
+        } else {
+            div.querySelector('input').addEventListener('input', function(e){
+                state.answers[q.id] = e.target.value;
+                if (e.target.value){ div.classList.add('answered'); }
+                checkComplete();
+            });
+        }
+    });
+}
+
+function checkComplete(){
+    var requiredAnswered = state.questions.every(function(q){
+        if (!q.required) return true;
+        var v = state.answers[q.id];
+        return v !== undefined && v !== null && v !== '';
+    });
+    document.getElementById('next4').disabled = !requiredAnswered;
+}
+
+// ----- Step 5: Strength Score + Red Flags -----
+function renderStep5(){
+    state.step = 5;
+    updateProgress();
+    var html = '<div class="card">';
+    html += '<div class="ai-think"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>AI is analyzing your case…</span></div>';
+    html += '<div id="scoreContainer"></div>';
+    html += '<div class="btn-row" style="margin-top:24px"><button class="btn btn-ghost" id="back5">← Back</button><button class="btn btn-primary" id="next5">See document checklist →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+    document.getElementById('back5').addEventListener('click', renderStep4);
+    document.getElementById('next5').addEventListener('click', renderStep6);
+
+    Promise.all([
+        api('/api/intake/score-strength?visa_type=' + encodeURIComponent(state.visaType), {
+            method: 'POST',
+            body: JSON.stringify(state.answers)
+        }),
+        api('/api/intake/red-flags?visa_type=' + encodeURIComponent(state.visaType), {
+            method: 'POST',
+            body: JSON.stringify(state.answers)
+        }),
+        api('/api/intake/validate?visa_type=' + encodeURIComponent(state.visaType), {
+            method: 'POST',
+            body: JSON.stringify(state.answers)
+        })
+    ]).then(function(results){
+        state.score = results[0];
+        state.flags = results[1];
+        state.validation = results[2];
+        renderScoreDetail();
+    }).catch(function(e){ toast('Analysis error: ' + e.message); });
+}
+
+function renderScoreDetail(){
+    var c = document.getElementById('scoreContainer');
+    var s = state.score;
+    var think = document.querySelector('.ai-think');
+    if (think) think.remove();
+
+    var ringOffset = 440 - (440 * s.score / 100);
+    var tierClass = 'tier-' + s.tier;
+    var ringColor = s.tier === 'excellent' ? 'var(--green-500)'
+                  : s.tier === 'strong' ? 'var(--blue-600)'
+                  : s.tier === 'moderate' ? 'var(--amber-500)'
+                  : 'var(--red-500)';
+
+    var html = '<h1>Your case strength</h1>';
+    html += '<p class="lead">Based on your answers, here’s where you stand. This is rules-based AI — every factor is explainable.</p>';
+    html += '<div class="score-card">';
+    html += '<div class="score-ring"><svg viewBox="0 0 160 160">';
+    html += '<circle class="ring-bg" cx="80" cy="80" r="70" fill="none" stroke-width="10"/>';
+    html += '<circle class="ring-fill" cx="80" cy="80" r="70" fill="none" stroke-width="10" stroke="' + ringColor + '" style="stroke-dashoffset:' + ringOffset + '"/>';
+    html += '</svg><div class="score-num"><div class="n">' + s.score + '</div><div class="label">/ 100</div></div></div>';
+    html += '<div class="score-tier ' + tierClass + '">' + s.tier.toUpperCase() + '</div>';
+    html += '</div>';
+
+    html += '<div class="factors-grid">';
+    html += '<div class="factor-block"><h4>Strengths in your favor</h4><div class="factor-list">';
+    if (s.strengths.length === 0) html += '<div style="color:var(--slate-400);font-size:14px;padding:8px">None yet</div>';
+    s.strengths.forEach(function(f){
+        html += '<div class="factor-item has"><div class="pip"></div><span>' + f.description + '</span><span class="w">+' + f.weight + '</span></div>';
+    });
+    html += '</div></div>';
+    html += '<div class="factor-block"><h4>Areas to strengthen</h4><div class="factor-list">';
+    if (s.missing_factors.length === 0) html += '<div style="color:var(--slate-400);font-size:14px;padding:8px">All strong!</div>';
+    s.missing_factors.slice(0, 8).forEach(function(f){
+        html += '<div class="factor-item miss"><div class="pip"></div><span>' + f.description + '</span><span class="w">' + f.weight + '</span></div>';
+    });
+    html += '</div></div></div>';
+
+    // Red flags
+    if (state.flags && state.flags.length){
+        html += '<h4 style="margin-top:32px;margin-bottom:8px;font-size:16px;font-weight:700">⚠️ Issues to address before filing</h4>';
+        html += '<div class="flag-list">';
+        state.flags.forEach(function(f){
+            html += '<div class="flag ' + f.severity + '">';
+            html += '<div class="flag-head"><span class="severity">' + f.severity + '</span></div>';
+            html += '<div class="issue">' + f.issue + '</div>';
+            html += '<div class="rec">' + f.recommendation + '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+
+    // Validation
+    if (state.validation && !state.validation.ok && state.validation.blocking_issues.length){
+        html += '<h4 style="margin-top:32px;margin-bottom:8px;font-size:16px;font-weight:700;color:var(--red-600)">⛔ Eligibility blockers</h4>';
+        html += '<div class="flag-list">';
+        state.validation.blocking_issues.forEach(function(b){
+            html += '<div class="flag blocking">';
+            html += '<div class="flag-head"><span class="severity">blocking</span></div>';
+            html += '<div class="issue">' + b.issue + '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+
+    c.innerHTML = html;
+    // Animate ring
+    setTimeout(function(){
+        var ring = c.querySelector('.ring-fill');
+        if (ring){ ring.style.strokeDashoffset = ringOffset; }
+    }, 50);
+}
+
+// ----- Step 6: Documents -----
+function renderStep6(){
+    state.step = 6;
+    updateProgress();
+    var html = '<div class="card">';
+    html += '<h1>Your personalized document checklist</h1>';
+    html += '<p class="lead">Based on your answers, you’ll need these specific documents. We’ll help you upload, organize, and validate each one.</p>';
+    html += '<div class="ai-think"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Generating checklist…</span></div>';
+    html += '<div id="docList"></div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back6">← Back</button><button class="btn btn-primary" id="next6">Find an attorney →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+    document.getElementById('back6').addEventListener('click', renderStep5);
+    document.getElementById('next6').addEventListener('click', renderStep7);
+
+    api('/api/intake/document-checklist?visa_type=' + encodeURIComponent(state.visaType), {
+        method: 'POST',
+        body: JSON.stringify(state.answers)
+    }).then(function(c){
+        state.checklist = c;
+        // Persist for the document collection page
+        try {
+            localStorage.setItem('verom_intake_visa', state.visaType);
+            localStorage.setItem('verom_intake_visa_name', state.visaName);
+        } catch (e) {}
+        renderChecklist();
+        // Add a quick link to the full upload portal
+        var docList = document.getElementById('docList');
+        if (docList){
+            var note = document.createElement('div');
+            note.style.cssText = 'margin-top:18px;padding:14px 16px;background:var(--blue-50);border:1px solid var(--blue-100);border-radius:11px;font-size:13px;color:var(--slate-700);display:flex;justify-content:space-between;align-items:center;gap:12px';
+            note.innerHTML = '<span>Ready to upload? Drop your files into the document collection portal — we will validate, classify, and link them to this checklist automatically.</span><a href="/intake/documents?visa_type=' + encodeURIComponent(state.visaType) + '&visa_name=' + encodeURIComponent(state.visaName) + '" class="btn btn-outline" style="white-space:nowrap">Open uploader →</a>';
+            docList.appendChild(note);
+        }
+    }).catch(function(e){ toast('Checklist error: ' + e.message); });
+}
+
+function renderChecklist(){
+    var c = state.checklist;
+    var think = document.querySelector('.ai-think');
+    if (think) think.remove();
+
+    var byCategory = {};
+    c.items.forEach(function(item){
+        if (!byCategory[item.category]) byCategory[item.category] = [];
+        byCategory[item.category].push(item);
+    });
+    var order = ['identity','sponsor','education','financial','civil','health','background','evidentiary','supporting'];
+    var html = '<p style="font-size:13px;color:var(--slate-500);margin-bottom:16px">' + c.total + ' documents total</p>';
+    order.forEach(function(cat){
+        if (!byCategory[cat]) return;
+        html += '<h4 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate-500);margin-top:20px;margin-bottom:8px">' + cat + '</h4>';
+        html += '<div class="checklist">';
+        byCategory[cat].forEach(function(item){
+            html += '<div class="check-item">';
+            html += '<span class="cat">' + cat.slice(0,3) + '</span>';
+            html += '<span class="lbl">' + item.label + '</span>';
+            if (item.required) html += '<span class="req">REQUIRED</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+    });
+    document.getElementById('docList').innerHTML = html;
+}
+
+// ----- Step 7: Attorney Match -----
+function renderStep7(){
+    state.step = 7;
+    updateProgress();
+    var html = '<div class="card">';
+    html += '<h1>Verified attorneys ready to help</h1>';
+    html += '<p class="lead">We’ve matched you with attorneys whose specialization, jurisdiction, and capacity fit your case.</p>';
+    html += '<div class="ai-think"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Matching attorneys…</span></div>';
+    html += '<div id="attorneyList"></div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" id="back7">← Back</button><button class="btn btn-primary" id="finish">Save & continue to dashboard →</button></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+    document.getElementById('back7').addEventListener('click', renderStep6);
+    document.getElementById('finish').addEventListener('click', function(){
+        window.location.href = '/applicant';
+    });
+
+    var redFlagCodes = (state.flags || []).map(function(f){ return f.code; }).filter(Boolean);
+    api('/api/match/run', {
+        method: 'POST',
+        body: JSON.stringify({
+            visa_type: state.visaType,
+            country: state.country,
+            applicant_languages: ['English'],
+            red_flag_codes: redFlagCodes,
+            urgency: 'standard',
+            limit: 5
+        })
+    }).then(function(m){
+        var think = document.querySelector('.ai-think');
+        if (think) think.remove();
+        var html = '';
+        if (!m.results || !m.results.length){
+            html = '<div style="padding:24px;text-align:center;color:var(--slate-500);font-size:14px">No matching attorneys found in this country yet — we are expanding coverage. Contact support for a manual referral.</div>';
+        }
+        m.results.forEach(function(a){
+            var initials = a.name.split(' ').map(function(s){ return s[0]; }).join('');
+            html += '<div class="attorney-card">';
+            html += '<div class="attorney-avatar">' + initials + '</div>';
+            html += '<div class="attorney-info">';
+            html += '<div class="name">' + a.name + '</div>';
+            html += '<div class="meta">' + a.years_experience + ' yrs · ' + Math.round(a.approval_rate * 100) + '% approval · ' + a.avg_response_time_hours + 'hr response</div>';
+            html += '<div class="match">' + a.match_score + '/100 match</div>';
+            html += '<div class="reasons">';
+            (a.reasons || []).forEach(function(r){ html += '<span class="pill">' + r + '</span>'; });
+            html += '</div></div></div>';
+        });
+        document.getElementById('attorneyList').innerHTML = html;
+    }).catch(function(e){
+        var think = document.querySelector('.ai-think');
+        if (think) think.remove();
+        document.getElementById('attorneyList').innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate-500);font-size:14px">Could not load matches: ' + e.message + '</div>';
+    });
+}
+
+renderStep1();
+})();
+</script>
+</body>
+</html>

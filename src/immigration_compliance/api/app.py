@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
@@ -317,6 +318,54 @@ def serve_anti_fraud_policy() -> HTMLResponse:
 @app.get("/applicant-protection", response_class=HTMLResponse)
 def serve_applicant_protection() -> HTMLResponse:
     return _serve_html(_frontend_dir / "applicant-protection.html", "Applicant protection policy not found.")
+
+@app.get("/onboarding/applicant", response_class=HTMLResponse)
+def serve_onboarding_applicant() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "onboarding-applicant.html", "Applicant onboarding not found.")
+
+@app.get("/onboarding/attorney", response_class=HTMLResponse)
+def serve_onboarding_attorney() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "onboarding-attorney.html", "Attorney onboarding not found.")
+
+@app.get("/intake/documents", response_class=HTMLResponse)
+def serve_document_collection() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "document-collection.html", "Document collection not found.")
+
+@app.get("/forms", response_class=HTMLResponse)
+def serve_forms_workspace() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "forms-workspace.html", "Forms workspace not found.")
+
+@app.get("/case", response_class=HTMLResponse)
+def serve_case_workspace() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "case-workspace.html", "Case workspace not found.")
+
+@app.get("/workbench", response_class=HTMLResponse)
+def serve_workbench() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "workbench.html", "Workbench not found.")
+
+@app.get("/petition-letter", response_class=HTMLResponse)
+def serve_petition_letter_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "petition-letter.html", "Petition letter UI not found.")
+
+@app.get("/rfe-response", response_class=HTMLResponse)
+def serve_rfe_response_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "rfe-response.html", "RFE response UI not found.")
+
+@app.get("/family-bundle", response_class=HTMLResponse)
+def serve_family_bundle_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "family-bundle.html", "Family bundle UI not found.")
+
+@app.get("/calendar", response_class=HTMLResponse)
+def serve_calendar_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "calendar.html", "Calendar sync UI not found.")
+
+@app.get("/migrate", response_class=HTMLResponse)
+def serve_migrate_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "migrate.html", "Migration UI not found.")
+
+@app.get("/packets", response_class=HTMLResponse)
+def serve_packets_page() -> HTMLResponse:
+    return _serve_html(_frontend_dir / "packets.html", "Packets UI not found.")
 
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
