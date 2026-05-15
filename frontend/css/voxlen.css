@@ -1,0 +1,85 @@
+.voxlen-widget {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--surface, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: inherit;
+}
+
+.voxlen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+
+.voxlen-title::before {
+  content: "🎙 ";
+}
+
+.voxlen-status {
+  font-size: 0.85rem;
+  color: var(--muted, #6b7280);
+  font-weight: 400;
+}
+
+.voxlen-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.voxlen-controls button,
+.voxlen-controls select {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #d1d5db);
+  background: var(--surface-alt, #f9fafb);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.voxlen-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voxlen-controls button[data-role="start"]:not(:disabled) {
+  background: var(--primary, #2563eb);
+  color: #fff;
+  border-color: transparent;
+}
+
+.voxlen-controls button[data-role="stop"]:not(:disabled) {
+  background: var(--danger, #dc2626);
+  color: #fff;
+  border-color: transparent;
+}
+
+.voxlen-widget textarea {
+  width: 100%;
+  min-height: 180px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.95rem;
+  padding: 10px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.voxlen-commands {
+  min-height: 1.2em;
+  font-size: 0.8rem;
+  color: var(--muted, #6b7280);
+  font-style: italic;
+}
+
+.voxlen-hint {
+  font-size: 0.75rem;
+  color: var(--muted, #6b7280);
+  margin: 0;
+}

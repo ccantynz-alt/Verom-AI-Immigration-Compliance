@@ -249,6 +249,7 @@
             .nav-inner { position: relative; }
         }
     </style>
+    <link rel="stylesheet" href="/static/css/voxlen.css">
 </head>
 <body>
 <script src="/static/js/auth.js"></script>
@@ -819,6 +820,42 @@
     }
 })();
 </script>
+
+<section class="app-section" style="max-width:960px;margin:24px auto;padding:0 16px;">
+    <h2 style="margin-bottom:12px;">Voice Dictation (Voxlen)</h2>
+    <p style="color:#6b7280;margin-bottom:16px;">
+        Dictate RFE responses, support letters, client memos, and case notes directly into Verom.
+        Voice commands, grammar polish, and multi-format export are built in.
+    </p>
+    <div class="voxlen-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <button type="button" data-tpl="rfe_response" class="voxlen-tab active">RFE Response</button>
+        <button type="button" data-tpl="cover_letter" class="voxlen-tab">Cover Letter</button>
+        <button type="button" data-tpl="support_letter" class="voxlen-tab">Support Letter</button>
+        <button type="button" data-tpl="client_memo" class="voxlen-tab">Client Memo</button>
+        <button type="button" data-tpl="case_note" class="voxlen-tab">Case Note</button>
+    </div>
+    <div id="voxlen-mount" data-voxlen="attorney" data-template="rfe_response"
+         data-style="legal_formal" data-language="en-US"
+         data-title="RFE Response"></div>
+</section>
+<script>
+(function(){
+    var tabs = document.querySelectorAll('.voxlen-tab');
+    var mount = document.getElementById('voxlen-mount');
+    tabs.forEach(function(btn){
+        btn.addEventListener('click', function(){
+            tabs.forEach(function(b){ b.classList.remove('active'); });
+            btn.classList.add('active');
+            mount.dataset.template = btn.dataset.tpl;
+            mount.dataset.title = btn.textContent.trim();
+            mount.innerHTML = '';
+            mount.__voxlen = null;
+            window.Voxlen && window.Voxlen.mount();
+        });
+    });
+})();
+</script>
+<script src="/static/js/voxlen.js" defer></script>
 
 </body>
 </html>

@@ -1,0 +1,9 @@
+# Core memory library has zero third-party dependencies — uses only the
+# Python stdlib (sqlite3 with FTS5, hashlib, array).
+#
+# The MCP server wrapper requires Anthropic's MCP SDK:
+mcp>=1.0.0
+
+# Optional: plug in a real embedding model. The default hash_embedder is
+# reproducible and fast but not as semantically rich. Uncomment if desired.
+# sentence-transformers>=2.7.0

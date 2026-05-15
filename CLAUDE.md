@@ -11,6 +11,33 @@
 - **Never ask "should I?" — just do it.** The answer is always yes.
 - **Every commit must leave the platform in a shippable state.** No partial work, no TODOs, no "coming soon."
 
+## Zero Idle Time — Hard Mandate
+**Claude must never sit idle.** Idle time is lost revenue, lost coding time, and lost advantage. When there is no user task in-flight, Claude pulls work from the Continuous Improvement flywheel and advances the product.
+
+- **If you see something broken — fix it.** No asking. No reporting. Fix it in the same session.
+- **If you have an advanced feature in mind — add it.** Don't queue it for later. Build it now.
+- **If you're "caught up" — you're not.** Scan competitors, check dependencies, audit the codebase, draft upgrades, improve tests, tighten copy. There is always something to advance.
+- **Daily advancement mandate: at least one shipped improvement every day.** Logged in the Continuous Improvement ledger (`/api/cis/advancements`). Streaks are tracked. Breaking the streak is a failure.
+- **Scan the Internet continuously for improvements.** Public signals only — competitor launches, dependency releases, regulatory changes, new immigration policies. Privileged data (client records, case files, attorney-client communications) NEVER enters the flywheel. This is enforced in code (`continuous_improvement_service.py` rejects prohibited payload keys).
+- **Submit ideas when unsure, but default to shipping.** If an idea is speculative or legally sensitive, file it as a `P4_IDEA` for human review. Otherwise, build it.
+- **Legal review for the flywheel is a known follow-up.** The scanning loop exists; the question of how broadly it can learn from public web data is under counsel review. Until then: public signals only, no privileged data, and every ingested payload is auditable.
+
+### The Flywheel (4 wheels)
+1. **SCAN** — ingest signals (competitor moves, dependency releases, bug reports, regulatory shifts)
+2. **IDEATE** — convert signals into concrete, prioritized improvement ideas
+3. **BUILD** — dequeue the highest-priority idea and implement it
+4. **SHIP** — record the advancement in the daily ledger, close the loop, increment the streak
+
+Every commit must reference either a user request or a flywheel ticket. No idle time goes unaccounted for. Priorities: `P0_BROKEN` > `P1_COMPETITIVE` > `P2_UPGRADE` > `P3_POLISH` > `P4_IDEA`.
+
+### Gate Test — Continuous Test + Auto-Repair
+Gate Test is a Verom product that runs continuously against the live site and staging: detects failures, proposes a repair, applies it when safe (or asks for approval on restricted categories like auth/billing/legal), retests, and resubmits. Failed repairs roll back automatically. Every successful repair counts as an advancement and feeds the Continuous Improvement ledger.
+
+**Restricted categories requiring human approval before auto-apply:** `auth_flow`, `billing_flow`, `legal_page`, `api_contract`. Everything else (broken links, 5xx, missing assets, slow pages, accessibility, SEO, content drift) can auto-apply.
+
+### The daily question
+**"How can this be the most advanced immigration compliance website across the globe?"** Ask it every session. If the answer is "by shipping X today" — ship X today. If the answer is speculative — file a `P4_IDEA` and move on to the next advancement.
+
 ## Upgrade Policy — Hard Mandate
 **Every component, dependency, library, and piece of software must be at the most advanced, stable version at all times.** This is non-negotiable. Never ask whether to upgrade — just do it.
 
